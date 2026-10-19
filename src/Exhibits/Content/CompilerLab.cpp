@@ -60,7 +60,7 @@ public:
         p.AddChoice("Picture", {"coin.png", "brick.png"}, 0, [this](int v) { source_ = v; dirty_ = true; });
         p.AddChoice("TextureContent type", {"Texture2DContent", "TextureCubeContent", "Texture3DContent"}, 0, [this](int v) { shape_ = v; dirty_ = true; });
         p.AddToggle("TextureProcessor.GenerateMipmaps", false, [this](bool v) { mipmaps_ = v; dirty_ = true; });
-        p.AddChoice("CompileOptions.compressContent", {"none", "LZ4", "LZX"}, 0, [this](int v) { compression_ = v; dirty_ = true; });
+        p.AddChoice("CompileOptions.compressContent", {"none", "LZX"}, 0, [this](int v) { compression_ = v; dirty_ = true; });
         p.AddChoice("CompileOptions.targetProfile", {"Reach", "HiDef"}, 0, [this](int v) { hidef_ = v == 1; dirty_ = true; });
         p.AddChoice("CompileOptions.targetPlatform", {"Windows", "WindowsPhone", "Xbox360"}, 0, [this](int v) { platform_ = v; dirty_ = true; });
         p.AddReadout("Processed texture", [this] { return processed_; });
@@ -160,24 +160,22 @@ private:
             options.targetPlatform = platform_ == 0 ? Xna::TargetPlatform::Windows : platform_ == 1 ? Xna::TargetPlatform::WindowsPhone : Xna::TargetPlatform::Xbox360;
             options.targetProfile = hidef_ ? GraphicsProfile::HiDef : GraphicsProfile::Reach;
             options.assetName = "compiled";
-            options.container.platform = platform_ == 0 ? CNA::Internal::Xnb::XnbTargetPlatform::Windows : platform_ == 1 ? CNA::Internal::Xnb::XnbTargetPlatform::WindowsPhone : CNA::Internal::Xnb::XnbTargetPlatform::Xbox360;
-            options.container.graphicsProfile = hidef_ ? CNA::Internal::Xnb::XnbGraphicsProfile::HiDef : CNA::Internal::Xnb::XnbGraphicsProfile::Reach;
-            options.container.compression = compression_ == 0 ? CNA::Internal::Xnb::XnbOutputCompression::None : compression_ == 1 ? CNA::Internal::Xnb::XnbOutputCompression::Lz4 : CNA::Internal::Xnb::XnbOutputCompression::Lzx;
             options.compressContent = compression_ != 0;
-            CNA::Internal::Xnb::XnbAssetWriteResult result;
-            if (shape_ == 0) {
-                processed_ += "one face, " + Kb(raw);
-                result = compiler.Compile<PipeGfx::Texture2DContent>(texture, options);
-            } else if (shape_ == 1) {
-                auto cube = std::make_shared<PipeGfx::TextureCubeContent>();
-                for (int face = 0; face < 6; ++face)
-                    for (int level = 0; level < chain.getCountProperty(); ++level)
-                        std::as_const(cube->getFacesProperty())[face]->Add(chain[level]);
-                cube->Validate(options.targetProfile);
-                raw = oneFaceRaw * 6u;
-                processed_ += "six faces, " + Kb(raw);
-                result = compiler.Compile<PipeGfx::TextureCubeContent>(cube, options);
-            } else {
+            const auto result = [&] {
+                if (shape_ == 0) {
+                    processed_ += "one face, " + Kb(raw);
+                    return compiler.Compile<PipeGfx::Texture2DContent>(texture, options);
+                }
+                if (shape_ == 1) {
+                    auto cube = std::make_shared<PipeGfx::TextureCubeContent>();
+                    for (int face = 0; face < 6; ++face)
+                        for (int level = 0; level < chain.getCountProperty(); ++level)
+                            std::as_const(cube->getFacesProperty())[face]->Add(chain[level]);
+                    cube->Validate(options.targetProfile);
+                    raw = oneFaceRaw * 6u;
+                    processed_ += "six faces, " + Kb(raw);
+                    return compiler.Compile<PipeGfx::TextureCubeContent>(cube, options);
+                }
                 auto volume = std::make_shared<PipeGfx::Texture3DContent>();
                 constexpr int depth = 4;
                 raw = 0;
@@ -192,8 +190,8 @@ private:
                 }
                 volume->Validate(options.targetProfile);
                 processed_ += "four slices, " + Kb(raw);
-                result = compiler.Compile<PipeGfx::Texture3DContent>(volume, options);
-            }
+                return compiler.Compile<PipeGfx::Texture3DContent>(volume, options);
+            }();
             bytes_ = result.bytes;
             reader_ = result.rootReaderName.substr(0, result.rootReaderName.find(','));
             char ratio[64];

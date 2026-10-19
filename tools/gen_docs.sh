@@ -8,18 +8,29 @@
 # Everything between "<!-- BEGIN NAME -->" and "<!-- END NAME -->" is replaced; the rest is hand-written.
 set -eu
 cd "$(dirname "$0")/.." || exit 2
+mode=write
+case "${1:-}" in
+  "") ;;
+  --check) mode=check ;;
+  *) echo "usage: tools/gen_docs.sh [--check]" >&2; exit 2 ;;
+esac
 bin=${MUSEUM_BIN:-${BUILD_DIR:-build}/bin/cna-3d-museum}
 [ -x "$bin" ] || { echo "build first: tools/build.sh" >&2; exit 2; }
 splice() {   # splice FILE NAME CONTENTFILE
-  python3 -I - "$1" "$2" "$3" <<'PY'
+  python3 -I - "$1" "$2" "$3" "$mode" <<'PY'
 import sys, re
-path, name, content = sys.argv[1:4]
+path, name, content, mode = sys.argv[1:5]
 text = open(path).read()
 body = open(content).read().rstrip("\n")
 pattern = re.compile(r"(<!-- BEGIN %s -->\n).*?(<!-- END %s -->)" % (name, name), re.S)
 if not pattern.search(text):
     sys.exit("%s has no BEGIN/END %s markers" % (path, name))
-open(path, "w").write(pattern.sub(lambda m: m.group(1) + body + "\n" + m.group(2), text))
+expected = pattern.sub(lambda m: m.group(1) + body + "\n" + m.group(2), text)
+if mode == "check":
+    if text != expected:
+        sys.exit("%s generated %s block is stale; run tools/gen_docs.sh" % (path, name))
+else:
+    open(path, "w").write(expected)
 PY
 }
 tmp=${BUILD_DIR:-build}/gen_docs
@@ -29,6 +40,7 @@ mkdir -p "$tmp"
 splice README.md COUNTS "$tmp/counts.md"
 "$bin" --map-markdown > "$tmp/map.md";            splice docs/MUSEUM_MAP.md MAP "$tmp/map.md"
 "$bin" --coverage-markdown > "$tmp/coverage.md";  splice docs/CNA_COVERAGE.md COVERAGE "$tmp/coverage.md"
+reference="$tmp/reference_views.md"
 {
   echo "# Reference views"
   echo
@@ -38,5 +50,14 @@ splice README.md COUNTS "$tmp/counts.md"
   echo "| View | Room | What it shows |"
   echo "|---|---|---|"
   "$bin" --list-views | while IFS=$'\t' read -r name room shows; do echo "| \`$name\` | \`$room\` | $shows |"; done
-} > docs/REFERENCE_VIEWS.md
-echo "documentation regenerated"
+} > "$reference"
+if [ "$mode" = check ]; then
+  cmp -s "$reference" docs/REFERENCE_VIEWS.md || {
+    echo "docs/REFERENCE_VIEWS.md is stale; run tools/gen_docs.sh" >&2
+    exit 1
+  }
+  echo "documentation is current"
+else
+  cp "$reference" docs/REFERENCE_VIEWS.md
+  echo "documentation regenerated"
+fi

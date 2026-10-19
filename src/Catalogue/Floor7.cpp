@@ -44,7 +44,7 @@ WingSpec AudioWing()
             r.height = 5.2f;
             r.theme = "audio-hall";
             r.apis = {"Video", "VideoPlayer", "VideoPlayer.Play", "VideoPlayer.Pause", "VideoPlayer.Resume", "VideoPlayer.Stop", "VideoPlayer.GetTexture", "VideoPlayer.IsDisposed", "VideoPlayer.IsLooped", "VideoPlayer.IsMuted", "VideoPlayer.Video", "VideoPlayer.Volume", "VideoPlayer.PlayPosition", "VideoPlayer.State",
-                      "WmvImporter", "WmvImporter.Import", "VideoContent", "VideoProcessor", "VideoProcessor.Process", "VideoProcessor.VideoSoundtrackType", "VideoSoundtrackType", "ContentCompiler.Compile(VideoContent)", "VideoReader"};
+                      "WmvImporter", "WmvImporter.Import", "VideoContent", "Processors::VideoProcessor", "Processors::VideoProcessor.Process", "Processors::VideoProcessor.VideoSoundtrackType", "VideoSoundtrackType", "ContentCompiler.Compile(VideoContent)", "ContentManager.Load<Video>"};
             return r;
         }(),
         au("au-mic", "The Microphone", "Capturing 16-bit PCM and a level meter; reports cleanly when there is no microphone", "microphone", {"Microphone", "Microphone.GetData", "Microphone.SampleRate", "Microphone.BufferDuration", "Microphone.GetSampleSizeInBytes", "Microphone.IsHeadset"}),
@@ -99,7 +99,7 @@ WingSpec InputWing()
             r.depth = 13;
             r.height = 5.0f;
             r.theme = "control-room";
-            r.apis = {"Accelerometer", "Accelerometer.IsSupported", "Accelerometer.Start", "Accelerometer.Stop", "Accelerometer.State", "Accelerometer.CurrentValue", "Accelerometer.CurrentValueChanged", "Accelerometer.KeyboardEmulationEnabledEXT",
+            r.apis = {"Accelerometer", "Accelerometer.IsSupported", "Accelerometer.Start", "Accelerometer.Stop", "Accelerometer.State", "SensorBase.CurrentValue", "SensorBase.CurrentValueChanged", "Accelerometer.KeyboardEmulationEnabledEXT",
                       "AccelerometerReading.Acceleration", "Gyroscope", "Gyroscope.IsSupported", "GyroscopeReading.RotationRate", "Compass", "Compass.IsSupported", "CompassReading.MagneticHeading", "Motion", "Motion.IsSupported",
                       "MotionReading.Attitude", "MotionReading.Gravity", "AttitudeReading", "SensorState", "SensorReadingEventArgs", "VibrateController", "VibrateController.Default", "VibrateController.Start", "VibrateController.IsSupported",
                       "Microsoft.Devices.Environment.DeviceType", "DeviceType"};

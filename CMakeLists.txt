@@ -86,6 +86,16 @@ endif()
 
 add_subdirectory("${CNA_ROOT_DIR}" cna EXCLUDE_FROM_ALL)
 
+# CMake leaves a subproject's old CTestTestfile.cmake behind when a build tree that once had
+# CNA_BUILD_TESTS=ON is reconfigured with it OFF. The museum's top-level CTest file still descends
+# into cna/, so that stale file can register obsolete tests (or stale PRE_TEST discovery includes
+# can recurse into themselves) before CTest reaches the museum tests. An absent child test file is
+# the correct representation of this configuration; a later CNA_BUILD_TESTS=ON configure generates
+# it again.
+if(NOT CNA_BUILD_TESTS)
+    file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/cna/CTestTestfile.cmake")
+endif()
+
 # CNA discovers SDL inside its subdirectory. Imported package targets are directory-scoped, so
 # create the Emscripten SDL target in the application's directory as well before linking the
 # final browser executable.
@@ -225,3 +235,18 @@ include(CTest)
 add_executable(museum_tests EXCLUDE_FROM_ALL tests/museum_tests.cpp)
 target_link_libraries(museum_tests PRIVATE museum_core)
 add_test(NAME museum_structure COMMAND museum_tests)
+
+find_package(Python3 QUIET COMPONENTS Interpreter)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME museum_renderer_log_validator
+        COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_validate_renderer_log.py")
+    add_test(NAME museum_api_inventory_unit
+        COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_generate_api_inventory.py")
+    add_test(NAME museum_api_coverage_audit_unit
+        COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_audit_api_coverage.py")
+    add_test(NAME museum_generated_docs_unit
+        COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_gen_docs_check.py")
+    add_test(NAME museum_coverage_json
+        COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_coverage_json.py"
+            --bin "$<TARGET_FILE:cna-3d-museum>")
+endif()

@@ -27,12 +27,12 @@ WingSpec PerformanceWing()
         return r;
     };
     w.rooms = {
-        pf("pf-dashboard", "Frame-Time Dashboard", "Update-time history, 1% lows and the engine's own counters", "dashboard", {"GameTime.ElapsedGameTime", "Game.IsRunningSlowly", "CNA::Diagnostics::GetProvider", "Game.IsFixedTimeStep"}, ApiOrigin::CnaExtension),
+        pf("pf-dashboard", "Frame-Time Dashboard", "Update-time history, 1% lows and the engine's own counters", "dashboard", {"GameTime.ElapsedGameTime", "GameTime.IsRunningSlowly", "CNA::Diagnostics::GetProvider", "CNA::Diagnostics::IDiagnosticsProvider.CaptureSnapshot", "CNA::Diagnostics::Snapshot.metrics", "CNA::Diagnostics::MetricSample.name", "CNA::Diagnostics::MetricSample.value"}, ApiOrigin::CnaExtension),
         pf("pf-objects", "Draw Calls and Instancing", "10 to 20,000 cubes: a call each, or DrawInstancedPrimitives", "objects", {"GraphicsDevice.DrawIndexedPrimitives", "GraphicsDevice.DrawInstancedPrimitives", "VertexBufferBinding", "GraphicsCapability.Instancing"}),
         pf("pf-sprites", "SpriteBatch Volume", "100 to 60,000 sprites with sort modes and texture counts", "sprites", {"SpriteBatch.Draw", "SpriteSortMode", "SpriteBatch.Begin"}),
-        pf("pf-state", "State Changes and Batching", "The same quads drawn with and without sorting by texture", "state", {"BasicEffect.Texture", "EffectPass.Apply", "Graphics/TextureBindingChanges"}),
+        pf("pf-state", "State Changes and Batching", "The same quads drawn with and without sorting by texture", "state", {"BasicEffect.Texture", "EffectPass.Apply", "CNA::Diagnostics::GetProvider", "CNA::Diagnostics::IDiagnosticsProvider.CaptureSnapshot", "CNA::Diagnostics::Snapshot.metrics"}, ApiOrigin::CnaExtension),
         pf("pf-buffers", "Buffer Uploads", "DynamicVertexBuffer, DrawUserPrimitives and static buffers compared", "buffers", {"DynamicVertexBuffer.SetData", "SetDataOptions.Discard", "GraphicsDevice.DrawUserPrimitives", "VertexBuffer"}),
-        pf("pf-targets", "Render-Target Switches", "1 to 32 small render targets drawn every frame", "targets", {"GraphicsDevice.SetRenderTarget", "RenderTarget2D", "Graphics/RenderTargetChanges"}),
+        pf("pf-targets", "Render-Target Switches", "1 to 32 small render targets drawn every frame", "targets", {"GraphicsDevice.SetRenderTarget", "RenderTarget2D", "CNA::Diagnostics::GetProvider", "CNA::Diagnostics::IDiagnosticsProvider.CaptureSnapshot", "CNA::Diagnostics::Snapshot.metrics"}, ApiOrigin::CnaExtension),
         pf("pf-overdraw", "Overdraw", "1 to 32 full-screen translucent layers", "overdraw", {"SpriteBatch.Draw", "BlendState.NonPremultiplied"}),
         pf("pf-particles", "CPU Particles", "1,000 to 250,000 particles updated on the CPU and drawn as points", "particles", {"PrimitiveType.PointListEXT", "GraphicsDevice.DrawUserPrimitives"}, ApiOrigin::CnaExtension),
     };

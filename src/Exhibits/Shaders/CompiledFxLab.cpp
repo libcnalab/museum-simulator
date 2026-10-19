@@ -206,9 +206,7 @@ private:
             Compiler::CompileOptions options;
             options.assetName = "blur2tap";
             options.targetProfile = GraphicsProfile::HiDef;
-            options.container.graphicsProfile = CNA::Internal::Xnb::XnbGraphicsProfile::HiDef;
-            const CNA::Internal::Xnb::XnbAssetWriteResult result =
-                compiler.Compile<Processors::CompiledEffectContent>(compiled, options);
+            const auto result = compiler.Compile<Processors::CompiledEffectContent>(compiled, options);
             if (!manager_) manager_ = std::make_unique<PipelineSupport::MemoryContentManager>(&S().game->getServicesProperty());
             manager_->Unload();
             manager_->bytes = result.bytes;

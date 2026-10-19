@@ -27,6 +27,8 @@ std::string InventoryAsJson(const MuseumPlan& museum);
 std::string MapAsMarkdown(const MuseumPlan& museum);
 /** CNA API names with the rooms that demonstrate them (the generated part of docs/CNA_COVERAGE.md). */
 std::string CoverageAsMarkdown(const MuseumPlan& museum);
+/** Machine-readable catalogue claims. A claim is only a lead for the separate evidence audit. */
+std::string CoverageAsJson(const MuseumPlan& museum);
 
 /** Assets the catalogue refers to that do not exist under `contentRoot`; empty when all are present. */
 std::vector<std::string> FindMissingAssets(const MuseumPlan& museum, const std::string& contentRoot);

@@ -190,8 +190,7 @@ private:
             Compiler::CompileOptions options;
             options.assetName = "runtime-font";
             options.targetProfile = GraphicsProfile::HiDef;
-            const CNA::Internal::Xnb::XnbAssetWriteResult result =
-                compiler.Compile<Processors::SpriteFontContent>(output, options);
+            const auto result = compiler.Compile<Processors::SpriteFontContent>(output, options);
             if (!manager_) manager_ = std::make_unique<PipelineSupport::MemoryContentManager>(&S().game->getServicesProperty());
             manager_->Unload();
             manager_->bytes = result.bytes;

@@ -62,7 +62,7 @@ WingSpec ValueTypeWing()
     };
     w.rooms = {
         vt("vt-packed", "Packed Vector Formats", "Byte4, NormalizedShort4, HalfVector4, Rgba1010102, Bgr565... what each stores and what it loses", "packed",
-           {"IPackedVector", "Byte4", "NormalizedByte4", "NormalizedShort4", "Short4", "HalfVector4", "Rgba1010102", "Rgba64", "Bgra4444", "Bgra5551", "Bgr565", "Rg32", "Short2", "NormalizedShort2", "NormalizedByte2", "HalfVector2", "PackedValue"}),
+           {"IPackedVector", "IPackedVectorT.PackedValue", "Byte4", "NormalizedByte4", "NormalizedShort4", "Short4", "HalfVector4", "Rgba1010102", "Rgba64", "Bgra4444", "Bgra5551", "Bgr565", "Rg32", "Short2", "NormalizedShort2", "NormalizedByte2", "HalfVector2"}),
         vt("vt-rectangle", "Rectangle and Point", "Intersects, Intersect, Union, Contains and Inflate computed live on two rectangles", "rect", {"Rectangle", "Rectangle.Intersects", "Rectangle.Intersect", "Rectangle.Union", "Rectangle.Contains", "Rectangle.Inflate", "Rectangle.Bottom", "Rectangle.Location", "Rectangle.IsEmpty", "Point"}),
         vt("vt-color", "Colour", "Color.Lerp, Multiply, FromNonPremultiplied and the packed 32-bit value", "color", {"Color", "Color.Lerp", "Color.Multiply", "Color.FromNonPremultiplied", "Color.PackedValue", "Color.ToVector3", "Color.PackFromVector4"}),
         []{
@@ -88,7 +88,7 @@ WingSpec ValueTypeWing()
             r.depth = 13;
             r.height = 5.0f;
             r.theme = "white-cube";
-            r.apis = {"Vector3Converter", "Vector2Converter", "Vector4Converter", "QuaternionConverter", "ColorConverter", "RectangleConverter", "PointConverter", "BoundingBoxConverter", "BoundingSphereConverter", "PlaneConverter", "RayConverter", "MatrixConverter", "MathTypeConverter", "MathTypeConverter.ConvertToString", "MathTypeConverter.ConvertFromString", "MathTypeConverter.GetProperties"};
+            r.apis = {"Vector3Converter", "Vector2Converter", "Vector4Converter", "QuaternionConverter", "ColorConverter", "RectangleConverter", "PointConverter", "BoundingBoxConverter", "BoundingSphereConverter", "PlaneConverter", "RayConverter", "MatrixConverter", "MathTypeConverter", "MathTypeConverter.CanConvertFrom", "MathTypeConverter.GetProperties", "Vector3Converter.ConvertTo", "Vector3Converter.ConvertFrom"};
             return r;
         }(),
     };

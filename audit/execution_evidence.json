@@ -1,0 +1,245 @@
+{
+  "schema": "museum-cna-execution-evidence/1",
+  "runs": [
+    {
+      "id": "2026-10-19-opengles3-reviewed",
+      "recordedAt": "2026-10-19T21:18:00+02:00",
+      "renderer": "OPENGLES3",
+      "platform": "Linux 6.12.111+deb13-amd64 x86_64, private virtual display",
+      "command": "env CNA_GRAPHICS_RENDERER=OPENGLES3 MUSEUM_TIMEOUT=300 tools/tour.sh -f 20 -p pl-diagnostics cx-stats pf-dashboard pf-state pf-targets pl-exceptions tex-io ct-resource text-hud ct-compiler model-cameras model-ibl model-material rt-formats app-gametime",
+      "configuration": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CNA_DIAGNOSTICS": "FULL",
+        "CNA_GRAPHICS_RENDERERS": "OPENGLES3;OPENGL33;SOFTWARE",
+        "MUSEUM_NETWORKING": "ON",
+        "MUSEUM_PIPELINE": "ON",
+        "audio": "disabled by tools/tour.sh"
+      },
+      "museumRevision": "d34c4a9ec50b176f754b26bc71b60a4091694dc1",
+      "cnaRevision": "2a245b91f2e6388863cc81f5c93880494dad664a",
+      "museumBinarySha256": "22fe215c0883526f409e02f8c535a650b3bd629779f08cc69a8e187aedc7bfd3",
+      "cnaBinarySha256": "c7c14ed576f439e609978aa8de3f79921b3594d6276250ad693e222b5bd5ce71",
+      "rooms": [
+        "pl-diagnostics",
+        "cx-stats",
+        "pf-dashboard",
+        "pf-state",
+        "pf-targets",
+        "pl-exceptions",
+        "tex-io",
+        "ct-resource",
+        "text-hud",
+        "ct-compiler",
+        "model-cameras",
+        "model-ibl",
+        "model-material",
+        "rt-formats",
+        "app-gametime"
+      ],
+      "script": {
+        "path": "audit/runs/2026-10-19-opengles3-reviewed.script",
+        "sha256": "6866e296f8cc71bb40185f2c67d26c9ee6333033001e3951494ef3b2a9e11ca9"
+      },
+      "log": {
+        "path": "audit/runs/2026-10-19-opengles3-reviewed.log",
+        "sha256": "ffb59ce9091139e8083b73d7b45fca7befe6df48b4bd86472c399da974ba2b55"
+      }
+    },
+    {
+      "id": "2026-10-19-opengles3-tex-io-branches",
+      "recordedAt": "2026-10-19T21:22:00+02:00",
+      "renderer": "OPENGLES3",
+      "platform": "Linux 6.12.111+deb13-amd64 x86_64, private virtual display",
+      "command": "env CNA_GRAPHICS_RENDERER=OPENGLES3 MUSEUM_TIMEOUT=120 tools/run.sh @audit/runs/2026-10-19-opengles3-tex-io-branches.script --no-audio",
+      "configuration": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CNA_GRAPHICS_RENDERERS": "OPENGLES3;OPENGL33;SOFTWARE",
+        "audio": "disabled"
+      },
+      "interaction": "scripted-controls",
+      "controls": ["Encoder", "FromStream", "Encoder", "FromStream", "FromStream"],
+      "museumRevision": "d34c4a9ec50b176f754b26bc71b60a4091694dc1",
+      "cnaRevision": "2a245b91f2e6388863cc81f5c93880494dad664a",
+      "museumBinarySha256": "22fe215c0883526f409e02f8c535a650b3bd629779f08cc69a8e187aedc7bfd3",
+      "cnaBinarySha256": "c7c14ed576f439e609978aa8de3f79921b3594d6276250ad693e222b5bd5ce71",
+      "rooms": ["tex-io"],
+      "script": {
+        "path": "audit/runs/2026-10-19-opengles3-tex-io-branches.script",
+        "sha256": "a6f4e9aaad529979a3505774f369665fb5c3636616419576938c9219e02ef991"
+      },
+      "log": {
+        "path": "audit/runs/2026-10-19-opengles3-tex-io-branches.log",
+        "sha256": "182732157332df716d6ec8b867f128ea4ec6b8f08f506a71c4289f6ffd6dbb89"
+      }
+    }
+  ],
+  "records": [
+    {
+      "id": "reviewed-rooms-opengles3-execution",
+      "run": "2026-10-19-opengles3-reviewed",
+      "implementationRecords": [
+        "app-gametime-elapsed",
+        "app-gametime-inactive-sleep",
+        "app-gametime-reset-elapsed",
+        "app-gametime-suppress-draw",
+        "app-gametime-total",
+        "ct-compiler-compile-options",
+        "ct-compiler-content-compiler",
+        "ct-compiler-content-manager-open-stream",
+        "ct-compiler-content-manager-read-asset",
+        "ct-compiler-compile",
+        "ct-compiler-compress-content",
+        "ct-compiler-get-type-writer",
+        "ct-compiler-route-loads-through-open-stream",
+        "ct-compiler-target-platform-enum",
+        "ct-compiler-target-platform-field",
+        "ct-compiler-target-profile-field",
+        "ct-compiler-texture-importer",
+        "ct-compiler-texture-processor",
+        "ct-compiler-texture2d-content",
+        "ct-resource-content-load-exception",
+        "ct-resource-content-manager-load",
+        "ct-resource-open-stream-override",
+        "ct-resource-resource-content-manager",
+        "ct-resource-resource-manager",
+        "cx-stats-diagnostics-get-provider",
+        "cx-stats-set-runtime-mode",
+        "cx-stats-snapshot-metrics",
+        "cx-stats-snapshot-resources",
+        "model-cameras-infinite-far-plane",
+        "model-ibl-light-setter",
+        "model-material-alpha-cutoff-setter",
+        "pf-dashboard-capture-snapshot",
+        "pf-dashboard-diagnostics-get-provider",
+        "pf-dashboard-elapsed",
+        "pf-dashboard-metric-name",
+        "pf-dashboard-metric-value",
+        "pf-dashboard-running-slowly",
+        "pf-dashboard-snapshot-metrics",
+        "pf-state-basic-effect-texture-setter",
+        "pf-state-capture-snapshot",
+        "pf-state-diagnostics-get-provider",
+        "pf-state-effect-pass-apply",
+        "pf-state-snapshot-metrics",
+        "pf-targets-capture-snapshot",
+        "pf-targets-diagnostics-get-provider",
+        "pf-targets-render-target-2d",
+        "pf-targets-set-render-target-2d",
+        "pf-targets-snapshot-metrics",
+        "pl-diagnostics-counter-handle",
+        "pl-diagnostics-diagnostics-get-provider",
+        "pl-diagnostics-event-batch",
+        "pl-diagnostics-event-record",
+        "pl-diagnostics-frame-counter-handle",
+        "pl-diagnostics-frame-statistics-sink",
+        "pl-diagnostics-gauge-handle",
+        "pl-diagnostics-mark-event",
+        "pl-diagnostics-metric-kind",
+        "pl-diagnostics-name-handle",
+        "pl-diagnostics-read-events",
+        "pl-diagnostics-register-source",
+        "pl-diagnostics-resolve-name",
+        "pl-diagnostics-resource-descriptor",
+        "pl-diagnostics-resource-handle",
+        "pl-diagnostics-resource-kind",
+        "pl-diagnostics-set-runtime-mode",
+        "pl-diagnostics-source-interface",
+        "pl-diagnostics-source-registration",
+        "pl-diagnostics-start-recording",
+        "pl-diagnostics-stop-recording",
+        "pl-diagnostics-trace",
+        "pl-diagnostics-trace-read-binary",
+        "pl-diagnostics-trace-write-binary",
+        "pl-diagnostics-trace-write-chrome",
+        "pl-diagnostics-zone-scope",
+        "pl-exceptions-argument-out-of-range",
+        "pl-exceptions-content-load-exception",
+        "pl-exceptions-file-not-found",
+        "pl-exceptions-gamer-privilege-exception",
+        "pl-exceptions-gamer-services-unavailable",
+        "pl-exceptions-guide-already-visible",
+        "pl-exceptions-guide-show-marketplace",
+        "pl-exceptions-invalid-operation",
+        "pl-exceptions-object-disposed",
+        "pl-exceptions-signed-in-gamer-is-friend",
+        "pl-exceptions-sprite-batch-begin-parameterless",
+        "pl-exceptions-sprite-batch-end",
+        "pl-exceptions-storage-container",
+        "pl-exceptions-title-container-open-stream",
+        "rt-formats-surface-format",
+        "rt-formats-support-query",
+        "rt-formats-texture-format",
+        "tex-io-from-stream-original",
+        "tex-io-memory-stream",
+        "tex-io-save-as-png-stream",
+        "text-hud-draw-string-builder",
+        "text-hud-draw-string-standard",
+        "text-hud-string-builder"
+      ],
+      "note": "Each room ran for 20 frames, its complete control panel contract was exercised, four more frames ran, and the tour reached clean final stats with no exhibit, draw or pressall errors. This proves execution only; claim-specific result correctness requires a separate oracle."
+    },
+    {
+      "id": "tex-io-branches-opengles3-execution",
+      "run": "2026-10-19-opengles3-tex-io-branches",
+      "implementationRecords": [
+        "tex-io-from-stream-sized",
+        "tex-io-save-as-jpeg-stream"
+      ],
+      "note": "Explicit control actions with intervening waits execute JPEG encoding and both sized FromStream fit/zoom branches; the exact log distinguishes every branch."
+    }
+  ],
+  "oracles": [
+    {
+      "id": "app-gametime-reset-elapsed-after-stall",
+      "run": "2026-10-19-opengles3-reviewed",
+      "implementationRecords": ["app-gametime-reset-elapsed"],
+      "witness": "[museum][app] Update after the stall: ElapsedGameTime 0.0 ms",
+      "expectation": "After the room requests a 400 ms stall followed by Game.ResetElapsedTime, the next Update receives a reset elapsed time instead of the stall duration.",
+      "note": "The press-all contract leaves the reset-after-stall branch selected; the exact next-update value is retained in the hashed run log."
+    },
+    {
+      "id": "tex-io-png-bit-exact",
+      "run": "2026-10-19-opengles3-reviewed",
+      "implementationRecords": [
+        "tex-io-from-stream-original",
+        "tex-io-memory-stream",
+        "tex-io-save-as-png-stream"
+      ],
+      "witness": "[museum][textures] image round trip (PNG, 128 px, decode mode 0): 29989 bytes (raw 65536), 45.8%, bit-exact: mean error 0.00, worst 0",
+      "expectation": "PNG encoded into a MemoryStream and decoded from a second MemoryStream reproduces all source pixels exactly.",
+      "note": "The room compares every decoded pixel with the deterministic 128x128 source and logs both mean and worst error."
+    },
+    {
+      "id": "tex-io-jpeg-lossy-round-trip",
+      "run": "2026-10-19-opengles3-tex-io-branches",
+      "implementationRecords": [
+        "tex-io-from-stream-original",
+        "tex-io-save-as-jpeg-stream"
+      ],
+      "witness": "[museum][textures] image round trip (JPEG, 128 px, decode mode 0): 42482 bytes (raw 65536), 64.8%, differs: mean error 13.76, worst 255",
+      "expectation": "JPEG stream encoding and original-size stream decoding succeed and the pixel oracle reports the expected lossy, non-bit-exact result.",
+      "note": "The exact branch log proves that the JPEG result was decoded and compared rather than only checking that an encoder returned bytes."
+    },
+    {
+      "id": "tex-io-from-stream-zoom-size",
+      "run": "2026-10-19-opengles3-tex-io-branches",
+      "implementationRecords": ["tex-io-from-stream-sized"],
+      "witness": "[museum][textures] image round trip (PNG, 128 px, decode mode 2): 29989 bytes (raw 65536), 45.8%, decoded 96 x 48",
+      "expectation": "The sized FromStream zoom branch returns exactly the requested 96 x 48 dimensions.",
+      "note": "The control selects zoom mode, waits for RoundTrip, and retains the decoded dimensions in the hashed log."
+    },
+    {
+      "id": "ct-resource-missing-asset-refused",
+      "run": "2026-10-19-opengles3-reviewed",
+      "implementationRecords": [
+        "ct-resource-content-manager-load",
+        "ct-resource-open-stream-override",
+        "ct-resource-resource-content-manager",
+        "ct-resource-resource-manager"
+      ],
+      "witness": "[museum][content] ResourceContentManager.Load<Texture2D>(\"unlisted\"): ResourceContentManager: the resource 'unlisted' could not be found.",
+      "expectation": "A name absent from the ResourceManager family is rejected with the named missing resource instead of returning unrelated content.",
+      "note": "The control deliberately requests 'unlisted'; the exact refusal is retained in the hashed run log."
+    }
+  ]
+}

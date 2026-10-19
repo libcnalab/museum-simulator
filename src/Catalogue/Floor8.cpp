@@ -31,7 +31,7 @@ WingSpec ContentWing()
         ct("ct-cache", "The ContentManager Cache", "Cached loads, Unload and separate managers", "cache", {"ContentManager.Load", "ContentManager.Unload", "GraphicsResource.IsDisposed"}),
         ct("ct-formats", "Loose Image Formats", "PNG, JPEG, BMP, TGA, GIF and QOI decoded without a build step, a DXT1 DDS read from a stream (and TIFF, which is not)", "formats", {"ContentManager.Load<Texture2D>", "Texture2D.GetData", "Texture2D.DDSFromStreamEXT", "SurfaceFormat.Dxt1"}, ApiOrigin::CnaExtension),
         ct("ct-failure", "When Loading Fails", "ContentLoadException for missing, mistyped and corrupt assets", "failure", {"ContentLoadException", "ContentManager.Load"}),
-        ct("ct-pipeline", "The Content Compiler", "cna-content builds .cnb and .xnb; loading and sizes compared with loose files", "pipeline", {"cna-content", "ContentManager.Load", "ContentManager.GetContentManifest"}, ApiOrigin::CnaExtension),
+        ct("ct-pipeline", "The Content Compiler", "cna-content builds .cnb and .xnb; loading and sizes compared with loose files", "pipeline", {"ContentManager.Load", "ContentManager.GetContentManifest"}, ApiOrigin::CnaExtension),
         []{
             RoomSpec r;
             r.key = "ct-intermediate";
@@ -56,8 +56,8 @@ WingSpec ContentWing()
             r.depth = 13;
             r.height = 5.0f;
             r.theme = "workshop";
-            r.apis = {"TextureImporter", "TextureImporter.Import", "TextureProcessor", "TextureProcessor.Process", "TextureProcessor.ColorKeyEnabled", "TextureProcessor.ColorKeyColor", "TextureProcessor.PremultiplyAlpha", "TextureProcessor.GenerateMipmaps", "TextureProcessor.ResizeToPowerOfTwo",
-                      "TextureProcessor.TextureFormat", "TextureProcessorOutputFormat", "Texture2DContent", "MipmapChain", "BitmapContent", "PixelBitmapContent"};
+            r.apis = {"TextureImporter", "TextureImporter.Import", "Processors::TextureProcessor", "Processors::TextureProcessor.Process", "Processors::TextureProcessor.ColorKeyEnabled", "Processors::TextureProcessor.ColorKeyColor", "Processors::TextureProcessor.PremultiplyAlpha", "Processors::TextureProcessor.GenerateMipmaps", "Processors::TextureProcessor.ResizeToPowerOfTwo",
+                      "Processors::TextureProcessor.TextureFormat", "TextureProcessorOutputFormat", "Texture2DContent", "MipmapChain", "BitmapContent", "PixelBitmapContent"};
             r.origin = ApiOrigin::Xna;
             return r;
         }(),
@@ -71,7 +71,7 @@ WingSpec ContentWing()
             r.depth = 13;
             r.height = 5.0f;
             r.theme = "workshop";
-            r.apis = {"FontDescription", "FontDescriptionImporter", "FontDescriptionImporter.Import", "FontDescription.FontName", "FontDescription.Size", "FontDescription.Spacing", "FontDescription.Style", "FontDescription.UseKerning", "FontDescriptionProcessor", "FontDescriptionStyle", "SpriteFontContent", "FontDescription.Characters", "FontDescription.DefaultCharacter", "ContentIdentity", "SpriteFont", "SpriteFont.MeasureString", "SpriteBatch.DrawString"};
+            r.apis = {"Graphics::FontDescription", "Microsoft::Xna::Framework::Content::Pipeline::FontDescriptionImporter", "Microsoft::Xna::Framework::Content::Pipeline::FontDescriptionImporter.Import", "Graphics::FontDescription.FontName", "Graphics::FontDescription.Size", "Graphics::FontDescription.Spacing", "Graphics::FontDescription.Style", "Graphics::FontDescription.UseKerning", "Processors::FontDescriptionProcessor", "Graphics::FontDescriptionStyle", "SpriteFontContent", "Graphics::FontDescription.Characters", "Graphics::FontDescription.DefaultCharacter", "ContentIdentity", "SpriteFont", "SpriteFont.MeasureString", "SpriteBatch.DrawString"};
             r.origin = ApiOrigin::Xna;
             return r;
         }(),
@@ -86,8 +86,8 @@ WingSpec ContentWing()
             r.height = 5.0f;
             r.theme = "workshop";
             r.apis = {"MeshBuilder", "MeshBuilder.StartMesh", "MeshBuilder.CreatePosition", "MeshBuilder.CreateVertexChannel", "MeshBuilder.SetVertexChannelData", "MeshBuilder.AddTriangleVertex", "MeshBuilder.FinishMesh",
-                      "MeshBuilder.MergeDuplicatePositions", "MeshBuilder.SwapWindingOrder", "MeshContent", "VertexChannelNames", "ModelProcessor", "ModelProcessor.Scale", "ModelProcessor.RotationY",
-                      "ModelProcessor.GenerateTangentFrames", "ModelProcessor.SwapWindingOrder", "ModelContent", "ModelMeshContent", "ModelMeshPartContent", "ModelBoneContent", "VertexBufferContent", "VertexDeclarationContent"};
+                      "MeshBuilder.MergeDuplicatePositions", "MeshBuilder.SwapWindingOrder", "MeshContent", "VertexChannelNames", "Processors::ModelProcessor", "Processors::ModelProcessor.Scale", "Processors::ModelProcessor.RotationY",
+                      "Processors::ModelProcessor.GenerateTangentFrames", "Processors::ModelProcessor.SwapWindingOrder", "ModelContent", "ModelMeshContent", "ModelMeshPartContent", "ModelBoneContent", "VertexBufferContent", "VertexDeclarationContent"};
             r.origin = ApiOrigin::Xna;
             return r;
         }(),
@@ -101,8 +101,8 @@ WingSpec ContentWing()
             r.depth = 13;
             r.height = 5.0f;
             r.theme = "workshop";
-            r.apis = {"XImporter", "FbxImporter", "ContentImporter", "ContentImporterAttribute", "ContentImporterContext", "NodeContent", "NodeContent.Children", "MeshContent", "GeometryContent", "MaterialContent", "BasicMaterialContent",
-                      "BasicMaterialContent.DiffuseColor", "ModelProcessor", "ModelContent", "ModelMeshContent", "ModelMeshPartContent", "ModelBoneContent", "ContentProcessorContext.Convert"};
+            r.apis = {"XImporter", "FbxImporter", "Microsoft::Xna::Framework::Content::Pipeline::ContentImporter", "ContentImporterAttribute", "Microsoft::Xna::Framework::Content::Pipeline::ContentImporterContext", "NodeContent", "NodeContent.Children", "MeshContent", "GeometryContent", "MaterialContent", "BasicMaterialContent",
+                      "BasicMaterialContent.DiffuseColor", "Processors::ModelProcessor", "ModelContent", "ModelMeshContent", "ModelMeshPartContent", "ModelBoneContent", "ContentProcessorContext.Convert"};
             r.origin = ApiOrigin::Xna;
             return r;
         }(),
@@ -116,8 +116,8 @@ WingSpec ContentWing()
             r.depth = 13;
             r.height = 5.0f;
             r.theme = "workshop";
-            r.apis = {"ContentCompiler", "ContentCompiler.Compile", "ContentCompiler.GetTypeWriter", "CompileOptions", "CompileOptions.targetPlatform", "CompileOptions.targetProfile", "CompileOptions.compressContent", "TargetPlatform", "Texture2DContent", "TextureProcessor",
-                      "TextureImporter", "ContentManager.OpenStream", "ContentManager.ReadAsset", "ContentManager.RouteLoadsThroughOpenStreamEXT", "XnbFileOptions", "XnbOutputCompression", "XnbAssetWriteResult"};
+            r.apis = {"ContentCompiler", "ContentCompiler.Compile", "ContentCompiler.GetTypeWriter", "CompileOptions", "CompileOptions.targetPlatform", "CompileOptions.targetProfile", "CompileOptions.compressContent", "Microsoft::Xna::Framework::Content::Pipeline::TargetPlatform", "Texture2DContent", "Processors::TextureProcessor",
+                      "TextureImporter", "ContentManager.OpenStream", "ContentManager.ReadAsset", "ContentManager.RouteLoadsThroughOpenStreamEXT"};
             r.origin = ApiOrigin::Xna;
             return r;
         }(),
@@ -131,8 +131,8 @@ WingSpec ContentWing()
             r.depth = 13;
             r.height = 5.0f;
             r.theme = "workshop";
-            r.apis = {"WavImporter", "WavImporter.Import", "Mp3Importer", "Mp3Importer.Import", "Mp3Importer.Attribute", "ContentImporterAttribute", "AudioContent", "AudioContent.Format", "AudioContent.Data", "AudioFormat", "AudioFormat.SampleRate", "AudioFormat.ChannelCount", "AudioFormat.BitsPerSample",
-                      "AudioFormat.NativeWaveFormat", "ConversionQuality", "SoundEffectProcessor", "SoundEffectProcessor.Quality", "SoundEffectContent", "SongProcessor", "SongContent", "SoundEffect.FromStream", "ContentCompiler.Compile(SoundEffectContent)", "ContentCompiler.Compile(SongContent)"};
+            r.apis = {"Microsoft::Xna::Framework::Content::Pipeline::WavImporter", "Microsoft::Xna::Framework::Content::Pipeline::WavImporter.Import", "Mp3Importer", "Mp3Importer.Import", "Mp3Importer.Attribute", "ContentImporterAttribute", "AudioContent", "AudioContent.Format", "AudioContent.Data", "Audio::AudioFormat", "Audio::AudioFormat.SampleRate", "Audio::AudioFormat.ChannelCount", "Audio::AudioFormat.BitsPerSample",
+                      "Audio::AudioFormat.NativeWaveFormat", "ConversionQuality", "Processors::SoundEffectProcessor", "Processors::SoundEffectProcessor.Quality", "SoundEffectContent", "Processors::SongProcessor", "SongContent", "SoundEffect.FromStream", "ContentCompiler.Compile(SoundEffectContent)", "ContentCompiler.Compile(SongContent)"};
             r.origin = ApiOrigin::Xna;
             return r;
         }(),
@@ -261,7 +261,7 @@ WingSpec PlatformWing()
             return r;
         }(),
         pl("pl-window", "The Game Window", "GameWindow title, client bounds, resizing, activation and file drops", "window", {"GameWindow.GetNativeWindowHandleEXT", "GameWindow.CurrentOrientation", "GameWindow.OrientationChanged", "GraphicsDeviceManager.SupportedOrientations", "CNA::Platform::NativeWindowHandle", "GameWindow.Title", "GameWindow.ClientBounds", "GameWindow.AllowUserResizing", "GameWindow.ClientSizeChanged", "Game.Activated", "GameWindow.FileDropEXT", "PhoneApplicationService", "PhoneApplicationService.AttachEXT", "PhoneApplicationService.Launching", "PhoneApplicationService.Activated", "PhoneApplicationService.Deactivated", "PhoneApplicationService.Closing", "PhoneApplicationService.State", "LaunchingEventArgs", "ActivatedEventArgs", "DeactivatedEventArgs", "ClosingEventArgs"}, ApiOrigin::Xna),
-        pl("pl-adapter", "Adapter and Back Buffer", "GraphicsAdapter, display modes, GraphicsProfile and PresentationParameters", "adapter", {"GraphicsAdapter", "GraphicsAdapter.UseNullDevice", "GraphicsAdapter.UseReferenceDevice", "GraphicsAdapter.GetCurrentDeviceTypeEXT", "GraphicsAdapter.GetRequiredRendererEXT", "DisplayMode", "GraphicsDevice.GraphicsProfile", "PresentationParameters", "GraphicsAdapter.IsProfileSupported", "GraphicsAdapter.QueryRenderTargetFormat", "GraphicsAdapter.QueryBackBufferFormat", "GraphicsAdapter.Adapters", "GraphicsAdapter.IsWideScreenAspectRatioEXT"}, ApiOrigin::Xna),
+        pl("pl-adapter", "Adapter and Back Buffer", "GraphicsAdapter, display modes, GraphicsProfile and PresentationParameters", "adapter", {"GraphicsAdapter", "GraphicsAdapter.UseNullDevice", "GraphicsAdapter.UseReferenceDevice", "GraphicsAdapter.GetCurrentDeviceTypeEXT", "GraphicsAdapter.GetRequiredRendererEXT", "Graphics::DisplayMode", "GraphicsDevice.GraphicsProfile", "PresentationParameters", "GraphicsAdapter.IsProfileSupported", "GraphicsAdapter.QueryRenderTargetFormat", "GraphicsAdapter.QueryBackBufferFormat", "GraphicsAdapter.Adapters", "GraphicsAdapter.IsWideScreenAspectRatioEXT"}, ApiOrigin::Xna),
         pl("pl-renderer", "The Active Renderer", "Renderer identity, maturity, features, limits, surface formats and the device's own colour-space and support queries", "renderer", {"GraphicsDevice.GetRendererCapabilityProfileEXT", "GraphicsDevice.GetRendererCapabilityReportEXT", "RendererFeature", "RendererLimit", "RendererFormatUsage", "GraphicsDevice.GetGraphicsRendererName", "GraphicsDevice.GetDisplayColorSpaceEXT", "GraphicsDevice.SupportsDisplayColorSpaceEXT", "GraphicsDevice.SetDisplayColorSpaceEXT", "GraphicsDevice.SupportsImageBasedLightingEXT", "GraphicsDevice.GetTrackedResourceCount", "GraphicsDevice.GetLogicalSizeEXT"}, ApiOrigin::CnaExtension),
         pl("pl-platform", "Platform Capabilities", "What the host platform can do: clipboard, IME, gamepads, haptics, camera, dialogs", "platform", {"Game.GetPlatformCapabilitiesEXT", "PlatformCapabilities", "Game.GetPlatformEXT", "CNA::Platform::IPlatform", "IPlatform.GetName", "IPlatform.IsSubsystemInitialized", "IPlatform.GetPerformanceFrequency", "IPlatform.GetTicksMilliseconds", "IPlatform.GetKeyboard"}, ApiOrigin::CnaExtension),
     };
@@ -293,9 +293,9 @@ WingSpec HistoryWing()
         return r;
     };
     w.rooms = {
-        hi("hist-xna", "XNA, 2004 to Today", "The releases of XNA Game Studio and what happened to it", "xna", {"Game", "GraphicsProfile", "XNA 4.0"}, ApiOrigin::Xna),
-        hi("hist-cna", "This Build of CNA", "The revision, options, renderers and maturity of the CNA running right now", "cna", {"CNA::GraphicsRendererSelection.GetAvailable", "CNA::GraphicsRendererSelection.GetSelected", "CNA::GraphicsRendererSelection.GetActive", "CNA::GraphicsRendererSelection.IsFallbackEnabled", "CNA::GraphicsRendererSelection.GetFallbackHistory", "CNA::GraphicsRendererFallbackReason", "CNA::getGraphicsBackendMaturity", "CNA::getGraphicsRendererName"}, ApiOrigin::CnaExtension),
-        hi("hist-compare", "XNA 4.0 and What CNA Adds", "How many rooms use XNA features and which extensions the others demonstrate, counted live", "compare", {"ApiOrigin", "XNA 4.0", "CNAEXT"}, ApiOrigin::CnaExtension),
+        hi("hist-xna", "XNA, 2004 to Today", "The releases of XNA Game Studio and what happened to it", "xna", {"Game", "GraphicsProfile"}, ApiOrigin::Xna),
+        hi("hist-cna", "This Build of CNA", "The revision, options, renderers and maturity of the CNA running right now", "cna", {"CNA::GraphicsRendererSelection.GetAvailable", "CNA::GraphicsRendererSelection.GetSelected", "CNA::GraphicsRendererSelection.GetActive", "CNA::GraphicsRendererSelection.IsFallbackEnabled", "CNA::GraphicsRendererSelection.GetFallbackHistory", "CNA::GraphicsRendererFallbackReason", "CNA::getGraphicsRendererMaturity", "CNA::getGraphicsRendererName"}, ApiOrigin::CnaExtension),
+        hi("hist-compare", "XNA 4.0 and What CNA Adds", "How many rooms use XNA features, CNA extensions or application-level behavior, counted live", "compare", {"SpriteBatch.Draw", "SpriteBatch.DrawString", "BlendState.NonPremultiplied"}, ApiOrigin::Application),
     };
     return w;
 }

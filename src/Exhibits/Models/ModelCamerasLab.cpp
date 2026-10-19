@@ -126,7 +126,7 @@ private:
         if (i >= cameras_.size()) return "-";
         const ModelCameraEXT& c = cameras_[i];
         char buf[128];
-        std::snprintf(buf, sizeof buf, "%s: %s%s", c.Name.c_str(), c.IsPerspective ? "perspective" : "orthographic", c.IsPerspective && std::abs(c.Projection.M33 + 1.0f) < 1e-3f ? ", infinite" : "");
+        std::snprintf(buf, sizeof buf, "%s: %s%s", c.Name.c_str(), c.IsPerspective ? "perspective" : "orthographic", c.HasInfiniteFarPlane ? ", infinite" : "");
         return buf;
     }
 

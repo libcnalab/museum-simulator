@@ -35,7 +35,7 @@ FloorSpec MakeFloor0()
          .apis = {"Texture2D", "SamplerState", "SamplerStateCollection"}},
         {.key = "lighting", .title = "Lighting Room", .subtitle = "BasicEffect directional lights, per-pixel lighting, specular and emissive",
          .exhibit = "lighting", .width = 14, .depth = 14, .height = 5.0f, .theme = "dark-room",
-         .apis = {"BasicEffect", "DirectionalLight", "EnableDefaultLighting", "PreferPerPixelLighting"}},
+         .apis = {"BasicEffect", "DirectionalLight", "BasicEffect.EnableDefaultLighting", "BasicEffect.PreferPerPixelLighting"}},
         {.key = "sky", .title = "Sky Courtyard", .subtitle = "A sky dome, day-night cycle and directional sunlight",
          .exhibit = "sky", .width = 16, .depth = 16, .height = 4.6f, .theme = "courtyard",
          .apis = {"DynamicVertexBuffer", "BlendState", "DepthStencilState"}, .openRoof = true},

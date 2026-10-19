@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "CNA/GraphicsBackendMaturity.hpp"
+#include "CNA/GraphicsRendererMaturity.hpp"
 #include "CNA/GraphicsRendererType.hpp"
 #include "CNA/Platform/IPlatform.hpp"
 #include "CNA/Platform/NativeWindowHandle.hpp"
@@ -409,9 +409,7 @@ private:
                 lines_.push_back("Viewport: " + std::to_string(vp.getWidthProperty()) + " x " + std::to_string(vp.getHeightProperty()) + "   title-safe area " + std::to_string(vp.getTitleSafeAreaProperty().Width) + " x " + std::to_string(vp.getTitleSafeAreaProperty().Height));
             } else if (mode_ == Mode::Renderer) {
                 const CNA::GraphicsRendererType type = d.GetGraphicsRendererType();
-                static const char* maturityNames[] = {"Production", "Supported", "Experimental", "Historical"};
-                const auto m = CNA::getGraphicsBackendMaturity(type);
-                maturity_ = maturityNames[std::min(static_cast<int>(m), 3)];
+                maturity_ = CNA::toStringView(CNA::getGraphicsRendererMaturity(type));
             } else if (mode_ == Mode::Platform) {
                 const CNA::Platform::PlatformCapabilities& c = S().game->GetPlatformCapabilitiesEXT();
                 CNA::Platform::IPlatform& host = S().game->GetPlatformEXT();

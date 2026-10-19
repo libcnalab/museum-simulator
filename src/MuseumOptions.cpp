@@ -47,7 +47,8 @@ const char* MuseumOptions::Usage()
         "  --list-turned-rooms       print the rooms entered from the north (their local frame is turned half a circle)\n"
         "  --inventory               print the museum's counts as JSON (no window)\n"
         "  --map-markdown            print the museum map as Markdown (no window)\n"
-        "  --coverage-markdown       print the CNA API coverage table as Markdown (no window)\n";
+        "  --coverage-markdown       print the CNA API coverage table as Markdown (no window)\n"
+        "  --coverage-json           print room/API catalogue claims as JSON (no window)\n";
 }
 
 MuseumOptions MuseumOptions::Parse(int argc, char** argv)
@@ -97,6 +98,7 @@ MuseumOptions MuseumOptions::Parse(int argc, char** argv)
         else if (!std::strcmp(a, "--list-views")) o.listViews = true;
         else if (!std::strcmp(a, "--map-markdown")) o.mapMarkdown = true;
         else if (!std::strcmp(a, "--coverage-markdown")) o.coverageMarkdown = true;
+        else if (!std::strcmp(a, "--coverage-json")) o.coverageJson = true;
         else if (!std::strcmp(a, "--list-rooms")) o.listRooms = true;
         else if (!std::strcmp(a, "--list-turned-rooms")) o.listTurnedRooms = true;
         else if (!std::strcmp(a, "--help") || !std::strcmp(a, "-h")) o.showHelp = true;

@@ -33,6 +33,7 @@ struct MuseumOptions {
     bool hud = true;                   // false: draw only the 3D scene (screenshots for comparison)
     bool mapMarkdown = false;          // print the museum map as Markdown (no window) and exit
     bool coverageMarkdown = false;     // print the API coverage table as Markdown (no window) and exit
+    bool coverageJson = false;         // print catalogue API claims and rooms as JSON (no window) and exit
     bool listViews = false;            // print the reference views, one per line (no window) and exit
     bool showHelp = false;
     bool validate = false;              // check the catalogue (no window) and exit with the result

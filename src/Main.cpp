@@ -29,8 +29,12 @@ int main(int argc, char** argv)
                 if (r.kind == CellKind::Room && r.Turned()) std::printf("%s\n", r.key.c_str());
             return 0;
         }
-        if (options.mapMarkdown || options.coverageMarkdown) {
-            std::fputs((options.mapMarkdown ? MapAsMarkdown(TheMuseum()) : CoverageAsMarkdown(TheMuseum())).c_str(), stdout);
+        if (options.mapMarkdown || options.coverageMarkdown || options.coverageJson) {
+            const MuseumPlan& museum = TheMuseum();
+            const std::string output = options.mapMarkdown ? MapAsMarkdown(museum)
+                : options.coverageMarkdown ? CoverageAsMarkdown(museum)
+                : CoverageAsJson(museum);
+            std::fputs(output.c_str(), stdout);
             return 0;
         }
         if (options.listViews) {

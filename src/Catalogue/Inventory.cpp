@@ -1,10 +1,52 @@
 #include "Catalogue/Inventory.hpp"
 
 #include <filesystem>
+#include <iomanip>
 #include <set>
 #include <sstream>
+#include <string_view>
 
 #include "Exhibits/ExhibitRegistry.hpp"
+
+namespace {
+
+std::string JsonString(std::string_view value)
+{
+    std::ostringstream out;
+    out << '"';
+    for (const unsigned char c : value) {
+        switch (c) {
+            case '"': out << "\\\""; break;
+            case '\\': out << "\\\\"; break;
+            case '\b': out << "\\b"; break;
+            case '\f': out << "\\f"; break;
+            case '\n': out << "\\n"; break;
+            case '\r': out << "\\r"; break;
+            case '\t': out << "\\t"; break;
+            default:
+                if (c < 0x20) {
+                    out << "\\u" << std::hex << std::setw(4) << std::setfill('0')
+                        << static_cast<unsigned int>(c) << std::dec;
+                } else {
+                    out << static_cast<char>(c);
+                }
+        }
+    }
+    out << '"';
+    return out.str();
+}
+
+const char* OriginName(ApiOrigin origin)
+{
+    switch (origin) {
+        case ApiOrigin::Xna: return "xna";
+        case ApiOrigin::CnaExtension: return "cna-extension";
+        case ApiOrigin::Application: return "application";
+    }
+    return "unknown";
+}
+
+}  // namespace
 
 MuseumInventory ComputeInventory(const MuseumPlan& m)
 {
@@ -101,6 +143,41 @@ std::string CoverageAsMarkdown(const MuseumPlan& m)
         for (std::size_t i = 0; i < keys.size(); ++i) out << (i ? ", " : "") << "`" << keys[i] << "`";
         out << " |\n";
     }
+    return out.str();
+}
+
+std::string CoverageAsJson(const MuseumPlan& m)
+{
+    std::map<std::string, std::vector<std::string>> claims;
+    std::ostringstream out;
+    out << "{\n  \"schema\": \"museum-api-claims/1\",\n  \"rooms\": [";
+    bool firstRoom = true;
+    for (const RoomDef& r : m.rooms) {
+        if (r.kind != CellKind::Room) continue;
+        out << (firstRoom ? "\n" : ",\n")
+            << "    {\"key\": " << JsonString(r.key)
+            << ", \"title\": " << JsonString(r.title)
+            << ", \"exhibit\": " << JsonString(r.exhibit)
+            << ", \"origin\": " << JsonString(OriginName(r.origin))
+            << ", \"apis\": [";
+        for (std::size_t i = 0; i < r.apis.size(); ++i) {
+            out << (i == 0 ? "" : ", ") << JsonString(r.apis[i]);
+            claims[r.apis[i]].push_back(r.key);
+        }
+        out << "]}";
+        firstRoom = false;
+    }
+    out << "\n  ],\n  \"claims\": [";
+    bool firstClaim = true;
+    for (const auto& [api, rooms] : claims) {
+        out << (firstClaim ? "\n" : ",\n")
+            << "    {\"api\": " << JsonString(api) << ", \"rooms\": [";
+        for (std::size_t i = 0; i < rooms.size(); ++i)
+            out << (i == 0 ? "" : ", ") << JsonString(rooms[i]);
+        out << "]}";
+        firstClaim = false;
+    }
+    out << "\n  ]\n}\n";
     return out.str();
 }
 

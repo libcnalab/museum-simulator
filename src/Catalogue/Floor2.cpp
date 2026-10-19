@@ -48,7 +48,7 @@ WingSpec StateWing()
     w.rooms = {
         Sprite("sprite-blend", "BlendState Gallery", "Eight blend configurations of the same two sprites: presets, custom factors, Min and Max", "blend",
                {"BlendState", "BlendState.Additive", "BlendState.AlphaBlend", "Blend", "BlendFunction"}),
-        Sprite("sprite-sort", "SpriteSortMode and Layer Depth", "Deferred, Immediate, Texture, BackToFront and FrontToBack, with a movable layer", "sort", {"SpriteSortMode", "SpriteBatch.Draw", "layerDepth"}),
+        Sprite("sprite-sort", "SpriteSortMode and Layer Depth", "Deferred, Immediate, Texture, BackToFront and FrontToBack, with a movable layer", "sort", {"SpriteSortMode", "SpriteBatch.Draw"}),
         Sprite("sprite-sampler", "Filtering and Addressing", "Point, Linear and Anisotropic; Wrap, Clamp and Mirror; source rectangles beyond the texture", "sampler",
                {"SamplerState", "TextureFilter", "TextureAddressMode"}),
     };
@@ -102,7 +102,7 @@ WingSpec TextWing()
         text("text-transform", "Rotating and Scaling Text", "DrawString with rotation, origin, per-axis scale, flips, per-character colour and text on a circle", "transform",
              {"SpriteBatch.DrawString", "SpriteEffects"}),
         text("text-glyphs", "Glyphs and the Default Character", "The font's character set and what happens with characters it does not have", "glyphs", {"SpriteFont.GlyphBoundsEXT", "SpriteFont.CroppingEXT", "SpriteFont.KerningEXT", "SpriteFont.TextureEXT", "SpriteFont.Characters", "SpriteFont.DefaultCharacter"}),
-        text("text-hud", "HUD Text and StringBuilder", "A health bar, animated score, clock and the StringBuilder overload of DrawString", "hud", {"SpriteBatch.DrawString", "StringBuilder"}),
+        text("text-hud", "HUD Text and StringBuilder", "A health bar, animated score, clock and the StringBuilder overload of DrawString", "hud", {"SpriteBatch.DrawString", "System.Text.StringBuilder"}),
         text("text-labels", "World Labels", "Labels above 3D objects with Viewport.Project and edge pointers for off-screen targets", "labels", {"Viewport.Project", "SpriteBatch.DrawString"}),
     };
     return w;

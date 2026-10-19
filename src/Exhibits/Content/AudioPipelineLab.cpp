@@ -249,8 +249,8 @@ private:
             Compiler::ContentCompiler compiler;
             Compiler::CompileOptions options;
             options.assetName = "compiled";
-            const CNA::Internal::Xnb::XnbAssetWriteResult sound = compiler.Compile<Processors::SoundEffectContent>(processedContent_, options);
-            const CNA::Internal::Xnb::XnbAssetWriteResult song = compiler.Compile<Processors::SongContent>(songContent_, options);
+            const auto sound = compiler.Compile<Processors::SoundEffectContent>(processedContent_, options);
+            const auto song = compiler.Compile<Processors::SongContent>(songContent_, options);
             if (!manager_) manager_ = std::make_unique<MemoryContentManager>(&S().game->getServicesProperty());
             manager_->bytes = sound.bytes;
             manager_->Unload();

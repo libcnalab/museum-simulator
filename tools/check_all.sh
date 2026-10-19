@@ -12,7 +12,9 @@ step() {   # step NAME COMMAND...
 step "build" tools/build.sh cna-3d-museum museum_tests
 step "museum_tests" "${BUILD_DIR:-build}/bin/museum_tests"
 step "validate" "${BUILD_DIR:-build}/bin/cna-3d-museum" --validate
-step "documentation is up to date" bash -c 'tools/gen_docs.sh && git diff --quiet -- README.md docs'
+step "generated documentation is current" tools/gen_docs.sh --check
+step "public API inventory is current" python3 tools/generate_api_inventory.py --check
+step "coverage evidence is current" python3 tools/audit_api_coverage.py --check
 step "tour every room, operate every control" tools/tour.sh -f 3 -p
 step "elevator to every floor" tools/nav_test.sh
 step "renderer self-checks" tools/renderer_check.sh OPENGLES3

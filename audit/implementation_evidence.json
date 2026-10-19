@@ -1,0 +1,1033 @@
+{
+  "schema": "museum-cna-implementation-evidence/1",
+  "records": [
+    {
+      "id": "ct-compiler-compile-options",
+      "claim": "CompileOptions",
+      "room": "ct-compiler",
+      "kind": "direct-use",
+      "symbols": ["CPP-F92F149CEA44"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "Compiler::CompileOptions options;"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compiler-room-drawn"],
+      "note": "Every compile creates and populates the public CompileOptions value."
+    },
+    {
+      "id": "ct-compiler-target-platform-field",
+      "claim": "CompileOptions.targetPlatform",
+      "room": "ct-compiler",
+      "kind": "direct-read",
+      "symbols": ["CPP-3982D7E76FC6"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "options.targetPlatform = platform_ == 0 ? Xna::TargetPlatform::Windows : platform_ == 1 ? Xna::TargetPlatform::WindowsPhone : Xna::TargetPlatform::Xbox360;"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compiler-room-drawn"],
+      "note": "The platform control writes all three exposed TargetPlatform choices into CompileOptions."
+    },
+    {
+      "id": "ct-compiler-target-profile-field",
+      "claim": "CompileOptions.targetProfile",
+      "room": "ct-compiler",
+      "kind": "direct-read",
+      "symbols": ["CPP-4732E0E5A6A0"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "options.targetProfile = hidef_ ? GraphicsProfile::HiDef : GraphicsProfile::Reach;"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compiler-room-drawn"],
+      "note": "The profile toggle writes Reach or HiDef into the public targetProfile field."
+    },
+    {
+      "id": "ct-compiler-content-compiler",
+      "claim": "ContentCompiler",
+      "room": "ct-compiler",
+      "kind": "direct-use",
+      "symbols": ["CPP-F6E493D66341"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "Compiler::ContentCompiler compiler;"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compiler-room-drawn"],
+      "note": "The room constructs the public content compiler for each dirty compile."
+    },
+    {
+      "id": "ct-compiler-get-type-writer",
+      "claim": "ContentCompiler.GetTypeWriter",
+      "room": "ct-compiler",
+      "kind": "direct-call",
+      "symbols": ["CPP-3BD190F9631F"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "compiler.GetTypeWriter(System::Type::From<std::int32_t>())"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compiler-room-drawn"],
+      "note": "The room resolves the public Int32 type writer and displays whether resolution succeeded."
+    },
+    {
+      "id": "ct-compiler-content-manager-open-stream",
+      "claim": "ContentManager.OpenStream",
+      "room": "ct-compiler",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-1B1EDD920BD5"],
+      "path": [
+        {"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "loadedTexture_ = std::make_unique<Texture2D>(manager_->ReadFresh<Texture2D>(\"compiled\"));"},
+        {"source": "src/Exhibits/Content/PipelineSupport.hpp", "anchor": "[[nodiscard]] std::unique_ptr<System::IO::Stream> OpenStream(const std::string&) override"}
+      ],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compiled-shape=Texture2DContent"],
+      "note": "Loading the compiled bytes reaches the MemoryContentManager OpenStream override."
+    },
+    {
+      "id": "ct-compiler-content-manager-read-asset",
+      "claim": "ContentManager.ReadAsset",
+      "room": "ct-compiler",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-CF0B9A8D5BF5"],
+      "path": [
+        {"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "loadedTexture_ = std::make_unique<Texture2D>(manager_->ReadFresh<Texture2D>(\"compiled\"));"},
+        {"source": "src/Exhibits/Content/PipelineSupport.hpp", "anchor": "return ReadAsset<T>(assetName, {});"}
+      ],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compiled-shape=Texture2DContent"],
+      "note": "ReadFresh deliberately exposes the protected ReadAsset seam for the compiled in-memory asset."
+    },
+    {
+      "id": "ct-compiler-route-loads-through-open-stream",
+      "claim": "ContentManager.RouteLoadsThroughOpenStreamEXT",
+      "room": "ct-compiler",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-361BFA708293"],
+      "path": [
+        {"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "manager_ = std::make_unique<MemoryContentManager>(&S().game->getServicesProperty());"},
+        {"source": "src/Exhibits/Content/PipelineSupport.hpp", "anchor": "explicit MemoryContentManager(System::IServiceProvider* services) : ContentManager(services) { RouteLoadsThroughOpenStreamEXT(true); }"}
+      ],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:first-compile"],
+      "note": "MemoryContentManager opts into the public routing extension before any compiled bytes are loaded."
+    },
+    {
+      "id": "ct-compiler-target-platform-enum",
+      "claim": "Microsoft::Xna::Framework::Content::Pipeline::TargetPlatform",
+      "room": "ct-compiler",
+      "kind": "direct-use",
+      "symbols": ["CPP-643974872701"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "Xna::TargetPlatform::WindowsPhone : Xna::TargetPlatform::Xbox360"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compiler-room-drawn"],
+      "note": "The platform choice uses the public TargetPlatform enum values."
+    },
+    {
+      "id": "ct-compiler-texture-processor",
+      "claim": "Processors::TextureProcessor",
+      "room": "ct-compiler",
+      "kind": "direct-use",
+      "symbols": ["CPP-7B67F2CFEBE9"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "Processors::TextureProcessor processor;"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compiler-room-drawn"],
+      "note": "The imported texture is processed by a public TextureProcessor before compilation."
+    },
+    {
+      "id": "ct-compiler-texture2d-content",
+      "claim": "Texture2DContent",
+      "room": "ct-compiler",
+      "kind": "direct-use",
+      "symbols": ["CPP-49F6157B8CC9"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "std::dynamic_pointer_cast<PipeGfx::Texture2DContent>(output);"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:texture-processor-succeeds"],
+      "note": "The processor output is checked and retained as the public Texture2DContent type."
+    },
+    {
+      "id": "ct-compiler-texture-importer",
+      "claim": "TextureImporter",
+      "room": "ct-compiler",
+      "kind": "direct-use",
+      "symbols": ["CPP-114D99589775"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "Xna::TextureImporter importer;"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compiler-room-drawn"],
+      "note": "The room constructs the public texture importer and imports the selected PNG source."
+    },
+    {
+      "id": "tex-io-from-stream-original",
+      "claim": "Texture2D.FromStream",
+      "room": "tex-io",
+      "kind": "direct-call",
+      "symbols": ["CPP-99CDA7354F3F"],
+      "path": [{"source": "src/Exhibits/Textures/TextureLab.cpp", "anchor": "Texture2D::FromStream(d, in));"}],
+      "conditions": ["runtime:texture-io-decode-mode=original"],
+      "note": "The original-size branch directly invokes the two-argument stream overload."
+    },
+    {
+      "id": "tex-io-from-stream-sized",
+      "claim": "Texture2D.FromStream",
+      "room": "tex-io",
+      "kind": "direct-call",
+      "symbols": ["CPP-8C9CF08CF267"],
+      "path": [{"source": "src/Exhibits/Textures/TextureLab.cpp", "anchor": "Texture2D::FromStream(d, in, 96, 48, decodeMode_ == 2));"}],
+      "conditions": ["runtime:texture-io-decode-mode=fit|zoom"],
+      "note": "The fit and zoom branches directly invoke the sized stream overload."
+    },
+    {
+      "id": "tex-io-save-as-jpeg-stream",
+      "claim": "Texture2D.SaveAsJpeg",
+      "room": "tex-io",
+      "kind": "direct-call",
+      "symbols": ["CPP-FB7E95250D69"],
+      "path": [{"source": "src/Exhibits/Textures/TextureLab.cpp", "anchor": "ioSource_->SaveAsJpeg(&encoded, encodeSize_, encodeSize_);"}],
+      "conditions": ["runtime:texture-io-encoder=jpeg"],
+      "note": "The JPEG branch calls the Stream overload; the filename overload is intentionally not used."
+    },
+    {
+      "id": "tex-io-save-as-png-stream",
+      "claim": "Texture2D.SaveAsPng",
+      "room": "tex-io",
+      "kind": "direct-call",
+      "symbols": ["CPP-0B2D3376F4D5"],
+      "path": [{"source": "src/Exhibits/Textures/TextureLab.cpp", "anchor": "ioSource_->SaveAsPng(&encoded, encodeSize_, encodeSize_);"}],
+      "conditions": ["runtime:texture-io-encoder=png"],
+      "note": "The PNG branch calls the Stream overload; the filename overload is intentionally not used."
+    },
+    {
+      "id": "ct-resource-content-load-exception",
+      "claim": "ContentLoadException",
+      "room": "ct-resource",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-9EA1BA230B4C"],
+      "path": [
+        {"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "m->Load<Texture2D>(asset));\n                return std::string(\"loaded?!\");"},
+        {"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "std::string(typeid(e).name()).find(\"ContentLoadException\")"}
+      ],
+      "conditions": ["runtime:resource-name=unlisted"],
+      "note": "The missing-resource branch invokes Load and the shared result handler explicitly identifies ContentLoadException by dynamic type."
+    },
+    {
+      "id": "ct-resource-content-manager-load",
+      "claim": "ContentManager.Load",
+      "room": "ct-resource",
+      "kind": "direct-call",
+      "symbols": ["CPP-47458313F8A6"],
+      "path": [{"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "Attempt(\"ResourceContentManager.Load<Texture2D>(\\\"picture\\\")\", [&](Row& r) {\n                auto tex = std::make_unique<Texture2D>(m->Load<Texture2D>(asset));"}],
+      "conditions": ["runtime:resource-load-button"],
+      "note": "The resource room invokes the inherited public Load template for in-memory Texture2D content."
+    },
+    {
+      "id": "ct-resource-resource-content-manager",
+      "claim": "ResourceContentManager",
+      "room": "ct-resource",
+      "kind": "direct-use",
+      "symbols": ["CPP-13C0FBF8B62E"],
+      "path": [{"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "auto m = std::make_unique<ResourceContentManager>(&S().game->getServicesProperty(), resourceManager_.get());"}],
+      "conditions": ["runtime:resource-manager-built"],
+      "note": "Each resource load creates the public ResourceContentManager over the room's ResourceManager family."
+    },
+    {
+      "id": "ct-resource-open-stream-override",
+      "claim": "ResourceContentManager.OpenStream",
+      "room": "ct-resource",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-B51527572D43"],
+      "path": [{"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "Attempt(\"ResourceContentManager.Load<SoundEffect>(\\\"sound\\\")\", [&](Row&) {\n                const SoundEffect s = m->Load<SoundEffect>(asset);"}],
+      "conditions": ["runtime:resource-load-button"],
+      "note": "ContentManager.Load dispatches through ResourceContentManager's public OpenStream override to obtain the in-memory XNB stream."
+    },
+    {
+      "id": "text-hud-draw-string-builder",
+      "claim": "SpriteBatch.DrawString",
+      "room": "text-hud",
+      "kind": "direct-call",
+      "symbols": ["CPP-BD362866E683"],
+      "path": [{"source": "src/Exhibits/Sprites/TextLab.cpp", "anchor": "sb.DrawString(*font_, sbld, Vector2(40, 100), Color(255, 226, 150, 255));"}],
+      "conditions": ["runtime:string-builder-toggle-enabled"],
+      "note": "The HUD uses the four-argument StringBuilder overload for its live score."
+    },
+    {
+      "id": "text-hud-draw-string-standard",
+      "claim": "SpriteBatch.DrawString",
+      "room": "text-hud",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-562B23168469"],
+      "path": [
+        {"source": "src/Exhibits/Sprites/TextLab.cpp", "anchor": "Str(sb, buf, 40, 100, Color(255, 226, 150, 255), 1.0f);"},
+        {"source": "src/Exhibits/Sprites/TextLab.cpp", "anchor": "sb.DrawString(*font_, t, Vector2(x, y), c, 0.0f, Vector2(0, 0), scale, SpriteEffects::None, 0.0f);"}
+      ],
+      "conditions": ["runtime:string-builder-toggle-disabled"],
+      "note": "The HUD's std::string branch reaches the scalar-scale nine-argument overload through its local Str helper."
+    },
+    {
+      "id": "pl-exceptions-content-load-exception",
+      "claim": "ContentLoadException",
+      "room": "pl-exceptions",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-9EA1BA230B4C"],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "(void)content.Load<Texture2D>(\"Textures/not-there\");"}],
+      "conditions": ["runtime:missing-content-asset-case"],
+      "note": "The room deliberately loads a known-missing content asset and reports the resulting ContentLoadException type."
+    },
+    {
+      "id": "pl-exceptions-gamer-privilege-exception",
+      "claim": "GamerPrivilegeException",
+      "room": "pl-exceptions",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-36BF8DE71F67"],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "Guide::ShowMarketplace(PlayerIndex::One);"}],
+      "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:offline-profile"],
+      "note": "The marketplace case intentionally uses an offline profile and reports the resulting GamerPrivilegeException type."
+    },
+    {
+      "id": "pl-exceptions-gamer-services-unavailable",
+      "claim": "GamerServicesNotAvailableException",
+      "room": "pl-exceptions",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-F3EF8B15D293"],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "Guide::ShowFriends(PlayerIndex::One);"}],
+      "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:no-account-service"],
+      "note": "The friends case intentionally runs without an account service and reports GamerServicesNotAvailableException."
+    },
+    {
+      "id": "pl-exceptions-guide-show-marketplace",
+      "claim": "Guide.ShowMarketplace",
+      "room": "pl-exceptions",
+      "kind": "direct-call",
+      "symbols": ["CPP-F62715FF5534"],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "Guide::ShowMarketplace(PlayerIndex::One);"}],
+      "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:marketplace-case"],
+      "note": "The room calls the public marketplace method directly as a controlled failure case."
+    },
+    {
+      "id": "pl-exceptions-guide-already-visible",
+      "claim": "GuideAlreadyVisibleException",
+      "room": "pl-exceptions",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-DE30D454DC4E"],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "Guide::BeginShowMessageBox(\"Exceptions\", \"two\""}],
+      "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:first-guide-message-box-pending"],
+      "note": "The room opens a second Guide message box while the first is pending and reports GuideAlreadyVisibleException."
+    },
+    {
+      "id": "pl-exceptions-signed-in-gamer-is-friend",
+      "claim": "SignedInGamer.IsFriend",
+      "room": "pl-exceptions",
+      "kind": "direct-call",
+      "symbols": ["CPP-D3661EB476FA"],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "(void)(*gamers->begin())->IsFriend(*gamers->begin());"}],
+      "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:signed-in-profile-present"],
+      "note": "The offline-profile case directly invokes IsFriend using the first signed-in gamer."
+    },
+    {
+      "id": "pl-exceptions-sprite-batch-begin-parameterless",
+      "claim": "SpriteBatch.Begin",
+      "room": "pl-exceptions",
+      "kind": "direct-call",
+      "symbols": ["CPP-3108C8C31055"],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "SpriteBatch batch(*device);\n                              batch.Begin();\n                              try {"}],
+      "conditions": ["runtime:double-begin-case"],
+      "note": "The double-Begin case calls the parameterless overload twice; the other seven overloads are not used by this room."
+    },
+    {
+      "id": "pl-exceptions-sprite-batch-end",
+      "claim": "SpriteBatch.End",
+      "room": "pl-exceptions",
+      "kind": "direct-call",
+      "symbols": ["CPP-AB24880816E8"],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "SpriteBatch batch(*device);\n                              batch.End();"}],
+      "conditions": ["runtime:end-without-begin-case"],
+      "note": "The room directly calls End without a preceding Begin to demonstrate its guarded failure."
+    },
+    {
+      "id": "pl-exceptions-storage-container",
+      "claim": "StorageContainer",
+      "room": "pl-exceptions",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-914E88BC18D8"],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "auto container = dev->EndOpenContainer(open.get());"}],
+      "conditions": ["runtime:storage-selector-available", "runtime:path-escape-case"],
+      "note": "The inferred value returned by EndOpenContainer is a public StorageContainer used to provoke a path escape refusal."
+    },
+    {
+      "id": "pl-exceptions-title-container-open-stream",
+      "claim": "TitleContainer.OpenStream",
+      "room": "pl-exceptions",
+      "kind": "direct-call",
+      "symbols": ["CPP-E8174A1C5BE5"],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "TitleContainer::OpenStream(\"Content/nothing-here.txt\")"}],
+      "conditions": ["runtime:missing-title-file-case"],
+      "note": "The room directly calls OpenStream for a known-missing title file."
+    },
+    {
+      "id": "pl-exceptions-argument-out-of-range",
+      "claim": "System.ArgumentOutOfRangeException",
+      "room": "pl-exceptions",
+      "kind": "indirect-runtime",
+      "symbols": [],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "Texture2D t(*device, 0, 0);"}],
+      "conditions": ["runtime:create-zero-sized-texture-case"],
+      "note": "The room deliberately requests a zero-sized texture and reports the dynamic System.ArgumentOutOfRangeException type; execution is tracked separately."
+    },
+    {
+      "id": "pl-exceptions-file-not-found",
+      "claim": "System.IO.FileNotFoundException",
+      "room": "pl-exceptions",
+      "kind": "indirect-runtime",
+      "symbols": [],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "TitleContainer::OpenStream(\"Content/nothing-here.txt\")"}],
+      "conditions": ["runtime:missing-title-file-case"],
+      "note": "The room deliberately opens a known-missing title file and reports the dynamic System.IO.FileNotFoundException type."
+    },
+    {
+      "id": "pl-exceptions-invalid-operation",
+      "claim": "System.InvalidOperationException",
+      "room": "pl-exceptions",
+      "kind": "indirect-runtime",
+      "symbols": [],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "SpriteBatch batch(*device);\n                              batch.End();"}],
+      "conditions": ["runtime:sprite-batch-end-without-begin-case"],
+      "note": "The room ends a SpriteBatch that was never begun and reports the dynamic System.InvalidOperationException type."
+    },
+    {
+      "id": "pl-exceptions-object-disposed",
+      "claim": "System.ObjectDisposedException",
+      "room": "pl-exceptions",
+      "kind": "indirect-runtime",
+      "symbols": [],
+      "path": [{"source": "src/Exhibits/Platform/ExceptionLab.cpp", "anchor": "t.Dispose();\n                              std::vector<Color> px(16);\n                              t.SetData(px.data(), 16);"}],
+      "conditions": ["runtime:set-data-after-dispose-case"],
+      "note": "The room calls SetData after disposing the texture and reports the dynamic System.ObjectDisposedException type."
+    },
+    {
+      "id": "tex-io-memory-stream",
+      "claim": "System.IO.MemoryStream",
+      "room": "tex-io",
+      "kind": "direct-use",
+      "symbols": [],
+      "path": [{"source": "src/Exhibits/Textures/TextureLab.cpp", "anchor": "System::IO::MemoryStream encoded;"}],
+      "conditions": ["runtime:texture-io-encode-requested"],
+      "note": "The texture I/O room encodes PNG or JPEG into a MemoryStream and creates a second stream for decoding."
+    },
+    {
+      "id": "ct-resource-resource-manager",
+      "claim": "System.Resources.ResourceManager",
+      "room": "ct-resource",
+      "kind": "direct-use",
+      "symbols": [],
+      "path": [{"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "resourceManager_ = std::make_unique<System::Resources::ResourceManager>("}],
+      "conditions": ["runtime:resource-room-built"],
+      "note": "The resource content room constructs the dependency ResourceManager with a byte-resource lookup callback."
+    },
+    {
+      "id": "text-hud-string-builder",
+      "claim": "System.Text.StringBuilder",
+      "room": "text-hud",
+      "kind": "direct-use",
+      "symbols": [],
+      "path": [{"source": "src/Exhibits/Sprites/TextLab.cpp", "anchor": "System::Text::StringBuilder sbld;"}],
+      "conditions": ["runtime:string-builder-toggle-enabled"],
+      "note": "The HUD room constructs a StringBuilder, appends the live score and passes it to SpriteBatch.DrawString."
+    },
+    {
+      "id": "pf-state-basic-effect-texture-setter",
+      "claim": "BasicEffect.Texture",
+      "room": "pf-state",
+      "kind": "direct-call",
+      "symbols": ["CPP-87B2AEAD1B68"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "fx_->setTextureProperty(S().textures->Get(names[i % 4]));"}],
+      "conditions": ["runtime:state-room-active"],
+      "note": "Each state-stress draw assigns one of four textures through the public setter; the room does not call the getter."
+    },
+    {
+      "id": "pf-state-effect-pass-apply",
+      "claim": "EffectPass.Apply",
+      "room": "pf-state",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-8A50CDEDE805"],
+      "path": [
+        {"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "EffectBank::Apply(*fx_);\n            quad.Draw(device);"},
+        {"source": "src/Rendering/EffectBank.cpp", "anchor": "for (auto& pass : effect.getCurrentTechniqueProperty()->getPassesProperty()) pass.Apply();"}
+      ],
+      "conditions": ["runtime:state-room-active"],
+      "note": "Each state-stress quad reaches EffectPass.Apply through the museum's shared BasicEffect helper."
+    },
+    {
+      "id": "pf-targets-set-render-target-2d",
+      "claim": "GraphicsDevice.SetRenderTarget",
+      "room": "pf-targets",
+      "kind": "direct-call",
+      "symbols": ["CPP-03F768017C00"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "d.SetRenderTarget(targets_[static_cast<std::size_t>(i)].get());"}],
+      "conditions": ["runtime:targets-room-active"],
+      "note": "The target-switch loop calls the RenderTarget2D overload for every active target; it does not call the cube overload."
+    },
+    {
+      "id": "pf-targets-render-target-2d",
+      "claim": "RenderTarget2D",
+      "room": "pf-targets",
+      "kind": "direct-use",
+      "symbols": ["CPP-E26AC29B40D1"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "targets_.push_back(std::make_unique<RenderTarget2D>(d, 128, 128, false, SurfaceFormat::Color, DepthFormat::None));"}],
+      "conditions": ["runtime:targets-room-screen-loaded"],
+      "note": "The room constructs thirty-two public RenderTarget2D instances for its switching workload."
+    },
+    {
+      "id": "pl-diagnostics-counter-handle",
+      "claim": "CNA::Diagnostics::CounterHandle",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-C8B40E133B78"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::CounterHandle clicks_;"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=STATS|FULL"],
+      "note": "The room owns a public counter handle and increments it from the control panel."
+    },
+    {
+      "id": "pl-diagnostics-event-batch",
+      "claim": "CNA::Diagnostics::EventBatch",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-483218F8E502"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "const Diag::EventBatch batch = Diag::GetProvider().ReadEvents(after, 6);"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:diagnostics-mode-full"],
+      "note": "Refresh stores the provider's event result in the public EventBatch type."
+    },
+    {
+      "id": "pl-diagnostics-event-record",
+      "claim": "CNA::Diagnostics::EventRecord",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-8E848B280240"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "for (const Diag::EventRecord& e : batch.events) {"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:diagnostics-mode-full"],
+      "note": "The timeline iterates each public EventRecord returned in the batch."
+    },
+    {
+      "id": "pl-diagnostics-frame-counter-handle",
+      "claim": "CNA::Diagnostics::FrameCounterHandle",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-01C555B18E7D"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::FrameCounterHandle sparks_;"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=STATS|FULL"],
+      "note": "The room owns and updates a per-frame sparks counter."
+    },
+    {
+      "id": "pl-diagnostics-frame-statistics-sink",
+      "claim": "CNA::Diagnostics::FrameStatisticsSink",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-873F9057CB1F"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "void Collect(Diag::FrameStatisticsSink& sink) override"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=STATS|FULL"],
+      "note": "The custom diagnostics source receives the public sink and writes a gauge and frame counter."
+    },
+    {
+      "id": "pl-diagnostics-gauge-handle",
+      "claim": "CNA::Diagnostics::GaugeHandle",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-571D98D2FE9A"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::GaugeHandle level_;"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=STATS|FULL"],
+      "note": "The room owns a public gauge handle and updates it with the workload level."
+    },
+    {
+      "id": "pl-diagnostics-source-interface",
+      "claim": "CNA::Diagnostics::IDiagnosticsSource",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-03ADA8FFB8C6"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "class RoomSource final : public Diag::IDiagnosticsSource {"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=STATS|FULL"],
+      "note": "RoomSource implements the public diagnostics source interface."
+    },
+    {
+      "id": "pl-diagnostics-mark-event",
+      "claim": "CNA::Diagnostics::MarkEvent",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-ECAB58B506F6"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::MarkEvent(marker_, Diag::Category::Application, ++markerValue_);"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:diagnostics-mode-full", "runtime:mark-event-button"],
+      "note": "The marker control directly emits an application diagnostics event."
+    },
+    {
+      "id": "pl-diagnostics-metric-kind",
+      "claim": "CNA::Diagnostics::MetricKind",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-31CB8563861E"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "m.kind == Diag::MetricKind::Counter"}],
+      "conditions": ["runtime:snapshot-has-museum-metrics"],
+      "note": "The snapshot display classifies samples with the public MetricKind enum."
+    },
+    {
+      "id": "pl-diagnostics-name-handle",
+      "claim": "CNA::Diagnostics::NameHandle",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-AE1945BCFD6C"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::NameHandle outer_, inner_, marker_;"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL"],
+      "note": "Named zone and marker handles are stored in public NameHandle values."
+    },
+    {
+      "id": "pl-diagnostics-register-source",
+      "claim": "CNA::Diagnostics::RegisterSource",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-0C7DFC8F8825"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "registration_ = Diag::RegisterSource(source_);"}],
+      "conditions": ["runtime:room-load"],
+      "note": "Loading the exhibit registers its custom source through the public API."
+    },
+    {
+      "id": "pl-diagnostics-resource-descriptor",
+      "claim": "CNA::Diagnostics::ResourceDescriptor",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-F8471B71D5FA"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::ResourceDescriptor d;"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=STATS|FULL"],
+      "note": "The custom buffer is described with the public ResourceDescriptor structure."
+    },
+    {
+      "id": "pl-diagnostics-resource-handle",
+      "claim": "CNA::Diagnostics::ResourceHandle",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-D9B756A586FC"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::ResourceHandle resource_;"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=STATS|FULL"],
+      "note": "The room owns a ResourceHandle whose descriptor is created, updated and reset."
+    },
+    {
+      "id": "pl-diagnostics-resource-kind",
+      "claim": "CNA::Diagnostics::ResourceKind",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-066E476B3A54"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "d.kind = Diag::ResourceKind::Custom;"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=STATS|FULL"],
+      "note": "The descriptor explicitly marks the room's resource with the public Custom kind."
+    },
+    {
+      "id": "pl-diagnostics-set-runtime-mode",
+      "claim": "CNA::Diagnostics::SetRuntimeMode",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-7829C4646FFB"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "if (!Diag::SetRuntimeMode(on ? Diag::Mode::Full : Diag::Mode::Stats))"}],
+      "conditions": ["runtime:set-runtime-mode-toggle"],
+      "note": "The Full-mode toggle calls SetRuntimeMode and displays an explicit refusal from lower-level builds."
+    },
+    {
+      "id": "pl-diagnostics-source-registration",
+      "claim": "CNA::Diagnostics::SourceRegistration",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-F8E79C189FE5"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::SourceRegistration registration_;"}],
+      "conditions": ["runtime:room-loaded"],
+      "note": "The returned registration token is retained for the room lifetime and reset on leave."
+    },
+    {
+      "id": "pl-diagnostics-start-recording",
+      "claim": "CNA::Diagnostics::StartRecording",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-4239FBD6DFC0"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "session_ = Diag::StartRecording(4096);"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:diagnostics-mode-full", "runtime:start-recording-button"],
+      "note": "The Start control opens a bounded 4096-event recording session."
+    },
+    {
+      "id": "pl-diagnostics-stop-recording",
+      "claim": "CNA::Diagnostics::StopRecording",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-A3EAEEA00C5A"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "trace_ = std::make_unique<Diag::Trace>(Diag::StopRecording(session_));"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:recording-session-active", "runtime:stop-recording-button"],
+      "note": "The Stop control closes the active session and retains the returned trace."
+    },
+    {
+      "id": "pl-diagnostics-trace",
+      "claim": "CNA::Diagnostics::Trace",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-C48C9C0A5C3D"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "std::unique_ptr<Diag::Trace> trace_;"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL"],
+      "note": "The room retains and inspects the public Trace returned by StopRecording."
+    },
+    {
+      "id": "pl-diagnostics-zone-scope",
+      "claim": "CNA::Diagnostics::ZoneScope",
+      "room": "pl-diagnostics",
+      "kind": "direct-use",
+      "symbols": ["CPP-E8F6F919DBB3"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::ZoneScope outer(outer_);"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:diagnostics-mode-full", "runtime:room-nearby"],
+      "note": "Every nearby update times its synthetic workload with nested public ZoneScope objects."
+    },
+    {
+      "id": "pl-diagnostics-read-events",
+      "claim": "IDiagnosticsProvider.ReadEvents",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-DE39D8E0EADB"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::GetProvider().ReadEvents(after, 6);"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:diagnostics-mode-full"],
+      "note": "Refresh reads the six newest timeline events from the diagnostics provider."
+    },
+    {
+      "id": "pl-diagnostics-resolve-name",
+      "claim": "IDiagnosticsProvider.ResolveName",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-7AE764BD0973"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::GetProvider().ResolveName(e.name)"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:event-batch-nonempty"],
+      "note": "Timeline rows resolve each event's interned public name through the provider."
+    },
+    {
+      "id": "pl-diagnostics-trace-read-binary",
+      "claim": "Trace.ReadBinary",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-2C29614FBDD8"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "Diag::Trace::ReadBinary(binary);"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:trace-recorded", "runtime:binary-round-trip-button"],
+      "note": "The round-trip control reconstructs a trace from the binary stream."
+    },
+    {
+      "id": "pl-diagnostics-trace-write-binary",
+      "claim": "Trace.WriteBinary",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-5856164D7620"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "trace_->WriteBinary(binary);"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:trace-recorded", "runtime:binary-round-trip-button"],
+      "note": "The round-trip control serializes the captured trace into a binary stream."
+    },
+    {
+      "id": "pl-diagnostics-trace-write-chrome",
+      "claim": "Trace.WriteChromeTrace",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-58F72ACF8820"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "trace_->WriteChromeTrace(chrome);"}],
+      "conditions": ["build:CNA_DIAGNOSTICS=FULL", "runtime:trace-recorded"],
+      "note": "Trace description serializes the captured data in Chrome Trace JSON format."
+    },
+    {
+      "id": "cx-stats-set-runtime-mode",
+      "claim": "SetRuntimeMode",
+      "room": "cx-stats",
+      "kind": "direct-call",
+      "symbols": ["CPP-7829C4646FFB"],
+      "path": [{"source": "src/Exhibits/CnaExt/CnaExtLab.cpp", "anchor": "CNA::Diagnostics::SetRuntimeMode(v == 0 ? CNA::Diagnostics::Mode::Off : CNA::Diagnostics::Mode::Stats);"}],
+      "conditions": ["runtime:runtime-mode-control"],
+      "note": "The stats room's Off/Stats choice directly changes the diagnostics runtime mode."
+    },
+    {
+      "id": "cx-stats-snapshot-metrics",
+      "claim": "Snapshot.metrics",
+      "room": "cx-stats",
+      "kind": "direct-read",
+      "symbols": ["CPP-DC95C0B0650F"],
+      "path": [{"source": "src/Exhibits/CnaExt/CnaExtLab.cpp", "anchor": "if (snapshot_.metrics.empty() && snapshot_.resources.empty()) {"}],
+      "conditions": ["runtime:stats-snapshot-captured"],
+      "note": "The stats display tests and then renders the snapshot metric collection."
+    },
+    {
+      "id": "cx-stats-snapshot-resources",
+      "claim": "Snapshot.resources",
+      "room": "cx-stats",
+      "kind": "direct-read",
+      "symbols": ["CPP-3330392D2236"],
+      "path": [{"source": "src/Exhibits/CnaExt/CnaExtLab.cpp", "anchor": "if (snapshot_.metrics.empty() && snapshot_.resources.empty()) {"}],
+      "conditions": ["runtime:stats-snapshot-captured"],
+      "note": "The stats display tests and then groups the snapshot resource collection by kind."
+    },
+    {
+      "id": "cx-stats-diagnostics-get-provider",
+      "claim": "CNA::Diagnostics::GetProvider",
+      "room": "cx-stats",
+      "kind": "direct-call",
+      "symbols": ["CPP-5A5E1BBB0542"],
+      "path": [{"source": "src/Exhibits/CnaExt/CnaExtLab.cpp", "anchor": "sampleTimer_ = 0.25f;\n                try { snapshot_ = CNA::Diagnostics::GetProvider().CaptureSnapshot();"}],
+      "conditions": ["runtime:room-nearby", "runtime:diagnostics-provider-available"],
+      "note": "The stats mode samples the public diagnostics provider on a 250 ms timer."
+    },
+    {
+      "id": "pl-diagnostics-diagnostics-get-provider",
+      "claim": "CNA::Diagnostics::GetProvider",
+      "room": "pl-diagnostics",
+      "kind": "direct-call",
+      "symbols": ["CPP-5A5E1BBB0542"],
+      "path": [{"source": "src/Exhibits/Platform/DiagnosticsLab.cpp", "anchor": "snapshot_ = Diag::GetProvider().CaptureSnapshot();"}],
+      "conditions": ["runtime:diagnostics-provider-available"],
+      "note": "Refresh obtains the diagnostics provider before capturing the room snapshot."
+    },
+    {
+      "id": "pf-dashboard-diagnostics-get-provider",
+      "claim": "CNA::Diagnostics::GetProvider",
+      "room": "pf-dashboard",
+      "kind": "direct-call",
+      "symbols": ["CPP-5A5E1BBB0542"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "const auto snap = CNA::Diagnostics::GetProvider().CaptureSnapshot();"}],
+      "conditions": ["runtime:room-nearby", "runtime:diagnostics-provider-available"],
+      "note": "The performance lab obtains the provider when refreshing dashboard metrics."
+    },
+    {
+      "id": "pf-state-diagnostics-get-provider",
+      "claim": "CNA::Diagnostics::GetProvider",
+      "room": "pf-state",
+      "kind": "direct-call",
+      "symbols": ["CPP-5A5E1BBB0542"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "const auto snap = CNA::Diagnostics::GetProvider().CaptureSnapshot();"}],
+      "conditions": ["runtime:room-nearby", "runtime:diagnostics-provider-available"],
+      "note": "The shared performance exhibit obtains the provider for its state view."
+    },
+    {
+      "id": "pf-targets-diagnostics-get-provider",
+      "claim": "CNA::Diagnostics::GetProvider",
+      "room": "pf-targets",
+      "kind": "direct-call",
+      "symbols": ["CPP-5A5E1BBB0542"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "const auto snap = CNA::Diagnostics::GetProvider().CaptureSnapshot();"}],
+      "conditions": ["runtime:room-nearby", "runtime:diagnostics-provider-available"],
+      "note": "The shared performance exhibit obtains the provider for its targets view."
+    },
+    {
+      "id": "pf-dashboard-capture-snapshot",
+      "claim": "CNA::Diagnostics::IDiagnosticsProvider.CaptureSnapshot",
+      "room": "pf-dashboard",
+      "kind": "direct-call",
+      "symbols": ["CPP-AF718651E02B"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "const auto snap = CNA::Diagnostics::GetProvider().CaptureSnapshot();"}],
+      "conditions": ["runtime:room-nearby", "runtime:diagnostics-provider-available"],
+      "note": "The dashboard refresh directly captures a provider snapshot."
+    },
+    {
+      "id": "pf-state-capture-snapshot",
+      "claim": "CNA::Diagnostics::IDiagnosticsProvider.CaptureSnapshot",
+      "room": "pf-state",
+      "kind": "direct-call",
+      "symbols": ["CPP-AF718651E02B"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "const auto snap = CNA::Diagnostics::GetProvider().CaptureSnapshot();"}],
+      "conditions": ["runtime:room-nearby", "runtime:diagnostics-provider-available"],
+      "note": "The shared performance refresh captures the snapshot used by the state view."
+    },
+    {
+      "id": "pf-targets-capture-snapshot",
+      "claim": "CNA::Diagnostics::IDiagnosticsProvider.CaptureSnapshot",
+      "room": "pf-targets",
+      "kind": "direct-call",
+      "symbols": ["CPP-AF718651E02B"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "const auto snap = CNA::Diagnostics::GetProvider().CaptureSnapshot();"}],
+      "conditions": ["runtime:room-nearby", "runtime:diagnostics-provider-available"],
+      "note": "The shared performance refresh captures the snapshot used by the targets view."
+    },
+    {
+      "id": "pf-dashboard-snapshot-metrics",
+      "claim": "CNA::Diagnostics::Snapshot.metrics",
+      "room": "pf-dashboard",
+      "kind": "direct-read",
+      "symbols": ["CPP-DC95C0B0650F"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "for (const auto& m : snap.metrics) metrics_[m.name] = m.value;"}],
+      "conditions": ["runtime:room-nearby", "runtime:snapshot-captured"],
+      "note": "The dashboard iterates the metric samples in the captured snapshot."
+    },
+    {
+      "id": "pf-state-snapshot-metrics",
+      "claim": "CNA::Diagnostics::Snapshot.metrics",
+      "room": "pf-state",
+      "kind": "direct-read",
+      "symbols": ["CPP-DC95C0B0650F"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "for (const auto& m : snap.metrics) metrics_[m.name] = m.value;"}],
+      "conditions": ["runtime:room-nearby", "runtime:snapshot-captured"],
+      "note": "The shared performance refresh iterates the metric samples for the state view."
+    },
+    {
+      "id": "pf-targets-snapshot-metrics",
+      "claim": "CNA::Diagnostics::Snapshot.metrics",
+      "room": "pf-targets",
+      "kind": "direct-read",
+      "symbols": ["CPP-DC95C0B0650F"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "for (const auto& m : snap.metrics) metrics_[m.name] = m.value;"}],
+      "conditions": ["runtime:room-nearby", "runtime:snapshot-captured"],
+      "note": "The shared performance refresh iterates the metric samples for the targets view."
+    },
+    {
+      "id": "pf-dashboard-metric-name",
+      "claim": "CNA::Diagnostics::MetricSample.name",
+      "room": "pf-dashboard",
+      "kind": "direct-read",
+      "symbols": ["CPP-EEC5D69A2C50"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "for (const auto& m : snap.metrics) metrics_[m.name] = m.value;"}],
+      "conditions": ["runtime:room-nearby", "runtime:snapshot-has-metrics"],
+      "note": "Each metric name becomes the dashboard lookup key."
+    },
+    {
+      "id": "pf-dashboard-metric-value",
+      "claim": "CNA::Diagnostics::MetricSample.value",
+      "room": "pf-dashboard",
+      "kind": "direct-read",
+      "symbols": ["CPP-81B284EBDECB"],
+      "path": [{"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "for (const auto& m : snap.metrics) metrics_[m.name] = m.value;"}],
+      "conditions": ["runtime:room-nearby", "runtime:snapshot-has-metrics"],
+      "note": "Each metric value is stored for the dashboard readouts."
+    },
+    {
+      "id": "app-gametime-elapsed",
+      "claim": "GameTime.ElapsedGameTime",
+      "room": "app-gametime",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-A445FD1FF328"],
+      "path": [
+        {"source": "src/MuseumGame.cpp", "anchor": "stats_.elapsedMilliseconds = static_cast<float>(gameTime.getElapsedGameTimeProperty().getTotalMillisecondsProperty());"},
+        {"source": "src/Exhibits/App/AppLab.cpp", "anchor": "p.AddReadout(\"ElapsedGameTime\", [this] { return Fmt(S().stats->elapsedMilliseconds, \" ms\"); });"}
+      ],
+      "conditions": ["runtime:game-update-loop", "runtime:app-gametime-room"],
+      "note": "The game loop reads ElapsedGameTime and the app room renders the captured value."
+    },
+    {
+      "id": "app-gametime-total",
+      "claim": "GameTime.TotalGameTime",
+      "room": "app-gametime",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-A5480EF1053F"],
+      "path": [
+        {"source": "src/MuseumGame.cpp", "anchor": "stats_.totalSeconds = gameTime.getTotalGameTimeProperty().getTotalSecondsProperty();"},
+        {"source": "src/Exhibits/App/AppLab.cpp", "anchor": "p.AddReadout(\"TotalGameTime\", [this] { return Fmt(static_cast<float>(S().stats->totalSeconds), \" s\"); });"}
+      ],
+      "conditions": ["runtime:game-update-loop", "runtime:app-gametime-room"],
+      "note": "The game loop reads TotalGameTime and the room exposes the captured running total."
+    },
+    {
+      "id": "app-gametime-reset-elapsed",
+      "claim": "Game.ResetElapsedTime",
+      "room": "app-gametime",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-C660D7E2331B"],
+      "path": [
+        {"source": "src/Exhibits/App/AppLab.cpp", "anchor": "p.AddButton(\"One 400 ms stall, then Game.ResetElapsedTime()\", [st] { if (st != nullptr) { st->oneShotStallMs = 400.0f; st->resetElapsedAfterStall = true; } });"},
+        {"source": "src/MuseumGame.cpp", "anchor": "if (stats_.resetElapsedAfterStall) ResetElapsedTime();"}
+      ],
+      "conditions": ["runtime:game-update-loop", "runtime:reset-after-stall-control"],
+      "note": "The room schedules a 400 ms stall and the next MuseumGame update invokes the public reset method."
+    },
+    {
+      "id": "app-gametime-suppress-draw",
+      "claim": "Game.SuppressDraw",
+      "room": "app-gametime",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-E37803415FFE"],
+      "path": [
+        {"source": "src/Exhibits/App/AppLab.cpp", "anchor": "p.AddButton(\"Game.SuppressDraw(): skip the next Draw\", [st] { if (st != nullptr) st->suppressDrawNext = true; });"},
+        {"source": "src/MuseumGame.cpp", "anchor": "SuppressDraw();"}
+      ],
+      "conditions": ["runtime:game-update-loop", "runtime:suppress-next-draw-control"],
+      "note": "The room schedules the public SuppressDraw call in the next game update."
+    },
+    {
+      "id": "app-gametime-inactive-sleep",
+      "claim": "Game.InactiveSleepTime",
+      "room": "app-gametime",
+      "kind": "direct-call",
+      "symbols": ["CPP-39A794AFB40F", "CPP-DBA37BA748C9"],
+      "path": [
+        {"source": "src/Exhibits/App/AppLab.cpp", "anchor": "p.AddSlider(\"Game.InactiveSleepTime (window in the background)\", 0.0f, 100.0f, static_cast<float>(S().game->getInactiveSleepTimeProperty().getTotalMillisecondsProperty()), [this](float v) { S().game->setInactiveSleepTimeProperty(System::TimeSpan::FromMilliseconds(static_cast<double>(v))); }, \"%.0f ms\", 1.0f);"}
+      ],
+      "conditions": ["runtime:app-gametime-room", "runtime:game-service-available"],
+      "note": "The slider reads the current inactive sleep duration and writes every selected duration through the public property accessors."
+    },
+    {
+      "id": "pf-dashboard-elapsed",
+      "claim": "GameTime.ElapsedGameTime",
+      "room": "pf-dashboard",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-A445FD1FF328"],
+      "path": [
+        {"source": "src/MuseumGame.cpp", "anchor": "stats_.elapsedMilliseconds = static_cast<float>(gameTime.getElapsedGameTimeProperty().getTotalMillisecondsProperty());"},
+        {"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "std::vector<float> h(st.frameHistory, st.frameHistory + 120);"}
+      ],
+      "conditions": ["runtime:game-update-loop", "runtime:performance-room-nearby"],
+      "note": "The loop records elapsed frame time into frameHistory and the dashboard summarizes that history."
+    },
+    {
+      "id": "pf-dashboard-running-slowly",
+      "claim": "GameTime.IsRunningSlowly",
+      "room": "pf-dashboard",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-230835E07B33"],
+      "path": [
+        {"source": "src/MuseumGame.cpp", "anchor": "stats_.runningSlowly = gameTime.getIsRunningSlowlyProperty();"},
+        {"source": "src/Exhibits/Perf/PerfLab.cpp", "anchor": "st.runningSlowly ? \"yes\" : \"no\""}
+      ],
+      "conditions": ["runtime:game-update-loop", "runtime:performance-room-visible"],
+      "note": "The loop captures IsRunningSlowly and the performance dashboard displays it."
+    },
+    {
+      "id": "model-material-alpha-cutoff-setter",
+      "claim": "PbrEffect.AlphaCutoffEXT",
+      "room": "model-material",
+      "kind": "direct-call",
+      "symbols": ["CPP-DF28BCEC2435"],
+      "path": [{"source": "src/Exhibits/Models/ModelLab.cpp", "anchor": "pbr->setAlphaCutoffEXTProperty(cutoff_);"}],
+      "conditions": ["runtime:model-loaded", "runtime:effect-is-pbr"],
+      "note": "The material room applies its cutoff control through the public setter; it does not read the getter."
+    },
+    {
+      "id": "model-ibl-light-setter",
+      "claim": "PbrEffect.ImageBasedLightEXT",
+      "room": "model-ibl",
+      "kind": "direct-call",
+      "symbols": ["CPP-F8BF74DDD8D1"],
+      "path": [{"source": "src/Exhibits/Models/ModelLab.cpp", "anchor": "pbr->setImageBasedLightEXT(light);"}],
+      "conditions": ["runtime:model-loaded", "runtime:effect-is-pbr"],
+      "note": "The IBL room assigns its generated image-based light through the public setter; it does not read the getter."
+    },
+    {
+      "id": "model-cameras-infinite-far-plane",
+      "claim": "ModelCameraEXT.HasInfiniteFarPlane",
+      "room": "model-cameras",
+      "kind": "direct-read",
+      "symbols": ["CPP-487E7122D509"],
+      "path": [{"source": "src/Exhibits/Models/ModelCamerasLab.cpp", "anchor": "c.HasInfiniteFarPlane ? \", infinite\" : \"\""}],
+      "conditions": ["runtime:model-camera-present"],
+      "note": "The camera description reports whether the imported camera uses an infinite far plane."
+    },
+    {
+      "id": "ct-compiler-compress-content",
+      "claim": "CompileOptions.compressContent",
+      "room": "ct-compiler",
+      "kind": "direct-read",
+      "symbols": ["CPP-56916F2F1121"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "options.compressContent = compression_ != 0;"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:compile-requested"],
+      "note": "The compiler room writes the public compression option from its none/LZX control."
+    },
+    {
+      "id": "ct-compiler-compile",
+      "claim": "ContentCompiler.Compile",
+      "room": "ct-compiler",
+      "kind": "direct-call",
+      "symbols": ["CPP-EE82FF218A83"],
+      "path": [{"source": "src/Exhibits/Content/CompilerLab.cpp", "anchor": "return compiler.Compile<PipeGfx::Texture2DContent>(texture, options);"}],
+      "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:2d-texture-shape", "runtime:compile-requested"],
+      "note": "The compiler room directly invokes the public compile template for its 2D texture path."
+    },
+    {
+      "id": "rt-formats-surface-format",
+      "claim": "SurfaceFormat",
+      "room": "rt-formats",
+      "kind": "direct-use",
+      "symbols": ["CPP-F277E3847BDF"],
+      "path": [{"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "static constexpr FormatDef kFormats[6] = {{\"Color\", SurfaceFormat::Color}, {\"Bgr565\", SurfaceFormat::Bgr565}, {\"Bgra4444\", SurfaceFormat::Bgra4444},"}],
+      "conditions": ["runtime:rt-formats-room-drawn"],
+      "note": "The format matrix stores six public SurfaceFormat values and constructs a render target for each one."
+    },
+    {
+      "id": "rt-formats-support-query",
+      "claim": "GraphicsDevice.SupportsSurfaceFormatAsRenderTargetEXT",
+      "room": "rt-formats",
+      "kind": "direct-call",
+      "symbols": ["CPP-BF64D81BEFEB"],
+      "path": [{"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "const bool claims = d.SupportsSurfaceFormatAsRenderTargetEXT(kFormats[i].format);"}],
+      "conditions": ["runtime:rt-formats-room-drawn"],
+      "note": "The room queries render-target support for every format before constructing and comparing the actual target."
+    },
+    {
+      "id": "rt-formats-texture-format",
+      "claim": "Texture.Format",
+      "room": "rt-formats",
+      "kind": "direct-read",
+      "symbols": ["CPP-ADBA3231B2F8"],
+      "path": [{"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "const bool actual = rt.getFormatProperty() == kFormats[i].format;"}],
+      "conditions": ["runtime:render-target-format-construction-succeeds"],
+      "note": "The render-target format room compares the created texture's public Format property with the requested format."
+    }
+  ]
+}

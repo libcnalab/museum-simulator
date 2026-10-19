@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "CNA/GraphicsBackendMaturity.hpp"
+#include "CNA/GraphicsRendererMaturity.hpp"
 #include "CNA/GraphicsRendererSelection.hpp"
 #include "CNA/GraphicsRendererType.hpp"
 #include "Exhibits/ExhibitFactories.hpp"
@@ -110,9 +110,9 @@ private:
         lines.push_back(std::string("CNA revision at configure time: ") + MUSEUM_CNA_REVISION);
         lines.push_back("Active renderer: " + std::string(S().device->GetGraphicsRendererName()));
         std::string compiled;
-        static const char* maturity[] = {"production", "supported", "experimental", "historical"};
         for (const CNA::GraphicsRendererType t : CNA::GraphicsRendererSelection::GetAvailable())
-            compiled += std::string(CNA::getGraphicsRendererName(t)) + " (" + maturity[std::min(static_cast<int>(CNA::getGraphicsBackendMaturity(t)), 3)] + ")   ";
+            compiled += std::string(CNA::getGraphicsRendererName(t)) + " (" +
+                        std::string(CNA::toStringView(CNA::getGraphicsRendererMaturity(t))) + ")   ";
         lines.push_back("Renderers compiled into this build: " + compiled);
         {
             using CNA::GraphicsRendererSelection;
@@ -164,21 +164,25 @@ private:
     void DrawCompare(Rect& rect, Text& text)
     {
         const MuseumPlan& m = TheMuseum();
-        int xna = 0, ext = 0;
+        int xna = 0, ext = 0, app = 0;
         std::set<std::string> extNames;
         for (const RoomDef& r : m.rooms) {
             if (r.kind != CellKind::Room) continue;
             if (r.origin == ApiOrigin::Xna) ++xna;
-            else {
+            else if (r.origin == ApiOrigin::CnaExtension) {
                 ++ext;
                 for (const std::string& a : r.apis) extNames.insert(a);
-            }
+            } else ++app;
         }
-        const float total = static_cast<float>(std::max(1, xna + ext));
+        const float total = static_cast<float>(std::max(1, xna + ext + app));
         rect(30, 70, 900.0f * static_cast<float>(xna) / total, 40, Kit::Rgba(110, 170, 255));
-        rect(30 + 900.0f * static_cast<float>(xna) / total, 70, 900.0f * static_cast<float>(ext) / total, 40, Kit::Rgba(255, 190, 90));
-        text(std::to_string(xna) + " rooms use XNA 4.0 features", 34, 114, Kit::kText, 0.65f);
-        text(std::to_string(ext) + " rooms demonstrate CNA extensions", 560, 114, Kit::kText, 0.65f);
+        const float extStart = 30 + 900.0f * static_cast<float>(xna) / total;
+        const float appStart = extStart + 900.0f * static_cast<float>(ext) / total;
+        rect(extStart, 70, 900.0f * static_cast<float>(ext) / total, 40, Kit::Rgba(255, 190, 90));
+        rect(appStart, 70, 900.0f * static_cast<float>(app) / total, 40, Kit::Rgba(170, 220, 150));
+        text(std::to_string(xna) + " XNA rooms    " + std::to_string(ext) + " extension rooms    " +
+                 std::to_string(app) + " application rooms",
+             34, 114, Kit::kText, 0.65f);
         if (!names_) return;
         std::string line;
         float y = 150.0f;
