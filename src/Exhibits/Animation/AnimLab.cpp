@@ -143,7 +143,8 @@ public:
         }
         if (mode_ == Mode::Clock) clockSeconds_ += dt * speed_;
         if (mode_ == Mode::Gears) gearAngle_ += dt * speed_;
-        if (mode_ == Mode::Walker) walk_ += dt * speed_ * 4.0f;
+        // The gait phase stays in (-pi, pi]: a phase that only grows loses float precision after a long visit and the stride jitters.
+        if (mode_ == Mode::Walker) walk_ = MathHelper::WrapAngle(walk_ + dt * speed_ * 4.0f);
         if (mode_ == Mode::Gyroscope)
             for (int i = 0; i < 3; ++i) ring_[static_cast<std::size_t>(i)] += dt * rates_[static_cast<std::size_t>(i)];
     }

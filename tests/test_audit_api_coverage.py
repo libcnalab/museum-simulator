@@ -88,6 +88,18 @@ class AuditApiCoverageTests(unittest.TestCase):
             ("family", ["a", "b"]),
         )
 
+    def test_argument_qualified_claim_never_widens_to_the_family(self):
+        symbols = [
+            symbol("a", "N::Texture3D::GetData", signature="(T *data, int elementCount)"),
+            symbol("b", "N::Texture3D::GetData", signature="(int level, int left, int front, T *data)"),
+        ]
+        self.assertEqual(
+            MODULE.resolve_claim("Texture3D.GetData(level, left)", symbols), ("exact", ["b"])
+        )
+        self.assertEqual(
+            MODULE.resolve_claim("Texture3D.GetData(level, box)", symbols), ("unresolved", [])
+        )
+
     def test_unresolved_and_non_declaration_stay_explicit(self):
         self.assertEqual(MODULE.resolve_claim("Missing.Api", []), ("unresolved", []))
         self.assertEqual(
@@ -431,6 +443,31 @@ class AuditApiCoverageTests(unittest.TestCase):
                         MODULE.resolve_execution_evidence(
                             root, manifest, implementation, "museum", "cna"
                         )
+
+    def test_every_unclaimed_header_needs_one_current_area_rule(self):
+        inventory = {"symbols": [
+            {"id": "a", "header": "m/include/A.hpp"},
+            {"id": "b", "header": "m/include/B.hpp"},
+            {"id": "c", "header": "m/include/sub/C.hpp"},
+        ]}
+        evidence = [{"id": "a", "catalogLinked": True}, {"id": "b", "catalogLinked": False}, {"id": "c", "catalogLinked": False}]
+        statuses = {"gap": "g", "supporting": "s", "not-applicable": "n"}
+
+        def manifest(rules):
+            return {"schema": MODULE.AREA_SCHEMA, "statuses": statuses, "rules": rules}
+
+        def rule(match, status="supporting", backlog=""):
+            return {"match": match, "area": "x", "status": status, "backlog": backlog, "reason": "r"}
+
+        areas = MODULE.classify_areas(inventory, evidence, manifest([rule("m/include/sub/*", "gap", "C01"), rule("m/include/*")]))
+        self.assertEqual(areas["demonstratedHeaders"], 1)
+        self.assertEqual(areas["classified"], {"gap": {"headers": 1, "declarations": 1}, "supporting": {"headers": 1, "declarations": 1}})
+        with self.assertRaisesRegex(RuntimeError, "no area classification"):
+            MODULE.classify_areas(inventory, evidence, manifest([rule("m/include/B.hpp")]))
+        with self.assertRaisesRegex(RuntimeError, "match no unclaimed header"):
+            MODULE.classify_areas(inventory, evidence, manifest([rule("m/include/*"), rule("m/include/A.hpp")]))
+        with self.assertRaisesRegex(RuntimeError, "backlog"):
+            MODULE.classify_areas(inventory, evidence, manifest([rule("m/include/*", "gap", "")]))
 
 
 if __name__ == "__main__":

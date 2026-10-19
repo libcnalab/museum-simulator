@@ -208,7 +208,7 @@ public:
                 p.AddButton("Load a Model (gltf)", [this] { LoadModel("Models/torus"); });
                 p.AddButton("Load all of them again", [this] { rows_.clear(); LoadTexture("Textures/brick"); LoadTexture("Textures/marble"); LoadSound("Audio/chirp"); LoadModel("Models/torus"); LoadModel("Models/robot"); });
                 p.AddButton("Clear", [this] { rows_.clear(); });
-                p.AddReadout("Content root", [this] { return S().contentRoot; });
+                p.AddReadout("ContentManager.RootDirectory", [this] { return manager_ != nullptr ? manager_->getRootDirectoryProperty() : std::string("-"); });
                 p.AddReadout("ContentManager.ServiceProvider", [this] { return manager_ != nullptr && manager_->getServiceProviderProperty() != nullptr ? std::string("present") : std::string("null"); });
                 break;
             case Mode::Cache:
@@ -216,6 +216,8 @@ public:
                 p.AddButton("Load brick (a new manager)", [this] { CacheLoad(true); });
                 p.AddButton("Unload() this manager", [this] { CacheUnload(); });
                 p.AddReadout("Loads so far", [this] { return std::to_string(loads_); });
+                // GraphicsResource.IsDisposed on every copy the room still holds: Unload() disposes what the manager cached.
+                p.AddReadout("Held copies not IsDisposed", [this] { return std::to_string(Alive()) + " of " + std::to_string(handles_.size()); });
                 p.AddReadout("Bar length", [] { return std::string("milliseconds"); });
                 break;
             case Mode::Formats:

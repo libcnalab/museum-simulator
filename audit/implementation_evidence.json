@@ -3347,7 +3347,7 @@
       "room": "cam-clip",
       "kind": "indirect-runtime",
       "symbols": ["CPP-6DA6D7C95F6E"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "a_ = std::make_unique<MiniView>(S(), w, h);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "MiniView(services, width, height, DepthFormat::Depth24, false)"}, {"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "a_ = std::make_unique<MiniView>(S(), w, h);"}],
       "conditions": ["runtime:cam-clip-room-loaded"],
       "note": "The z-fighting screen renders into MiniView's target created with the fixed DepthFormat::Depth24; the room itself never chooses a depth format."
     },
@@ -3387,7 +3387,7 @@
       "room": "cam-fov",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "if (mode_ == Mode::Fov) b_ = std::make_unique<MiniView>(S(), 480, 300)"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "if (mode_ == Mode::Fov) b_ = std::make_unique<MiniView>(S(), 480, 300)"}],
       "conditions": ["runtime:cam-fov-room-loaded"],
       "note": "Two 480x300 MiniViews, each creating its own RenderTarget2D, hold the two FOV pictures."
     },
@@ -3407,7 +3407,7 @@
       "room": "cam-mirror",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "a_ = std::make_unique<MiniView>(S(), w, h);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "a_ = std::make_unique<MiniView>(S(), w, h);"}],
       "conditions": ["runtime:cam-mirror-room-loaded"],
       "note": "MiniView creates the RenderTarget2D that the rear view renders into; the room draws it flipped on a quad."
     },
@@ -3437,7 +3437,7 @@
       "room": "cam-orbit",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "a_ = std::make_unique<MiniView>(S(), w, h);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "a_ = std::make_unique<MiniView>(S(), w, h);"}],
       "conditions": ["runtime:cam-orbit-room-loaded"],
       "note": "The live screen is a 640x360 MiniView whose constructor creates the RenderTarget2D."
     },
@@ -3467,7 +3467,7 @@
       "room": "cam-split",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "a_ = std::make_unique<MiniView>(S(), w, h);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "a_ = std::make_unique<MiniView>(S(), w, h);"}],
       "conditions": ["runtime:cam-split-room-loaded"],
       "note": "MiniView creates the 960x360 RenderTarget2D; RenderSplit binds it via SetRenderTarget(a_->Target()) and draws both views into it."
     },
@@ -6217,7 +6217,7 @@
       "room": "fx-blur",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -6287,7 +6287,7 @@
       "room": "fx-chromatic",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -6377,7 +6377,7 @@
       "room": "fx-colormatrix",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -6787,7 +6787,7 @@
       "room": "fx-crt",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -6857,7 +6857,7 @@
       "room": "fx-edge",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -7007,7 +7007,7 @@
       "room": "fx-grade",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -7077,7 +7077,7 @@
       "room": "fx-halftone",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -7147,7 +7147,7 @@
       "room": "fx-kernel",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -7217,7 +7217,7 @@
       "room": "fx-pixelate",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -7287,7 +7287,7 @@
       "room": "fx-plasma",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -7357,7 +7357,7 @@
       "room": "fx-ripple",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -7427,7 +7427,7 @@
       "room": "fx-swirl",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -7497,7 +7497,7 @@
       "room": "fx-vertexwave",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Shaders/ShaderLab.cpp", "anchor": "source_ = std::make_unique<MiniView>(S(), 960, 540);"}],
       "conditions": ["runtime:room-screen-loaded"],
       "note": "The lab renders its diorama into a MiniView, which owns a 960x540 RenderTarget2D that is then drawn through the effect."
     },
@@ -14717,7 +14717,7 @@
       "room": "rf-telescope",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Exhibits/Roof/RoofLab.cpp", "anchor": "view_ = std::make_unique<MiniView>(S(), 960, 540);"}, {"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}],
+      "path": [{"source": "src/Exhibits/Roof/RoofLab.cpp", "anchor": "view_ = std::make_unique<MiniView>(S(), 960, 540);"}, {"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}],
       "conditions": ["runtime:roof-lab-mode=telescope", "runtime:room-screen-loaded"],
       "note": "The museum MiniView helper owns the RenderTarget2D the telescope scene is rendered into; RoofLab never names the type itself."
     },
@@ -14917,9 +14917,9 @@
       "room": "rs-depthread",
       "kind": "direct-call",
       "symbols": ["CPP-CEA46F2C3CC0"],
-      "path": [{"source": "src/Exhibits/State/RenderStateLab.cpp", "anchor": "s.setDepthBufferWriteEnableProperty(depthWrite_);\n        d.setDepthStencilStateProperty(s);"}],
-      "conditions": ["runtime:rs-depthread-room-drawn"],
-      "note": "The glass panes are drawn with a Default copy whose DepthBufferWriteEnable follows the toggle; the getter is never called."
+      "path": [{"source": "src/Exhibits/State/RenderStateLab.cpp", "anchor": "writing.setDepthBufferWriteEnableProperty(true);"}],
+      "conditions": ["runtime:rs-depthread-room-drawn", "runtime:depth-writes-toggle-on"],
+      "note": "With DepthRead switched off the panes use a copy of Default whose DepthBufferWriteEnable is set explicitly."
     },
     {
       "id": "rs-fill-fill-mode",
@@ -15057,7 +15057,7 @@
       "room": "rs-scissor",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Exhibits/State/RenderStateLab.cpp", "anchor": "view_ = std::make_unique<MiniView>(S(), 640, 360);"}, {"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}],
+      "path": [{"source": "src/Exhibits/State/RenderStateLab.cpp", "anchor": "view_ = std::make_unique<MiniView>(S(), 640, 360);"}, {"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}],
       "conditions": ["runtime:rs-scissor-room-loaded"],
       "note": "The scissor room creates a MiniView, whose constructor allocates the 640x360 RenderTarget2D with a depth buffer that the scissored scene is drawn into."
     },
@@ -15225,11 +15225,11 @@
       "id": "rt-basic-depth-format",
       "claim": "DepthFormat",
       "room": "rt-basic",
-      "kind": "indirect-runtime",
+      "kind": "direct-use",
       "symbols": ["CPP-6DA6D7C95F6E"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "view_ = std::make_unique<MiniView>(S(), w[sizeIndex_], h[sizeIndex_]);"}],
-      "conditions": ["runtime:rt-basic-room-near", "runtime:offscreen-pass"],
-      "note": "The only DepthFormat this room reaches is MiniView's fixed Depth24; the panel's 'Depth format' choice (depthIndex_) is stored but never read."
+      "path": [{"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "const DepthFormat depth[] = {DepthFormat::None, DepthFormat::Depth16, DepthFormat::Depth24};"}],
+      "conditions": ["runtime:rt-basic-room-rendered"],
+      "note": "The \"Depth format\" control picks None, Depth16 or Depth24 for the room's render target, which is recreated when it changes."
     },
     {
       "id": "rt-basic-render-target-2d",
@@ -15237,7 +15237,7 @@
       "room": "rt-basic",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "view_ = std::make_unique<MiniView>(S(), w[sizeIndex_], h[sizeIndex_]);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "view_ = std::make_unique<MiniView>(S(), w[sizeIndex_], h[sizeIndex_], depth[depthIndex_], mips_);"}],
       "conditions": ["runtime:rt-basic-room-near", "runtime:offscreen-pass"],
       "note": "MiniView constructs the RenderTarget2D at the chosen size; the room reads its width, height, level count, usage and IsContentLost for readouts (mip toggle is stored but unused)."
     },
@@ -15307,7 +15307,7 @@
       "room": "rt-control",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "feeds_[static_cast<std::size_t>(i)] = std::make_unique<MiniView>(S(), 256, 144);"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "feeds_[static_cast<std::size_t>(i)] = std::make_unique<MiniView>(S(), 256, 144);"}],
       "conditions": ["runtime:rt-control-room-loaded"],
       "note": "Load creates six 256x144 MiniViews, each owning one RenderTarget2D."
     },
@@ -15427,7 +15427,7 @@
       "room": "rt-lowres",
       "kind": "indirect-runtime",
       "symbols": ["CPP-E26AC29B40D1"],
-      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,"}, {"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "view_ = std::make_unique<MiniView>(S(), lowW_, std::max(9, lowW_ * 9 / 16));"}],
+      "path": [{"source": "src/Rendering/MiniView.cpp", "anchor": "target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,"}, {"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "view_ = std::make_unique<MiniView>(S(), lowW_, std::max(9, lowW_ * 9 / 16));"}],
       "conditions": ["runtime:rt-lowres-room-near", "runtime:offscreen-pass"],
       "note": "MiniView constructs a RenderTarget2D as small as 40 px wide at the slider's width."
     },
@@ -17353,7 +17353,7 @@
     },
     {
       "id": "tex-volume-texture3d-get-data-box-color",
-      "claim": "Texture3D.GetData(level, box)",
+      "claim": "Texture3D.GetData(level, left, front)",
       "room": "tex-volume",
       "kind": "direct-call",
       "symbols": ["CPP-C66F631F0CFA"],
@@ -17363,7 +17363,7 @@
     },
     {
       "id": "tex-volume-texture3d-get-data-box-typed",
-      "claim": "Texture3D.GetData(level, box)",
+      "claim": "Texture3D.GetData(level, left, front)",
       "room": "tex-volume",
       "kind": "direct-call",
       "symbols": ["CPP-62809F36737F"],
@@ -18400,6 +18400,246 @@
       "path": [{"source": "src/Exhibits/Math/StructLab.cpp", "anchor": "Rectangle::Union(Ai, B)"}],
       "conditions": ["runtime:room-drawn"],
       "note": "The value-returning static Union is called; the out-parameter overload is not."
+    },
+    {
+      "id": "in-pad-identity-button-label",
+      "claim": "GamePad.GetButtonLabelEXT",
+      "room": "in-pad",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-D25033EA2F78"],
+      "path": [{"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "const int label = std::clamp(static_cast<int>(GamePad::GetButtonLabelEXT(one, Buttons::A)), 0, 8);"}, {"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "                try {\n                    identityNote_ = PadIdentity();"}],
+      "conditions": ["runtime:room-mode=pad", "runtime:player-in-or-near-room (Update)"],
+      "note": "Every pad-room update asks how player one's pad labels its A button for the Identity readout (unknown with no pad)."
+    },
+    {
+      "id": "in-pad-identity-guid",
+      "claim": "GamePad.GetGUIDEXT",
+      "room": "in-pad",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-CE8817892938"],
+      "path": [{"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "\", GUID \\\"\" + GamePad::GetGUIDEXT(one)"}, {"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "                try {\n                    identityNote_ = PadIdentity();"}],
+      "conditions": ["runtime:room-mode=pad", "runtime:player-in-or-near-room (Update)"],
+      "note": "The Identity readout shows player one's SDL GUID string (empty with no pad)."
+    },
+    {
+      "id": "in-pad-identity-gyro",
+      "claim": "GamePad.GetGyroEXT",
+      "room": "in-pad",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-DD616811F3CC"],
+      "path": [{"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "(GamePad::GetGyroEXT(one, gv) ? \"yes\" : \"no\")"}, {"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "                try {\n                    identityNote_ = PadIdentity();"}],
+      "conditions": ["runtime:room-mode=pad", "runtime:player-in-or-near-room (Update)"],
+      "note": "The Identity readout reports whether the pad delivers a gyroscope reading."
+    },
+    {
+      "id": "in-pad-identity-player-index",
+      "claim": "GamePad.GetPlayerIndexEXT",
+      "room": "in-pad",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-E42D533727A1"],
+      "path": [{"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "std::to_string(GamePad::GetPlayerIndexEXT(one))"}, {"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "                try {\n                    identityNote_ = PadIdentity();"}],
+      "conditions": ["runtime:room-mode=pad", "runtime:player-in-or-near-room (Update)"],
+      "note": "The Identity readout shows the controller's own player index."
+    },
+    {
+      "id": "in-pad-identity-touchpad-fingers",
+      "claim": "GamePad.GetTouchpadFingerCountEXT",
+      "room": "in-pad",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-AC2E4131FFA3"],
+      "path": [{"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "const int fingers = GamePad::GetTouchpadCountEXT(one) > 0 ? GamePad::GetTouchpadFingerCountEXT(one, 0) : 0;"}, {"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "                try {\n                    identityNote_ = PadIdentity();"}],
+      "conditions": ["runtime:room-mode=pad", "runtime:player-in-or-near-room (Update)", "runtime:pad-with-touchpad"],
+      "note": "The finger count of touchpad 0 is asked only when the pad reports a touchpad; otherwise the readout says 0."
+    },
+    {
+      "id": "in-pad-identity-pad-type",
+      "claim": "GamePadCapabilities.GamePadType",
+      "room": "in-pad",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-C582F85A1F4F"],
+      "path": [{"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "PadTypeName(GamePad::GetCapabilities(one).getGamePadTypeProperty())"}, {"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "                try {\n                    identityNote_ = PadIdentity();"}],
+      "conditions": ["runtime:room-mode=pad", "runtime:player-in-or-near-room (Update)"],
+      "note": "The Identity readout names the pad type from GamePadCapabilities (Unknown with no pad); the setter is not used."
+    },
+    {
+      "id": "in-keyboard-is-key-down",
+      "claim": "KeyboardState.IsKeyDown",
+      "room": "in-keyboard",
+      "kind": "direct-call",
+      "symbols": ["CPP-620EEB46311B"],
+      "path": [{"source": "src/Exhibits/Input/InputLab.cpp", "anchor": "const bool d = keys_.IsKeyDown(k.key);"}],
+      "conditions": ["runtime:room-mode=keyboard", "runtime:room-screen-drawn"],
+      "note": "Each key cap on the drawn keyboard is lit from the frame's KeyboardState asked key by key."
+    },
+    {
+      "id": "rt-lowres-point-clamp",
+      "claim": "SamplerState.PointClamp",
+      "room": "rt-lowres",
+      "kind": "direct-use",
+      "symbols": ["CPP-91A50236F7C5"],
+      "path": [{"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "const SamplerState& upscale = linear_ ? SamplerState::LinearClamp : SamplerState::PointClamp;"}],
+      "conditions": ["runtime:rt-lowres-room-drawn", "runtime:upscale-sampler=PointClamp"],
+      "note": "The upscale choice is passed to DrawInRoom, which applies it after the opaque states, so PointClamp really samples the small target (it used to be overwritten)."
+    },
+    {
+      "id": "cam-chase-vector3-lerp",
+      "claim": "Vector3.Lerp",
+      "room": "cam-chase",
+      "kind": "direct-call",
+      "symbols": ["CPP-CAD20EC1EE67"],
+      "path": [{"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "chaseEye_ = Vector3::Lerp(chaseEye_, Ideal(), k);"}],
+      "conditions": ["runtime:room-mode=chase", "runtime:player-nearby (Update)"],
+      "note": "The chase camera moves the fraction k of the remaining way with the value-returning Lerp each frame; the out-parameter overload is not used."
+    },
+    {
+      "id": "cam-transition-vector3-smooth-step",
+      "claim": "Vector3.SmoothStep",
+      "room": "cam-transition",
+      "kind": "direct-call",
+      "symbols": ["CPP-025AAC335225"],
+      "path": [{"source": "src/Exhibits/Math/CameraLab.cpp", "anchor": "Vector3::SmoothStep(from_.eye, to_.eye, progress_)"}],
+      "conditions": ["runtime:room-mode=transition", "runtime:easing=SmoothStep"],
+      "note": "With the SmoothStep easing the eye position comes from the value-returning Vector3.SmoothStep; the out-parameter overload is not used."
+    },
+    {
+      "id": "an-walker-wrap-angle",
+      "claim": "MathHelper.WrapAngle",
+      "room": "an-walker",
+      "kind": "direct-call",
+      "symbols": ["CPP-B608C6E32A9D"],
+      "path": [{"source": "src/Exhibits/Animation/AnimLab.cpp", "anchor": "walk_ = MathHelper::WrapAngle(walk_ + dt * speed_ * 4.0f);"}],
+      "conditions": ["runtime:room-mode=walker", "runtime:player-nearby (Update)"],
+      "note": "The gait phase is wrapped into (-pi, pi] every update instead of growing without bound."
+    },
+    {
+      "id": "ct-cache-is-disposed",
+      "claim": "GraphicsResource.IsDisposed",
+      "room": "ct-cache",
+      "kind": "indirect-runtime",
+      "symbols": ["CPP-6FF642C5401E"],
+      "path": [{"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "for (const auto& h : handles_) n += h->getIsDisposedProperty() ? 0 : 1;"}, {"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "p.AddReadout(\"Held copies not IsDisposed\""}],
+      "conditions": ["runtime:room-mode=cache", "runtime:panel-readout-drawn"],
+      "note": "The cache room counts the held texture copies whose IsDisposed is false, so Unload() visibly disposes what the manager cached."
+    },
+    {
+      "id": "ct-load-root-directory-getter",
+      "claim": "ContentManager.RootDirectory",
+      "room": "ct-load",
+      "kind": "direct-read",
+      "symbols": ["CPP-26F02F1D3830"],
+      "path": [{"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "manager_->getRootDirectoryProperty()"}],
+      "conditions": ["runtime:room-mode=load", "runtime:panel-readout-drawn"],
+      "note": "The readout shows the manager's RootDirectory getter; the setters are not used (the root comes from the constructor)."
+    },
+    {
+      "id": "rs-depthread-depth-read",
+      "claim": "DepthStencilState.DepthRead",
+      "room": "rs-depthread",
+      "kind": "direct-use",
+      "symbols": ["CPP-9DC4A60DA745"],
+      "path": [{"source": "src/Exhibits/State/RenderStateLab.cpp", "anchor": "d.setDepthStencilStateProperty(DepthStencilState::DepthRead);"}],
+      "conditions": ["runtime:rs-depthread-room-drawn", "runtime:depthread-toggle-on"],
+      "note": "With the toggle on (the default) the glass panes are drawn with the stock DepthRead state."
+    },
+    {
+      "id": "rs-depthread-depth-write-enable-getter",
+      "claim": "DepthStencilState.DepthBufferWriteEnable",
+      "room": "rs-depthread",
+      "kind": "direct-read",
+      "symbols": ["CPP-2EE2B43D3338"],
+      "path": [{"source": "src/Exhibits/State/RenderStateLab.cpp", "anchor": "DepthStencilState::DepthRead.getDepthBufferWriteEnableProperty()"}],
+      "conditions": ["runtime:rs-depthread-room-loaded", "runtime:panel-readout-drawn"],
+      "note": "A readout shows that the stock DepthRead state reports DepthBufferWriteEnable false."
+    },
+    {
+      "id": "be-model-effect-pass",
+      "claim": "EffectPass",
+      "room": "be-model",
+      "kind": "direct-use",
+      "symbols": ["CPP-30DC3560F387"],
+      "path": [{"source": "src/Exhibits/Effects/ReflectLab.cpp", "anchor": "if (const EffectPass* pass = passes[k]) names += (k ? \" \" : \"\") + pass->getNameProperty();"}],
+      "conditions": ["runtime:be-model-effect-reflected"],
+      "note": "Each technique's passes are listed by name through EffectPass objects."
+    },
+    {
+      "id": "vt-packed-ipacked-vector-interface",
+      "claim": "IPackedVector",
+      "room": "vt-packed",
+      "kind": "direct-use",
+      "symbols": ["CPP-4F91B10655F3"],
+      "path": [{"source": "src/Exhibits/Math/StructLab.cpp", "anchor": "const IPackedVector& any = copy;"}],
+      "conditions": ["runtime:vt-packed-format-packed"],
+      "note": "Every packed format is read back through the IPackedVector interface (ToVector4) and compared with the direct call."
+    },
+    {
+      "id": "vt-packed-ipacked-vector-t-packed-value",
+      "claim": "IPackedVectorT.PackedValue",
+      "room": "vt-packed",
+      "kind": "direct-call",
+      "symbols": ["CPP-223376119FE9", "CPP-B3A2B0FB9368"],
+      "path": [{"source": "src/Exhibits/Math/StructLab.cpp", "anchor": "IPackedVectorT<std::remove_cv_t<decltype(value)>>& bits = copy;\n    bits.setPackedValueProperty(value);"}],
+      "conditions": ["runtime:vt-packed-format-packed"],
+      "note": "The packed bits are written and read back through IPackedVectorT<T>.PackedValue (setter and getter) on a copy of each format."
+    },
+    {
+      "id": "cx-shadow-ishadow-receiver-interface",
+      "claim": "IShadowReceiverEXT",
+      "room": "cx-shadow",
+      "kind": "direct-use",
+      "symbols": ["CPP-DCCEF1051A69"],
+      "path": [{"source": "src/Exhibits/CnaExt/ShadowLab.cpp", "anchor": "const IShadowReceiverEXT& receiver = *lit_;"}],
+      "conditions": ["runtime:cx-shadow-room-drawn"],
+      "note": "After configuring BasicEffect the room asks for the shadow state through the IShadowReceiverEXT interface and shows it."
+    },
+    {
+      "id": "net-session-begin-join-invited",
+      "claim": "NetworkSession.BeginJoinInvited",
+      "room": "net-session",
+      "kind": "direct-call",
+      "symbols": ["CPP-54D9783B7B4A"],
+      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "join_ = NetworkSession::BeginJoinInvited(2, {}, std::any{});"}],
+      "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:invitation-accepted"],
+      "note": "Accepting an invitation starts the asynchronous BeginJoinInvited(maxLocalGamers) overload; the SignedInGamer list overload is not used."
+    },
+    {
+      "id": "net-session-end-join-invited",
+      "claim": "NetworkSession.EndJoinInvited",
+      "room": "net-session",
+      "kind": "direct-call",
+      "symbols": ["CPP-7BC8D69C4A3B"],
+      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "NetworkSession::EndJoinInvited(join_)"}],
+      "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:invitation-accepted", "runtime:join-completed"],
+      "note": "When the invited join completes the session comes from EndJoinInvited."
+    },
+    {
+      "id": "hist-xna-draw-string",
+      "claim": "SpriteBatch.DrawString",
+      "room": "hist-xna",
+      "kind": "direct-call",
+      "symbols": ["CPP-562B23168469"],
+      "path": [{"source": "src/Exhibits/History/HistoryLab.cpp", "anchor": "sb.DrawString(*S().font, t, Vector2(x, y), c, 0.0f, Vector2(0, 0), s, SpriteEffects::None, 0.0f);"}],
+      "conditions": ["runtime:room-screen-drawn"],
+      "note": "The timeline screen is plain text drawn with the scaled std::string DrawString overload."
+    },
+    {
+      "id": "vr-index-draw-string",
+      "claim": "SpriteBatch.DrawString",
+      "room": "vr-index",
+      "kind": "direct-call",
+      "symbols": ["CPP-562B23168469"],
+      "path": [{"source": "src/Exhibits/Reference/ViewsLab.cpp", "anchor": "sb.DrawString(*S().font, t, Vector2(x, y), c, 0.0f, Vector2(0, 0), s, SpriteEffects::None, 0.0f);"}],
+      "conditions": ["runtime:room-screen-drawn"],
+      "note": "The list of reference views is plain text drawn with the scaled std::string DrawString overload."
+    },
+    {
+      "id": "rt-mirror-cull-counter-clockwise",
+      "claim": "RasterizerState.CullCounterClockwise",
+      "room": "rt-mirror",
+      "kind": "direct-use",
+      "symbols": ["CPP-5FCDD9443B8A"],
+      "path": [{"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "d.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);   // the reflection flips triangle winding"}],
+      "conditions": ["runtime:rt-mirror-room-rendered-offscreen"],
+      "note": "The mirrored pass swaps to the stock CullCounterClockwise state because the reflection flips triangle winding."
     }
   ]
 }

@@ -5,6 +5,7 @@
 
 #include "Exhibits/Services.hpp"
 #include "Microsoft/Xna/Framework/Color.hpp"
+#include "Microsoft/Xna/Framework/Graphics/DepthFormat.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RenderTarget2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SamplerState.hpp"
 #include "Microsoft/Xna/Framework/Matrix.hpp"
@@ -18,6 +19,8 @@
 class MiniView {
 public:
     MiniView(Services& services, int width, int height);
+    /** The same with a chosen depth buffer (None draws without depth testing) and an optional mip chain on the target. */
+    MiniView(Services& services, int width, int height, Microsoft::Xna::Framework::Graphics::DepthFormat depth, bool mipMap);
 
     /**
      * Renders `draw` through the given camera into the target and restores the back buffer.

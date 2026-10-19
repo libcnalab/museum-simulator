@@ -80,6 +80,7 @@ public:
                 break;
             case Mode::DepthRead:
                 p.AddToggle("DepthRead (no depth writes) for glass", true, [this](bool v) { depthWrite_ = !v; });
+                p.AddReadout("DepthRead.DepthBufferWriteEnable", [] { return std::string(DepthStencilState::DepthRead.getDepthBufferWriteEnableProperty() ? "true" : "false"); });
                 p.AddToggle("Sort the panes back to front", false, [this](bool v) { sorted_ = v; });
                 break;
             case Mode::StencilPortal:
@@ -307,9 +308,15 @@ private:
         if (sorted_) std::sort(std::begin(panes), std::end(panes), [](const Pane& a, const Pane& b) { return a.z < b.z; });
         else std::reverse(std::begin(panes), std::end(panes));
         d.setBlendStateProperty(BlendState::NonPremultiplied);
-        DepthStencilState s = DepthStencilState::Default;
-        s.setDepthBufferWriteEnableProperty(depthWrite_);
-        d.setDepthStencilStateProperty(s);
+        // DepthRead is XNA's stock state for glass: depth test on, depth writes off. With writes left on the panes use a copy
+        // of Default whose DepthBufferWriteEnable is set explicitly.
+        if (depthWrite_) {
+            DepthStencilState writing = DepthStencilState::Default;
+            writing.setDepthBufferWriteEnableProperty(true);
+            d.setDepthStencilStateProperty(writing);
+        } else {
+            d.setDepthStencilStateProperty(DepthStencilState::DepthRead);
+        }
         d.setRasterizerStateProperty(RasterizerState::CullNone);
         for (const Pane& p : panes) {
             BasicEffect& fx = Lit(ctx, Matrix::CreateScale(2.4f, 2.4f, 1.0f) * Matrix::CreateTranslation(o + Off(0, 0, p.z)), p.colour);

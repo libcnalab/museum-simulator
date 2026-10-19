@@ -7,16 +7,16 @@ Implementation, execution and correctness counts rise only from recorded evidenc
 The complete per-claim and per-declaration matrix
 is generated in `build/api-audit/coverage-evidence.json`.
 
-Museum revision: `2ee82175344178d783991b9b7b0882e8eb3b930f` (`2ee8217-dirty`)
+Museum revision: `9c651e595f69d0fc6264baa768facf1413d363bb` (`9c651e5-dirty`)
 
-CNA revision: `705ea232439135654ce93279dfe87c1ab047ef5c` (`v0.1.0-467-g705ea2324-dirty`)
+CNA revision: `eef23e6f8351aa3e5b7e7b779d8b65fd12617055` (`v0.1.0-469-geef23e6f8-dirty`)
 
-Claims: **1284**; exact declaration matches: **950**; member/overload families: **327**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **7**.
+Claims: **1274**; exact declaration matches: **942**; member/overload families: **325**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **7**.
 
-Public declarations: **19851**; linked by at least one catalogue name: **1921**; implementation-verified: **1339**; executed: **0**; correctness-verified: **0**.
+Public declarations: **19851**; linked by at least one catalogue name: **1905**; implementation-verified: **1356**; executed: **0**; correctness-verified: **0**.
 
 Implementation source located through the exhibit registry for **295 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
-Reviewed implementation records: **1840**; fully implementation-verified claims: **957**. Reviewed claim-room pairs: **1757** of **1813**; fully verified pairs: **1325**.
+Reviewed implementation records: **1864**; fully implementation-verified claims: **985**. Reviewed claim-room pairs: **1780** of **1780**; fully verified pairs: **1343**.
 Execution runs: **0 current** of **2 recorded**; execution records: **2**; fully executed claims: **0**; executed claim-room pairs: **0**.
 Correctness oracles: **5**; fully correctness-verified claims: **0**; correctness-verified claim-room pairs: **0**.
 
@@ -24,7 +24,7 @@ Correctness oracles: **5**; fully correctness-verified claims: **0**; correctnes
 |---|---:|---:|---:|
 | `audio` | 321 | 75 | 246 |
 | `c-api` | 6910 | 0 | 6910 |
-| `content` | 1546 | 36 | 1510 |
+| `content` | 1546 | 35 | 1511 |
 | `content-pipeline` | 2249 | 143 | 2106 |
 | `core` | 128 | 19 | 109 |
 | `design` | 83 | 17 | 66 |
@@ -32,13 +32,13 @@ Correctness oracles: **5**; fully correctness-verified claims: **0**; correctnes
 | `devices-ext` | 84 | 4 | 80 |
 | `diagnostics` | 224 | 31 | 193 |
 | `gamer-services` | 690 | 120 | 570 |
-| `graphics` | 2912 | 718 | 2194 |
+| `graphics` | 2912 | 705 | 2207 |
 | `graphics-ext` | 106 | 16 | 90 |
-| `input` | 897 | 141 | 756 |
+| `input` | 897 | 140 | 757 |
 | `inspector` | 189 | 19 | 170 |
-| `math` | 954 | 279 | 675 |
+| `math` | 954 | 278 | 676 |
 | `media` | 339 | 48 | 291 |
-| `net` | 290 | 115 | 175 |
+| `net` | 290 | 116 | 174 |
 | `phone` | 61 | 12 | 49 |
 | `platform` | 1286 | 8 | 1278 |
 | `renderers/common/mojoshader` | 0 | 0 | 0 |
@@ -50,7 +50,7 @@ Correctness oracles: **5**; fully correctness-verified claims: **0**; correctnes
 | `renderers/software` | 0 | 0 | 0 |
 | `renderers/stub` | 0 | 0 | 0 |
 | `renderers/webgpu` | 0 | 0 | 0 |
-| `runtime` | 322 | 58 | 264 |
+| `runtime` | 322 | 57 | 265 |
 | `storage` | 44 | 30 | 14 |
 
 ## Implementation review progress
@@ -62,17 +62,17 @@ Only rooms with at least one reviewed pair are listed.
 | `an-clock` | 0 | 2 | 0 | 0 | 0 | 2 |
 | `an-conveyor` | 3 | 0 | 0 | 0 | 0 | 3 |
 | `an-doors` | 2 | 1 | 0 | 0 | 0 | 3 |
-| `an-gears` | 0 | 2 | 0 | 0 | 0 | 3 |
+| `an-gears` | 0 | 2 | 0 | 0 | 0 | 2 |
 | `an-gyroscope` | 0 | 3 | 0 | 0 | 0 | 3 |
 | `an-kinetic` | 0 | 2 | 0 | 0 | 0 | 2 |
 | `an-pendulum` | 3 | 0 | 0 | 0 | 0 | 3 |
-| `an-walker` | 0 | 2 | 0 | 0 | 0 | 3 |
-| `animation` | 1 | 0 | 0 | 0 | 0 | 3 |
+| `an-walker` | 1 | 2 | 0 | 0 | 0 | 3 |
+| `animation` | 1 | 0 | 0 | 0 | 0 | 1 |
 | `app-components` | 10 | 1 | 0 | 0 | 0 | 11 |
 | `app-content` | 5 | 0 | 0 | 0 | 0 | 5 |
 | `app-device` | 5 | 0 | 0 | 0 | 0 | 5 |
 | `app-gametime` | 5 | 0 | 0 | 0 | 0 | 5 |
-| `app-lifecycle` | 4 | 2 | 0 | 0 | 0 | 7 |
+| `app-lifecycle` | 4 | 2 | 0 | 0 | 0 | 6 |
 | `app-services` | 5 | 1 | 0 | 0 | 0 | 6 |
 | `app-viewport` | 12 | 3 | 0 | 0 | 0 | 15 |
 | `au-basics` | 2 | 1 | 0 | 0 | 0 | 3 |
@@ -92,10 +92,10 @@ Only rooms with at least one reviewed pair are listed.
 | `be-fog` | 0 | 4 | 0 | 0 | 0 | 4 |
 | `be-lights` | 2 | 3 | 0 | 0 | 0 | 5 |
 | `be-material` | 0 | 3 | 0 | 0 | 0 | 3 |
-| `be-model` | 20 | 0 | 0 | 0 | 0 | 25 |
+| `be-model` | 21 | 0 | 0 | 0 | 0 | 21 |
 | `be-perpixel` | 0 | 1 | 0 | 0 | 0 | 1 |
 | `be-punctual` | 2 | 0 | 0 | 0 | 0 | 2 |
-| `cam-chase` | 1 | 1 | 0 | 0 | 0 | 3 |
+| `cam-chase` | 1 | 2 | 0 | 0 | 0 | 3 |
 | `cam-clip` | 2 | 1 | 0 | 0 | 0 | 3 |
 | `cam-fov` | 1 | 1 | 0 | 0 | 0 | 2 |
 | `cam-mirror` | 1 | 1 | 0 | 0 | 0 | 2 |
@@ -103,7 +103,7 @@ Only rooms with at least one reviewed pair are listed.
 | `cam-security` | 1 | 1 | 0 | 0 | 0 | 2 |
 | `cam-split` | 3 | 0 | 0 | 0 | 0 | 3 |
 | `cam-topdown` | 0 | 2 | 0 | 0 | 0 | 2 |
-| `cam-transition` | 0 | 2 | 0 | 0 | 0 | 3 |
+| `cam-transition` | 0 | 3 | 0 | 0 | 0 | 3 |
 | `col-box-box` | 1 | 2 | 0 | 0 | 0 | 3 |
 | `col-frustum` | 2 | 3 | 0 | 0 | 0 | 5 |
 | `col-merge` | 2 | 3 | 0 | 0 | 0 | 5 |
@@ -114,16 +114,16 @@ Only rooms with at least one reviewed pair are listed.
 | `col-ray-sphere` | 1 | 1 | 0 | 0 | 0 | 2 |
 | `col-sphere-box` | 0 | 2 | 0 | 0 | 0 | 2 |
 | `ct-audiopipeline` | 22 | 1 | 0 | 0 | 0 | 23 |
-| `ct-cache` | 2 | 0 | 0 | 0 | 0 | 3 |
+| `ct-cache` | 3 | 0 | 0 | 0 | 0 | 3 |
 | `ct-compiler` | 14 | 0 | 0 | 0 | 0 | 14 |
 | `ct-custom` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `ct-failure` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `ct-fontbuild` | 8 | 9 | 0 | 0 | 0 | 17 |
 | `ct-formats` | 2 | 2 | 0 | 0 | 0 | 4 |
-| `ct-intermediate` | 14 | 0 | 0 | 0 | 0 | 15 |
+| `ct-intermediate` | 14 | 0 | 0 | 0 | 0 | 14 |
 | `ct-lifetime` | 10 | 1 | 0 | 0 | 0 | 11 |
-| `ct-load` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `ct-meshbuilder` | 14 | 7 | 0 | 0 | 0 | 22 |
+| `ct-load` | 4 | 1 | 0 | 0 | 0 | 5 |
+| `ct-meshbuilder` | 14 | 7 | 0 | 0 | 0 | 21 |
 | `ct-modelimport` | 17 | 1 | 0 | 0 | 0 | 18 |
 | `ct-pipeline` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `ct-processor` | 9 | 6 | 0 | 0 | 0 | 15 |
@@ -141,15 +141,15 @@ Only rooms with at least one reviewed pair are listed.
 | `cx-devices` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `cx-package` | 5 | 1 | 0 | 0 | 0 | 6 |
 | `cx-points` | 2 | 1 | 0 | 0 | 0 | 3 |
-| `cx-shadow` | 3 | 7 | 0 | 0 | 0 | 11 |
+| `cx-shadow` | 4 | 7 | 0 | 0 | 0 | 11 |
 | `cx-stats` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `fx-blur` | 6 | 1 | 0 | 0 | 0 | 7 |
 | `fx-chromatic` | 6 | 1 | 0 | 0 | 0 | 7 |
-| `fx-colormatrix` | 9 | 1 | 0 | 0 | 0 | 11 |
+| `fx-colormatrix` | 9 | 1 | 0 | 0 | 0 | 10 |
 | `fx-compiled` | 22 | 7 | 0 | 0 | 0 | 29 |
 | `fx-crt` | 6 | 1 | 0 | 0 | 0 | 7 |
 | `fx-edge` | 6 | 1 | 0 | 0 | 0 | 7 |
-| `fx-errors` | 8 | 0 | 0 | 0 | 0 | 9 |
+| `fx-errors` | 8 | 0 | 0 | 0 | 0 | 8 |
 | `fx-grade` | 6 | 1 | 0 | 0 | 0 | 7 |
 | `fx-halftone` | 6 | 1 | 0 | 0 | 0 | 7 |
 | `fx-kernel` | 6 | 1 | 0 | 0 | 0 | 7 |
@@ -178,24 +178,25 @@ Only rooms with at least one reviewed pair are listed.
 | `gs-players` | 15 | 2 | 0 | 0 | 0 | 17 |
 | `hist-cna` | 8 | 0 | 0 | 0 | 0 | 8 |
 | `hist-compare` | 1 | 2 | 0 | 0 | 0 | 3 |
+| `hist-xna` | 0 | 1 | 0 | 0 | 0 | 1 |
 | `in-devices` | 14 | 0 | 0 | 0 | 0 | 14 |
 | `in-edges` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `in-joystick` | 3 | 0 | 0 | 0 | 0 | 3 |
-| `in-keyboard` | 7 | 1 | 0 | 0 | 0 | 9 |
+| `in-keyboard` | 8 | 1 | 0 | 0 | 0 | 9 |
 | `in-mouse` | 8 | 2 | 0 | 0 | 0 | 10 |
-| `in-pad` | 14 | 27 | 0 | 0 | 0 | 47 |
+| `in-pad` | 19 | 28 | 0 | 0 | 0 | 47 |
 | `in-phone` | 26 | 2 | 0 | 0 | 0 | 28 |
 | `in-players` | 4 | 0 | 0 | 0 | 0 | 4 |
-| `in-text` | 9 | 1 | 0 | 0 | 0 | 11 |
+| `in-text` | 9 | 1 | 0 | 0 | 0 | 10 |
 | `in-touch` | 10 | 1 | 0 | 0 | 0 | 11 |
-| `info` | 1 | 0 | 0 | 0 | 0 | 3 |
+| `info` | 1 | 0 | 0 | 0 | 0 | 1 |
 | `light-coloured` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `light-emissive` | 1 | 1 | 0 | 0 | 0 | 2 |
 | `light-falloff` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `light-flashlight` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `light-many` | 2 | 1 | 0 | 0 | 0 | 3 |
 | `light-types` | 3 | 0 | 0 | 0 | 0 | 3 |
-| `lighting` | 2 | 1 | 0 | 0 | 0 | 4 |
+| `lighting` | 2 | 1 | 0 | 0 | 0 | 3 |
 | `mat-billboard` | 0 | 2 | 0 | 0 | 0 | 2 |
 | `mat-hierarchy` | 1 | 2 | 0 | 0 | 0 | 3 |
 | `mat-normals` | 0 | 3 | 0 | 0 | 0 | 3 |
@@ -218,14 +219,14 @@ Only rooms with at least one reviewed pair are listed.
 | `model-pbr` | 1 | 3 | 0 | 0 | 0 | 4 |
 | `model-report` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `model-rigid` | 4 | 0 | 0 | 0 | 0 | 4 |
-| `model-sampler` | 6 | 0 | 0 | 0 | 0 | 7 |
+| `model-sampler` | 6 | 0 | 0 | 0 | 0 | 6 |
 | `model-skinext` | 10 | 0 | 0 | 0 | 0 | 10 |
 | `model-skinfx` | 7 | 1 | 0 | 0 | 0 | 8 |
 | `model-skinned` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `model-variants` | 3 | 0 | 0 | 0 | 0 | 3 |
 | `models` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `net-packets` | 9 | 1 | 0 | 0 | 0 | 10 |
-| `net-session` | 61 | 12 | 0 | 0 | 0 | 74 |
+| `net-session` | 62 | 13 | 0 | 0 | 0 | 75 |
 | `on-account` | 8 | 0 | 0 | 0 | 0 | 8 |
 | `on-friends` | 15 | 0 | 0 | 0 | 0 | 15 |
 | `on-messages` | 2 | 0 | 0 | 0 | 0 | 2 |
@@ -247,23 +248,23 @@ Only rooms with at least one reviewed pair are listed.
 | `pl-platform` | 9 | 0 | 0 | 0 | 0 | 9 |
 | `pl-renderer` | 12 | 0 | 0 | 0 | 0 | 12 |
 | `pl-window` | 20 | 2 | 0 | 0 | 0 | 22 |
-| `pt-bubbles` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `pt-dust` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `pt-fire` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `pt-fireworks` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `pt-fountain` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `pt-leaves` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `pt-magic` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `pt-rain` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `pt-smoke` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `pt-snow` | 4 | 0 | 0 | 0 | 0 | 5 |
-| `pt-sparks` | 4 | 0 | 0 | 0 | 0 | 5 |
+| `pt-bubbles` | 4 | 0 | 0 | 0 | 0 | 4 |
+| `pt-dust` | 4 | 0 | 0 | 0 | 0 | 4 |
+| `pt-fire` | 4 | 0 | 0 | 0 | 0 | 4 |
+| `pt-fireworks` | 4 | 0 | 0 | 0 | 0 | 4 |
+| `pt-fountain` | 4 | 0 | 0 | 0 | 0 | 4 |
+| `pt-leaves` | 4 | 0 | 0 | 0 | 0 | 4 |
+| `pt-magic` | 4 | 0 | 0 | 0 | 0 | 4 |
+| `pt-rain` | 4 | 0 | 0 | 0 | 0 | 4 |
+| `pt-smoke` | 4 | 0 | 0 | 0 | 0 | 4 |
+| `pt-snow` | 4 | 0 | 0 | 0 | 0 | 4 |
+| `pt-sparks` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `quat-axis` | 0 | 4 | 0 | 0 | 0 | 4 |
 | `quat-euler` | 0 | 3 | 0 | 0 | 0 | 3 |
 | `quat-slerp` | 0 | 4 | 0 | 0 | 0 | 4 |
 | `renderstates` | 3 | 0 | 0 | 0 | 0 | 3 |
 | `rendertarget` | 1 | 1 | 0 | 0 | 0 | 2 |
-| `rf-deck` | 2 | 1 | 0 | 0 | 0 | 4 |
+| `rf-deck` | 2 | 1 | 0 | 0 | 0 | 3 |
 | `rf-garden` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `rf-telescope` | 1 | 3 | 0 | 0 | 0 | 4 |
 | `rf-weather` | 4 | 0 | 0 | 0 | 0 | 4 |
@@ -273,7 +274,7 @@ Only rooms with at least one reviewed pair are listed.
 | `rs-cull` | 1 | 1 | 0 | 0 | 0 | 2 |
 | `rs-depthbias` | 0 | 2 | 0 | 0 | 0 | 2 |
 | `rs-depthfunc` | 1 | 2 | 0 | 0 | 0 | 3 |
-| `rs-depthread` | 0 | 1 | 0 | 0 | 0 | 2 |
+| `rs-depthread` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `rs-fill` | 1 | 1 | 0 | 0 | 0 | 2 |
 | `rs-occlusion` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `rs-outline` | 1 | 2 | 0 | 0 | 0 | 3 |
@@ -286,8 +287,8 @@ Only rooms with at least one reviewed pair are listed.
 | `rt-control` | 1 | 1 | 0 | 0 | 0 | 2 |
 | `rt-cube` | 8 | 1 | 0 | 0 | 0 | 9 |
 | `rt-formats` | 3 | 0 | 0 | 0 | 0 | 3 |
-| `rt-lowres` | 1 | 0 | 0 | 0 | 0 | 2 |
-| `rt-mirror` | 1 | 1 | 0 | 0 | 0 | 3 |
+| `rt-lowres` | 2 | 0 | 0 | 0 | 0 | 2 |
+| `rt-mirror` | 2 | 1 | 0 | 0 | 0 | 3 |
 | `rt-mrt` | 5 | 3 | 0 | 0 | 0 | 8 |
 | `rt-msaa` | 5 | 0 | 0 | 0 | 0 | 5 |
 | `rt-recursive` | 2 | 1 | 0 | 0 | 0 | 3 |
@@ -297,7 +298,7 @@ Only rooms with at least one reviewed pair are listed.
 | `rv-effects` | 3 | 0 | 0 | 0 | 0 | 3 |
 | `rv-formats` | 4 | 2 | 0 | 0 | 0 | 6 |
 | `rv-geometry` | 1 | 3 | 0 | 0 | 0 | 4 |
-| `rv-sampling` | 2 | 0 | 0 | 0 | 0 | 3 |
+| `rv-sampling` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `rv-shading` | 0 | 3 | 0 | 0 | 0 | 3 |
 | `rv-sprites` | 3 | 1 | 0 | 0 | 0 | 4 |
 | `rv-targets` | 2 | 1 | 0 | 0 | 0 | 3 |
@@ -305,7 +306,7 @@ Only rooms with at least one reviewed pair are listed.
 | `sim-flock` | 2 | 3 | 0 | 0 | 0 | 5 |
 | `sim-ik` | 2 | 2 | 0 | 0 | 0 | 4 |
 | `sim-integrators` | 3 | 0 | 0 | 0 | 0 | 3 |
-| `sky` | 2 | 0 | 0 | 0 | 0 | 3 |
+| `sky` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `sprite-anim` | 2 | 2 | 0 | 0 | 0 | 4 |
 | `sprite-atlas` | 0 | 3 | 0 | 0 | 0 | 3 |
 | `sprite-basics` | 2 | 2 | 0 | 0 | 0 | 4 |
@@ -315,7 +316,7 @@ Only rooms with at least one reviewed pair are listed.
 | `sprite-lights` | 4 | 1 | 0 | 0 | 0 | 5 |
 | `sprite-origin` | 1 | 1 | 0 | 0 | 0 | 2 |
 | `sprite-parallax` | 1 | 1 | 0 | 0 | 0 | 2 |
-| `sprite-sampler` | 2 | 0 | 0 | 0 | 0 | 3 |
+| `sprite-sampler` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `sprite-scissor` | 0 | 2 | 0 | 0 | 0 | 2 |
 | `sprite-sheet` | 2 | 1 | 0 | 0 | 0 | 3 |
 | `sprite-sort` | 1 | 1 | 0 | 0 | 0 | 2 |
@@ -333,7 +334,7 @@ Only rooms with at least one reviewed pair are listed.
 | `tex-mip` | 3 | 4 | 0 | 0 | 0 | 7 |
 | `tex-uv` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `tex-volshader` | 7 | 0 | 0 | 0 | 0 | 7 |
-| `tex-volume` | 3 | 3 | 0 | 0 | 0 | 6 |
+| `tex-volume` | 4 | 2 | 0 | 0 | 0 | 6 |
 | `text-align` | 0 | 2 | 0 | 0 | 0 | 2 |
 | `text-glyphs` | 5 | 1 | 0 | 0 | 0 | 6 |
 | `text-hud` | 1 | 1 | 0 | 0 | 0 | 2 |
@@ -347,10 +348,11 @@ Only rooms with at least one reviewed pair are listed.
 | `vec-normalize` | 1 | 2 | 0 | 0 | 0 | 3 |
 | `vec-project` | 0 | 2 | 0 | 0 | 0 | 2 |
 | `vec-reflect` | 1 | 2 | 0 | 0 | 0 | 3 |
+| `vr-index` | 0 | 1 | 0 | 0 | 0 | 1 |
 | `vt-color` | 5 | 2 | 0 | 0 | 0 | 7 |
 | `vt-colors` | 12 | 5 | 0 | 0 | 0 | 17 |
 | `vt-converters` | 17 | 0 | 0 | 0 | 0 | 17 |
-| `vt-packed` | 15 | 0 | 0 | 0 | 0 | 17 |
+| `vt-packed` | 17 | 0 | 0 | 0 | 0 | 17 |
 | `vt-rectangle` | 5 | 5 | 0 | 0 | 0 | 10 |
 
 ## Claims requiring review
@@ -370,6 +372,98 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 | `System.ObjectDisposedException` | `pl-exceptions` |
 | `System.Resources.ResourceManager` | `ct-resource` |
 | `System.Text.StringBuilder` | `text-hud` |
+
+## Public API areas
+
+**369** public headers (7787 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
+`audit/area_classification.json` (first match wins; the check fails for an unclassified header or a stale rule):
+
+| Status | Headers | Declarations | Meaning |
+|---|---:|---:|---|
+| gap | 143 | 8863 | Application-facing API that the museum should demonstrate but does not yet; the backlog task that covers it is named. |
+| supporting | 157 | 2483 | Reached implicitly (exceptions, event arguments, option types, helper traits) by a demonstrated feature, or meaningful only inside a named gap. |
+| not-applicable | 24 | 718 | Not application API for this museum (bootstrap, backend contracts, build-time internals); the reason is stated. |
+
+| Area | Status | Backlog | Headers | Declarations | Reason |
+|---|---|---|---:|---:|---|
+| Application identity | gap | G07 | 2 | 8 | SetAssemblyTitleEXT/AssemblyTitleAttributeEXT (default window title, XNA AssemblyTitle counterpart) are never called by the museum. (+1 more rule(s)) |
+| CNA content build engine | gap | C06 | 15 | 715 | The CNA build API (ContentPipeline registry/requests, build configuration, manifest, compiler options and per-asset Cnj/Texture/Model/Song/Sound/Video/Effect/XNB routes) is not called by any room; ct-pipeline only loads prebuilt output. (+1 more rule(s)) |
+| CNJ/CNB build | gap | C06 | 3 | 28 | CompileCnjToCnb (public CNJ to CNB route) is never called by the museum. (+2 more rule(s)) |
+| Camera capture | gap | I04 | 1 | 11 | CNA::Devices::Camera (enumerate/open/capture to Texture2D) is never used; PlatformLab only prints the camera capability flag. |
+| Clipboard | gap | I05 | 1 | 4 | The museum demonstrates CNA::Input::Clipboard (InputLab) but never this second, text-only CNA::Devices::Clipboard facade. |
+| Content build tasks | gap | C06 | 5 | 135 | BuildContent/CleanContent/BuildXact/ContentProject (MSBuild-task counterparts with incremental build and clean) are never run. |
+| Custom CNB assets | gap | C07 | 1 | 11 | CnbLoaderRegistry::Register/Remove (the only CNB extension route for game-defined asset types) is never used. |
+| Custom content types | gap | C03 | 4 | 102 | Reflective .xnb reader for game-defined types (ReflectiveTypeReader<T>) is never instantiated. (+1 more rule(s)) |
+| Custom pipeline components | gap | C02 | 4 | 112 | RegisterXnaImporter/RegisterXnaProcessor and the canonical importer/processor contexts are the CNA service C02 asks to use instead of PipelineSupport's no-op context. (+3 more rule(s)) |
+| Custom vertex types | gap | G01 | 1 | 4 | VertexTypeRegistryEXT::Register/Resolve is never used; G01 is exactly this exhibit. |
+| Diagnostics instrumentation | gap | O03 | 1 | 13 | CNA_DIAGNOSTICS_COUNTER_ADD/GAUGE_SET/FRAME_SCOPE macros are not used by the museum; their OFF/STATS/FULL behaviour is exactly O03. |
+| Effect compilation | gap | G04 | 2 | 71 | EffectCompilerService/EffectSourceContentPipeline (.fx source route, Reach/HiDef profile, external compiler) are not used; G04 covers conditional source compile. |
+| Game window | gap | G05 | 1 | 3 | GameWindow.TextDropEXT is not subscribed anywhere (only FileDropEXT is, in PlatformLab); G05 names TextDropEXT explicitly. |
+| Haptics | gap | I01 | 1 | 26 | Haptics::OpenEXT/HapticDevice (rumble, effect create/run/stop, gain/autocenter) is never used; InputLab only enumerates GetHapticsEXT. |
+| Importers and processors | gap | C05 | 2 | 11 | Stock PassThroughProcessor is not used by any room. (+1 more rule(s)) |
+| Intermediate serialization | gap | C07 | 4 | 113 | No custom ContentTypeSerializer is registered; C07 covers custom serializer registration and lifecycle. (+1 more rule(s)) |
+| Materials | gap | C04 | 1 | 23 | MaterialProcessor is never run; C04 asks for a real material and its textures. |
+| Media importers | gap | C05 | 2 | 68 | Build-time MP3/WMA/WMV decoding and its availability probe are not shown; C05 requires admitted codec availability. (+1 more rule(s)) |
+| Media library | gap | M01,M02 | 15 | 189 | MediaLibrary, MediaSource and the album/artist/genre/playlist/picture classes are not referenced in museum src; enumeration with isolated fixture roots is M01/M02. |
+| Mesh processing | gap | C01 | 5 | 202 | MeshHelper (CalculateNormals/TangentFrames, MergeDuplicate*, OptimizeForCache, TransformScene, skeleton helpers) is not referenced; C01 is this lab. (+2 more rule(s)) |
+| Native C API | gap | O04,O05 | 59 | 6910 | The museum has no C17 translation unit and links no CNA_C_API target, so none of the C ABI families (ABI version/result codes, handles, math, graphics, input, audio, content, net) is demonstrated. |
+| Native dialogs | gap | I02 | 2 | 10 | Only FileDialog::getIsSupportedProperty is read (CnaExtLab); ShowOpenFile/ShowSaveFile/ShowOpenFolder and the callback path are never demonstrated. (+1 more rule(s)) |
+| Phone sensors | gap | I06 | 1 | 12 | Legacy WP7 7.0 Accelerometer.ReadingChanged event is still public but PhoneSensorLab only uses the SensorBase CurrentValueChanged pattern. |
+| Push notifications | gap | N01,N02 | 2 | 28 | HttpNotificationChannel and PushNotificationSender are not referenced anywhere in museum src, although CNA ships a loopback endpoint. |
+| Renderer capabilities | gap | P05 | 1 | 3 | GraphicsDevice::SetUnsupported3DGraphicsCallBehavior(Throw/WarnAndStub) is never called; it governs how 2D-only renderers refuse 3D calls. |
+| Renderer diagnostics | gap | G08 | 1 | 9 | hist-cna/pl-renderer show getGraphicsRendererMaturity but never getGraphicsRendererCategory/getCurrentGraphicsRendererCategory (Native/TranslationLayer/Software/Diagnostic). |
+| System tray and URL | gap | I03 | 2 | 16 | Only SystemTray::getIsSupportedProperty is read (CnaExtLab); tray icon, menu entries and click callbacks are never shown. (+1 more rule(s)) |
+| Target platform identification | gap | NEW | 2 | 15 | No exhibit shows CNA::getCurrentPlatform()/isMobilePlatform() and the CNA_TARGET_* macros; missing a small platform-identity readout (pl-platform would fit). (+1 more rule(s)) |
+| XML serialization adapters | gap | NEW | 2 | 11 | No exhibit serializes XNA math values through System::Xml::Serialization::XmlSerializer; missing an XmlSerializer round-trip exhibit (e.g. settings in a StorageContainer). (+1 more rule(s)) |
+| Audio and media | supporting | - | 3 | 15 | Game::Tick calls FrameworkDispatcher::Update itself (modules/runtime/src/Game.cpp), so every audio/media room exercises it implicitly; an explicit call only matters for non-Game hosts. (+1 more rule(s)) |
+| CNJ/CNB build | supporting | - | 2 | 33 | Output data of the SoundEffect build route; meaningful only inside gap C06. (+1 more rule(s)) |
+| Camera capture | supporting | - | 4 | 43 | Descriptor/enum types of CNA::Devices::Camera; meaningful only inside gap I04. (+1 more rule(s)) |
+| Content build tasks | supporting | - | 1 | 13 | Name constants consumed by the BuildContent/ContentProject tasks; meaningful only inside gap C06. |
+| Content loading | supporting | - | 2 | 16 | Element of ContentManager.GetContentManifest, which ct-pipeline claims and ContentLab calls. (+1 more rule(s)) |
+| Custom CNB assets | supporting | - | 7 | 145 | CnbDocument/CnbWriter/CnbByteReader/CnbByteWriter/CnbFormat/CnbReadLimits are what a custom CNB loader and writer use; meaningful only inside gap C07. (+1 more rule(s)) |
+| Custom content types | supporting | - | 6 | 107 | Carrier a custom ContentProcessor's dictionary is loaded as; meaningful only inside gap C03. (+3 more rule(s)) |
+| Custom pipeline components | supporting | - | 2 | 61 | ProcessorParameter metadata describes custom processor parameters; meaningful only inside gap C02. (+1 more rule(s)) |
+| Custom vertex types | supporting | - | 1 | 3 | Implemented by every stock vertex struct the museum draws; a game-defined IVertexType is the open gap G01. |
+| Device extensions | supporting | - | 2 | 10 | LocaleInfo/PowerState are the value types returned by Locale::getPreferredLocalesProperty/PowerInfo::getStateProperty, which cx-devices (CnaExtLab) reads. |
+| Device loss | supporting | - | 2 | 8 | DeviceLost/DeviceNotReset are only raised by a real device loss; their demonstration is gap G06. |
+| Errors and exceptions | supporting | - | 3 | 16 | Base exception of CNA-specific failures; reached only when a CNAEXT call fails, which the exception room/O06 covers rather than a dedicated exhibit. (+2 more rule(s)) |
+| Font build | supporting | - | 2 | 72 | FontBuildLab reads the CnbSpriteFontData produced by the sprite-font build, without a claim. (+1 more rule(s)) |
+| Game lifecycle | supporting | - | 1 | 2 | Args of Game.Exiting, which MuseumGame subscribes museum-wide (the event is logged at shutdown). |
+| Game window | supporting | - | 3 | 25 | Event args of GameWindow.FileDropEXT, which pl-window claims and PlatformLab subscribes. (+2 more rule(s)) |
+| Gamer services | supporting | - | 16 | 103 | GameUpdateRequired/Network/NetworkNotAvailable exceptions surface only from failing async Guide/session calls, which gap N08 covers. (+1 more rule(s)) |
+| Graphics core types | supporting | - | 15 | 200 | Enums and collection types (BufferUsage, ClearOptions, FillMode, Effect*/Model*Collection, TextureCollection, DisplayModeCollection, IRenderTarget) are used implicitly by rooms that demonstrate buffers, clearing, rasterizer state, effect reflection, models and render targets. |
+| Graphics device manager | supporting | - | 3 | 24 | GraphicsDeviceInformation/PreparingDeviceSettingsEventArgs/IGraphicsDeviceManager are reached through GraphicsDeviceManager.PreparingDeviceSettings, which AppLab demonstrates. |
+| Haptics | supporting | - | 7 | 191 | Element type of Haptics::GetHapticsEXT, which in-devices enumerates. (+2 more rule(s)) |
+| Input emulation | supporting | - | 2 | 14 | KeyboardGamepad/KeyboardAccelerometer are driven by GamePad/Accelerometer.KeyboardEmulationEnabledEXT, which InputLab and PhoneSensorLab toggle. |
+| Input extensions | supporting | - | 5 | 41 | Enums/records returned by demonstrated CNAEXT calls: GetButtonLabelEXT, GetConnectionStateEXT, GetPowerInfoEXT/Power::GetInfoEXT, GetModStateEXT and InputDevices.GetMiceEXT (InputLab). |
+| Input state | supporting | - | 9 | 111 | GamePadButtons/DPad/ThumbSticks/Triggers/Type, KeyState and touch collection/capabilities are the members of states read by in-pad, in-keyboard and in-touch. |
+| Intermediate serialization | supporting | - | 3 | 73 | Built-in/collection/dictionary serializers used implicitly by IntermediateSerializer, which PipelineLab demonstrates. |
+| Materials | supporting | - | 1 | 6 | Texture slots of MaterialContent; meaningful only inside gap C04. |
+| Microphone capture | supporting | - | 2 | 7 | State enum of Microphone, which AudioLab already touches; real start/stop/BufferReady capture is the open gap M04. (+1 more rule(s)) |
+| Model import | supporting | - | 2 | 59 | .x and FBX parsers behind XImporter/FbxImporter, which ModelImportLab demonstrates on real files. |
+| Models | supporting | - | 1 | 7 | Created internally by the content pipeline for every loaded model mesh part; games never instantiate it, and model rooms load such models. |
+| Native dialogs | supporting | - | 2 | 7 | Filter record for FileDialog; meaningful only inside gap I02. (+1 more rule(s)) |
+| Networking | supporting | - | 5 | 14 | Event args and session-state enum of NetworkSession events (GamerJoined/Left, GameStarted/Ended), which NetLab subscribes. |
+| PBR rendering | supporting | - | 2 | 30 | Tangent-frame vertex layouts used by WireMesh and by skinned models drawn with SkinnedPbrEffect in ModelLab, but no room claims the structs. |
+| Packed vectors | supporting | - | 2 | 19 | HalfSingle is used in ValidationLab/PlatformLab without a claim; HalfTypeHelper is the conversion helper behind HalfSingle/HalfVector*. |
+| Phone sensors | supporting | - | 4 | 15 | Args of Compass/Motion.Calibrate, which no room subscribes; calibration events are listed in gap I06. (+1 more rule(s)) |
+| Pipeline infrastructure | supporting | - | 8 | 86 | Base/infrastructure types (ContentObject, ChildCollection, Named/OpaqueDataDictionary, ContentBuildLogger, IContentImporter/IContentProcessor, PipelineException) used by PipelineSupport, ProcessorLab and the importer rooms. |
+| Platform SPI | supporting | - | 2 | 138 | IPlatformWindow/IPlatformSystemServices sit behind GameWindow, Clipboard and cx-devices facades the museum demonstrates; dialogs/tray/URL parts belong to gaps I02/I03. |
+| Platform capabilities | supporting | - | 1 | 33 | Enum twin of the PlatformCapabilities struct that pl-platform reads. |
+| Platform input SPI | supporting | - | 9 | 592 | Platform contracts and key enums behind Keyboard/Mouse/GamePad/Joysticks/Sensors/TextInputEXT; pl-platform reaches IPlatform::GetKeyboard etc. and the input rooms demonstrate the facades. |
+| Push notifications | supporting | - | 2 | 8 | Args of HttpNotificationChannel events; meaningful only inside gap N01. |
+| Raw joysticks | supporting | - | 5 | 47 | Value types returned by Joysticks.GetJoysticksEXT/GetCapabilitiesEXT/GetStateEXT, which in-joystick claims. |
+| Renderer capabilities | supporting | - | 2 | 13 | DisplayColorSpace and ShaderDialectEXT are the parameter/return types of SetDisplayColorSpaceEXT and GetShaderDialectEXT, which PlatformLab/CnaExtLab/TargetLab call. |
+| Storage | supporting | - | 1 | 7 | Thrown when a StorageDevice disconnects; StorageDevice itself is used (Progress, ContentLab), the disconnect/error scenario is gap M06. |
+| Texture processing | supporting | - | 4 | 64 | S3TC encoder behind TextureProcessor DxtCompressed, which ProcessorLab selects and verifies (Dxt1/3/5 levels). (+1 more rule(s)) |
+| Title content | supporting | - | 1 | 5 | Used by src/Rendering/AssetPaths.cpp to resolve the content root beside TitleContainer, but no room claims it. |
+| Audio backend SPI | not-applicable | - | 2 | 52 | Pure-virtual audio output/recording device contracts implemented by CNA's audio backends; applications reach audio only through SoundEffect/DynamicSoundEffectInstance/Microphone, which the audio rooms already use. |
+| Build-time markers | not-applicable | - | 1 | 1 | Defines only the CNAEXT documentation macro (or [[deprecated]] under CNA_STRICT_XNA_API); it has no runtime behaviour to show. |
+| CNB codec internals | not-applicable | - | 12 | 394 | Built-in schema chunk IDs, decoded model/texture/audio/media data and CRC-32C used only by CNA's privately registered built-in loaders; games get Model/Texture2D/SoundEffect from ContentManager::Load, which content rooms show. |
+| Dead runtime export | not-applicable | - | 1 | 11 | CNA::Runtime/RuntimeOptions are declared but have no definition anywhere in CNA and no includer, so calling them would not link; it is a stale public export, not demonstrable API. |
+| Pipeline wiring | not-applicable | - | 2 | 2 | Adapter that hands the build-time BC encoder to RegisterTexture2DContentPipeline across module boundaries; no game-level behaviour beyond TextureProcessor. (+1 more rule(s)) |
+| Platform bootstrap | not-applicable | - | 3 | 170 | Chooses the compiled-in IPlatform implementation when the runtime starts; applications receive the result via Game::GetPlatformEXT, which pl-platform shows. (+2 more rule(s)) |
+| Renderer plumbing | not-applicable | - | 3 | 88 | OpenGL context creation contract consumed by GL renderers, not by game code. (+2 more rule(s)) |
 
 Regenerate or verify with:
 

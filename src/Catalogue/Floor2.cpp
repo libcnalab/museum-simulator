@@ -50,7 +50,7 @@ WingSpec StateWing()
                {"BlendState", "BlendState.Additive", "BlendState.AlphaBlend", "Blend", "BlendFunction"}),
         Sprite("sprite-sort", "SpriteSortMode and Layer Depth", "Deferred, Immediate, Texture, BackToFront and FrontToBack, with a movable layer", "sort", {"SpriteSortMode", "SpriteBatch.Draw"}),
         Sprite("sprite-sampler", "Filtering and Addressing", "Point, Linear and Anisotropic; Wrap, Clamp and Mirror; source rectangles beyond the texture", "sampler",
-               {"SamplerState", "TextureFilter", "TextureAddressMode"}),
+               {"SamplerState", "TextureAddressMode"}),
     };
     return w;
 }

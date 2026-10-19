@@ -16,6 +16,7 @@
 #include "Exhibits/ScreenExhibit.hpp"
 #include "Microsoft/Xna/Framework/Graphics/BasicEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DynamicVertexBuffer.hpp"
+#include "Microsoft/Xna/Framework/Graphics/IShadowReceiverEXT.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RenderTarget2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/VertexPositionColor.hpp"
 #include "Microsoft/Xna/Framework/Vector4.hpp"
@@ -46,6 +47,7 @@ public:
         p.AddToggle("Tint each cascade", false, [this](bool v) { tint_ = v; });
         p.AddReadout("ShadowSampling support", [this] { return std::string(supported_ ? "yes" : "NO on this renderer"); });
         p.AddReadout("Map format", [this] { return format_; });
+        p.AddReadout("IShadowReceiverEXT (last draw)", [this] { return receiverNote_; });
         p.AddReadout("Cascade splits (m)", [this] { return splitText_; });
         AddInfoSign(b, "Shadow mapping", {"The shadow map holds light-space depth from a portable stock-effect caster. BasicEffect, which implements", "IShadowReceiverEXT, compares each surface's depth with the map: hidden means shadowed. PCF softens the edge."});
     }
@@ -112,6 +114,14 @@ public:
         lit_->setShadowCascadesEXT(cascades_ > 0 ? cascadeState_ : ShadowCascadeStateEXT{});
         lit_->setShadowDepthBiasEXT(bias_);
         lit_->setShadowFilterRadiusEXT(radius_);
+        {
+            // What any shadow-receiving effect reports, asked through the CNAEXT interface rather than the BasicEffect type.
+            const IShadowReceiverEXT& receiver = *lit_;
+            char note[96];
+            std::snprintf(note, sizeof note, "%s, bias %.4f, filter radius %d", receiver.isShadowsEnabledEXT() ? "receiving" : "not receiving",
+                          static_cast<double>(receiver.getShadowDepthBiasEXT()), receiver.getShadowFilterRadiusEXT());
+            receiverNote_ = note;
+        }
         for (const Item& item : Items()) {
             lit_->setDiffuseColorProperty(item.colour);
             lit_->setWorldProperty(item.world);
@@ -277,7 +287,7 @@ private:
     std::vector<VertexPositionColor> casterColours_;
     std::unique_ptr<BasicEffect> lit_;
     std::unique_ptr<RenderTarget2D> map_;
-    std::string format_ = "-";
+    std::string format_ = "-", receiverNote_ = "-";
     Matrix lightVp_ = Matrix::getIdentityProperty();
     ShadowCascadeStateEXT cascadeState_;
     std::string splitText_ = "-";

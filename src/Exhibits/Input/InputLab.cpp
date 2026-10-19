@@ -135,7 +135,7 @@ public:
                 p.AddReadout("SetVibration", [this] { return vibrateNote_; });
                 p.AddButton("SetTriggerVibrationEXT / SetLightBarEXT", [this] { TriggerAndLight(); });
                 p.AddReadout("Trigger motors and light bar", [this] { return triggerNote_; });
-                p.AddReadout("Identity (GUID, gyro, touchpad, label of A)", [this] { return identityNote_; });
+                p.AddReadout("Identity (type, GUID, gyro, touchpad, label of A)", [this] { return identityNote_; });
                 p.AddReadout("GamePadCapabilities (present / possible)", [] { return CapabilitySummary(); });
                 p.AddReadout("IsConnected", [this] { return std::string(pad_.getIsConnectedProperty() ? "yes" : "no"); });
                 p.AddReadout("Packet number", [this] { return std::to_string(pad_.getPacketNumberProperty()); });
@@ -217,6 +217,11 @@ public:
             case Mode::Pad: previousPad_ = pad_;
                 pad_ = zone_ == 0 ? GamePad::GetState(PlayerIndex::One, GamePadDeadZone::IndependentAxes)
                                                : (zone_ == 1 ? GamePad::GetState(PlayerIndex::One, GamePadDeadZone::Circular) : GamePad::GetState(PlayerIndex::One, GamePadDeadZone::None));
+                try {
+                    identityNote_ = PadIdentity();
+                } catch (const std::exception& e) {
+                    identityNote_ = std::string("pad identity unavailable: ") + e.what();
+                }
                 break;
             case Mode::Players: UpdatePlayers(); break;
             case Mode::Text:
@@ -251,7 +256,7 @@ protected:
                 for (const auto& row : Layout()) {
                     float x = x0;
                     for (const KeyCap& k : row) {
-                        const bool d = IsDown(k.key);
+                        const bool d = keys_.IsKeyDown(k.key);   // the snapshot taken this frame, asked key by key
                         rect(x, y, k.width * unit - 4, unit - 6, d ? lit : off);
                         text(k.label, x + 6, y + 10, d ? Kit::Rgba(20, 20, 20) : Kit::kText, 0.55f);
                         x += k.width * unit;
@@ -506,6 +511,7 @@ private:
         for (const Keys k : now)
             if (!IsDown(k)) lastKey_ = KeyName(k);
         down_ = now;
+        keys_ = ks;
         try { mods_ = Keyboard::GetModStateEXT(); } catch (const std::exception&) {}
     }
 
@@ -604,6 +610,20 @@ private:
     }
 
     // --- game pad ----------------------------------------------------------------------------------
+    // What player one's pad says about itself (the pad room and the devices room both show it); with no pad connected each
+    // answer is empty, false or "unknown" rather than an error.
+    [[nodiscard]] static std::string PadIdentity()
+    {
+        const PlayerIndex one = PlayerIndex::One;
+        Vector3 gv;
+        const int fingers = GamePad::GetTouchpadCountEXT(one) > 0 ? GamePad::GetTouchpadFingerCountEXT(one, 0) : 0;
+        static const char* labels[] = {"unknown", "A", "B", "X", "Y", "Cross", "Circle", "Square", "Triangle"};
+        const int label = std::clamp(static_cast<int>(GamePad::GetButtonLabelEXT(one, Buttons::A)), 0, 8);
+        return "type " + std::string(PadTypeName(GamePad::GetCapabilities(one).getGamePadTypeProperty())) + ", GUID \"" + GamePad::GetGUIDEXT(one) + "\", gyro " +
+               (GamePad::GetGyroEXT(one, gv) ? "yes" : "no") + ", player index " + std::to_string(GamePad::GetPlayerIndexEXT(one)) + ", touchpad fingers " +
+               std::to_string(fingers) + ", the A button is printed as " + labels[label];
+    }
+
     [[nodiscard]] static std::string CapabilitySummary()
     {
         const GamePadCapabilities c = GamePad::GetCapabilities(PlayerIndex::One);
@@ -995,15 +1015,7 @@ private:
             padNote_ = std::string("GamePad extensions, player one: ") + link[std::clamp(static_cast<int>(GamePad::GetConnectionStateEXT(one)), 0, 2)] + ", power state " + std::to_string(static_cast<int>(power)) +
                        (battery >= 0 ? ", battery " + std::to_string(battery) + " %" : "") + ", touchpads " + std::to_string(GamePad::GetTouchpadCountEXT(one)) +
                        ", firmware " + std::to_string(GamePad::GetFirmwareVersionEXT(one)) + ", serial \"" + GamePad::GetSerialEXT(one) + "\"";
-            {
-                // What a pad would say about itself; with none connected each answer is empty or false rather than an error.
-                Vector3 gv;
-                int fingers = GamePad::GetTouchpadCountEXT(one) > 0 ? GamePad::GetTouchpadFingerCountEXT(one, 0) : 0;
-                static const char* labels[] = {"unknown", "A", "B", "X", "Y", "Cross", "Circle", "Square", "Triangle"};
-                const int label = std::clamp(static_cast<int>(GamePad::GetButtonLabelEXT(one, Buttons::A)), 0, 8);
-                identityNote_ = "GUID \"" + GamePad::GetGUIDEXT(one) + "\", gyro " + (GamePad::GetGyroEXT(one, gv) ? "yes" : "no") + ", player index " + std::to_string(GamePad::GetPlayerIndexEXT(one)) + ", touchpad fingers " + std::to_string(fingers) +
-                                ", the A button is printed as " + labels[label];
-            }
+            identityNote_ = PadIdentity();
             int gx = 0, gy = 0;
             Mouse::GetGlobalPositionEXT(gx, gy);
             globalMouse_ = std::to_string(gx) + ", " + std::to_string(gy) + " (desktop pixels, whichever window has the pointer)";
@@ -1024,6 +1036,7 @@ private:
     float time_ = 0.0f;
     // keyboard
     std::vector<Keys> down_;
+    KeyboardState keys_;
     CNA::Input::KeyModifiersEXT mods_ = static_cast<CNA::Input::KeyModifiersEXT>(0);
     bool names_ = true;
     std::unique_ptr<Texture2D> ringTexture_;

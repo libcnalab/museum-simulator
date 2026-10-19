@@ -13,9 +13,11 @@
 using namespace Microsoft::Xna::Framework;
 using namespace Microsoft::Xna::Framework::Graphics;
 
-MiniView::MiniView(Services& services, int width, int height) : s_(services), width_(width), height_(height)
+MiniView::MiniView(Services& services, int width, int height) : MiniView(services, width, height, DepthFormat::Depth24, false) {}
+
+MiniView::MiniView(Services& services, int width, int height, DepthFormat depth, bool mipMap) : s_(services), width_(width), height_(height)
 {
-    target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24, 0,
+    target_ = std::make_unique<RenderTarget2D>(*s_.device, width, height, mipMap, SurfaceFormat::Color, depth, 0,
                                                RenderTargetUsage::PreserveContents);
 }
 
@@ -27,7 +29,9 @@ void MiniView::Render(const DrawContext& main, const Matrix& view, const Matrix&
     DrawContext sub{device, main.fx, sceneView, main.time, true};
     main.fx.SetCamera(view, projection);
     device.SetRenderTarget(target_.get());
-    device.Clear(clear, 1.0f);
+    // A target made without a depth buffer may only clear its colour (XNA refuses to clear a depth buffer that is not there).
+    if (target_->getDepthStencilFormatProperty() == DepthFormat::None) device.Clear(clear);
+    else device.Clear(clear, 1.0f);
     RenderStates::SetOpaque3D(device);
     draw(sub);
     device.SetRenderTarget(nullptr);

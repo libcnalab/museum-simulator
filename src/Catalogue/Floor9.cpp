@@ -69,7 +69,7 @@ WingSpec ValidationWing()
         rv("rv-blend", "Blending", "Alpha, premultiplied, additive, masks, blend factor and Max", "blend", {"BlendState", "BlendFunction", "ColorWriteChannels", "Blend.BlendFactor"}),
         rv("rv-depth", "Depth Buffer", "Depth test, functions, write masks and precision", "depth", {"DepthStencilState", "CompareFunction", "DepthFormat.Depth24"}),
         rv("rv-shading", "Interpolation, Lighting and Fog", "Vertex colours, N.L diffuse lighting and linear fog", "shading", {"BasicEffect.VertexColorEnabled", "BasicEffect.DirectionalLight0", "BasicEffect.FogEnabled"}),
-        rv("rv-sampling", "Texture Sampling", "Wrap, Clamp, Mirror, point and linear filtering", "sampling", {"SamplerState.AddressU", "TextureAddressMode", "TextureFilter"}),
+        rv("rv-sampling", "Texture Sampling", "Wrap, Clamp, Mirror, point and linear filtering", "sampling", {"SamplerState.AddressU", "TextureAddressMode"}),
         rv("rv-targets", "Render Targets", "Orientation, reuse as a texture and half-float targets", "targets", {"RenderTarget2D", "GraphicsDevice.SetRenderTarget", "Texture2D.GetData"}),
         rv("rv-camera", "Camera Matrices", "LookAt, perspective and orthographic projection, world translation", "camera", {"Matrix.CreateLookAt", "Matrix.CreatePerspectiveFieldOfView", "Matrix.CreateOrthographic", "BasicEffect.World"}),
         rv("rv-formats", "Surface Formats", "Every uncompressed texture format returns exactly the bits it was given", "formats", {"SurfaceFormat", "Texture2D.SetData", "Texture2D.GetData", "PackedVector.Bgr565", "PackedVector.Rgba64", "PackedVector.HalfVector4"}),
@@ -104,7 +104,7 @@ WingSpec RoofWing()
         return r;
     };
     w.rooms = {
-        rf("rf-deck", "Sun, Moon and the Museum Clock", "Time of day drives the sun, the daylight, the ambient colour and the lamps", "deck", {"Matrix.CreateLookAt", "Vector3", "BasicEffect.EmissiveColor", "MathHelper"}, ApiOrigin::Xna),
+        rf("rf-deck", "Sun, Moon and the Museum Clock", "Time of day drives the sun, the daylight, the ambient colour and the lamps", "deck", {"Vector3", "BasicEffect.EmissiveColor", "MathHelper"}, ApiOrigin::Xna),
         rf("rf-garden", "Terrace Garden", "A particle fountain and wind-blown leaves drawn as camera-facing quads", "garden", {"DynamicVertexBuffer", "BlendState.NonPremultiplied", "Texture2D", "SoundEffectInstance"}, ApiOrigin::Xna),
         rf("rf-telescope", "Telescope", "A narrow field of view into a render target: aim at the sun, the moon or the skyline", "telescope", {"Matrix.CreatePerspectiveFieldOfView", "RenderTarget2D", "BasicEffect.FogEnabled", "Matrix.CreateLookAt"}, ApiOrigin::Xna),
         rf("rf-weather", "Weather Station", "Rain as lines, snow and splashes as particles, wind, visibility and lightning", "weather", {"PrimitiveType.LineList", "DynamicVertexBuffer", "SetDataOptions.Discard", "SpriteBatch"}, ApiOrigin::Xna),
@@ -130,8 +130,8 @@ WingSpec ReferenceWing()
     r.depth = 13;
     r.height = 5.0f;
     r.theme = "white-cube";
-    r.apis = {"GraphicsDevice.GetBackBufferData", "Matrix.CreateLookAt"};
-    r.origin = ApiOrigin::Xna;
+    r.apis = {"SpriteBatch.DrawString"};   // the index is application behaviour; its screen is plain SpriteBatch text
+    r.origin = ApiOrigin::Application;
     w.rooms = {r};
     return w;
 }

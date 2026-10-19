@@ -52,7 +52,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 ## Generated: API names claimed by rooms
 
 <!-- BEGIN COVERAGE -->
-1284 distinct API names are claimed by at least one room.
+1274 distinct API names are claimed by at least one room.
 
 | API | Rooms |
 |---|---|
@@ -127,7 +127,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | BasicEffect.DiffuseColor | `be-combos` |
 | BasicEffect.DirectionalLight0 | `be-lights`, `rv-shading` |
 | BasicEffect.EmissiveColor | `grounds-sculpture`, `be-material`, `light-emissive`, `rf-deck` |
-| BasicEffect.EnableDefaultLighting | `lighting`, `be-lights` |
+| BasicEffect.EnableDefaultLighting | `be-lights` |
 | BasicEffect.FogColor | `be-fog` |
 | BasicEffect.FogEnabled | `be-fog`, `rv-shading`, `rf-telescope` |
 | BasicEffect.FogEnd | `be-fog` |
@@ -241,7 +241,6 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | CNA::Logger | `pl-log` |
 | CNA::Platform::IPlatform | `pl-platform` |
 | CNA::Platform::NativeWindowHandle | `pl-window` |
-| CNA::ShaderCompilationExceptionEXT | `fx-errors` |
 | CNA::ShaderDiagnosticEXT | `fx-errors` |
 | CNA::getGraphicsRendererMaturity | `hist-cna` |
 | CNA::getGraphicsRendererName | `hist-cna` |
@@ -342,7 +341,6 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | ContentSerializerAttribute | `ct-intermediate` |
 | ContentSerializerCollectionItemNameAttribute | `ct-intermediate` |
 | ContentSerializerCollectionItemNameAttribute.CollectionItemName | `ct-intermediate` |
-| ContentSerializerIgnoreAttribute | `ct-intermediate` |
 | ContentTypeDescriptor | `ct-intermediate` |
 | ContentTypeReader | `ct-reader` |
 | ContentTypeReaderManager.AddTypeCreator | `ct-reader` |
@@ -409,29 +407,25 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | DynamicSoundEffectInstance.PendingBufferCount | `au-synth` |
 | DynamicSoundEffectInstance.SubmitBuffer | `au-synth` |
 | DynamicSoundEffectInstance.SubmitFloatBufferEXT | `au-synth` |
-| DynamicVertexBuffer | `sky`, `grounds-fountain`, `particles`, `geo-dynamic`, `pt-fire`, `pt-smoke`, `pt-sparks`, `pt-snow`, `pt-rain`, `pt-fountain`, `pt-dust`, `pt-fireworks`, `pt-bubbles`, `pt-leaves`, `pt-magic`, `cx-shadow`, `rf-garden`, `rf-weather` |
+| DynamicVertexBuffer | `grounds-fountain`, `particles`, `geo-dynamic`, `pt-fire`, `pt-smoke`, `pt-sparks`, `pt-snow`, `pt-rain`, `pt-fountain`, `pt-dust`, `pt-fireworks`, `pt-bubbles`, `pt-leaves`, `pt-magic`, `cx-shadow`, `rf-garden`, `rf-weather` |
 | DynamicVertexBuffer.SetData | `pf-buffers` |
 | Effect | `be-model`, `fx-compiled` |
 | Effect(GraphicsDevice, byte[]) | `fx-compiled` |
 | Effect.Clone | `be-model` |
 | Effect.Parameters | `fx-compiled` |
 | Effect.Techniques | `fx-compiled` |
-| EffectAnnotation | `be-model` |
 | EffectContent | `fx-compiled` |
 | EffectContent.EffectCode | `fx-compiled` |
 | EffectImporter | `fx-compiled` |
 | EffectImporter.Import | `fx-compiled` |
 | EffectParameter | `be-model`, `fx-compiled` |
-| EffectParameter.GetValueBoolean | `be-model` |
 | EffectParameter.GetValueInt32 | `be-model` |
 | EffectParameter.GetValueMatrix | `be-model` |
 | EffectParameter.GetValueMatrixArray | `be-model` |
 | EffectParameter.GetValueMatrixTranspose | `be-model` |
 | EffectParameter.GetValueMatrixTransposeArray | `be-model` |
 | EffectParameter.GetValueSingle | `fx-compiled` |
-| EffectParameter.GetValueString | `be-model` |
 | EffectParameter.GetValueTexture2D | `be-model` |
-| EffectParameter.GetValueTextureCube | `be-model` |
 | EffectParameter.GetValueVector2 | `fx-compiled` |
 | EffectParameter.GetValueVector3 | `be-model` |
 | EffectParameter.GetValueVector4 | `be-model` |
@@ -460,10 +454,9 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | FriendGamer.IsOnline | `on-friends` |
 | FriendGamer.IsPlaying | `on-friends` |
 | FriendGamer.Presence | `on-friends` |
-| Game | `info`, `app-lifecycle`, `hist-xna` |
+| Game | `app-lifecycle` |
 | Game.Activated | `pl-window` |
 | Game.Components | `app-components` |
-| Game.Exiting | `app-lifecycle` |
 | Game.GetPlatformCapabilitiesEXT | `pl-platform` |
 | Game.GetPlatformEXT | `pl-platform` |
 | Game.InactiveSleepTime | `app-gametime` |
@@ -581,7 +574,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Graphics::FontDescription.Style | `ct-fontbuild` |
 | Graphics::FontDescription.UseKerning | `ct-fontbuild` |
 | Graphics::FontDescriptionStyle | `ct-fontbuild` |
-| GraphicsAdapter | `info`, `app-device`, `pl-adapter` |
+| GraphicsAdapter | `app-device`, `pl-adapter` |
 | GraphicsAdapter.Adapters | `pl-adapter` |
 | GraphicsAdapter.GetCurrentDeviceTypeEXT | `pl-adapter` |
 | GraphicsAdapter.GetRequiredRendererEXT | `pl-adapter` |
@@ -607,7 +600,6 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | GraphicsDevice.DrawUserIndexedPrimitives | `geo-dynamic` |
 | GraphicsDevice.DrawUserPrimitives | `geo-triangle`, `geo-primitives`, `cx-points`, `pf-buffers`, `pf-particles`, `rv-geometry` |
 | GraphicsDevice.ExecutesShaderEffectSourceEXT | `fx-errors` |
-| GraphicsDevice.GetBackBufferData | `vr-index` |
 | GraphicsDevice.GetDisplayColorSpaceEXT | `pl-renderer` |
 | GraphicsDevice.GetGraphicsRendererName | `pl-renderer` |
 | GraphicsDevice.GetLogicalSizeEXT | `pl-renderer` |
@@ -641,7 +633,6 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | GraphicsDeviceManager.PreparingDeviceSettings | `app-viewport` |
 | GraphicsDeviceManager.SupportedOrientations | `pl-window` |
 | GraphicsDeviceStatus | `app-viewport` |
-| GraphicsProfile | `hist-xna` |
 | GraphicsResource.Dispose | `ct-lifetime` |
 | GraphicsResource.Disposing | `ct-lifetime` |
 | GraphicsResource.IsDisposed | `ct-cache`, `ct-lifetime` |
@@ -763,7 +754,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Matrix.CreateBillboard | `mat-billboard` |
 | Matrix.CreateConstrainedBillboard | `mat-billboard` |
 | Matrix.CreateFromQuaternion | `quat-euler` |
-| Matrix.CreateLookAt | `mat-view`, `cam-orbit`, `cam-chase`, `cam-topdown`, `cam-mirror`, `rt-mirror`, `rv-camera`, `rf-deck`, `rf-telescope`, `vr-index` |
+| Matrix.CreateLookAt | `mat-view`, `cam-orbit`, `cam-chase`, `cam-topdown`, `cam-mirror`, `rt-mirror`, `rv-camera`, `rf-telescope` |
 | Matrix.CreateOrthographic | `mat-ortho`, `cam-topdown`, `cx-shadow`, `rv-camera` |
 | Matrix.CreateOrthographicOffCenter | `mat-offcenter` |
 | Matrix.CreatePerspective | `mat-offcenter` |
@@ -797,7 +788,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | MediaPlayer.Volume | `au-music` |
 | MediaQueue | `au-music` |
 | MediaState | `au-music` |
-| MeshBuilder | `an-gears`, `ct-meshbuilder` |
+| MeshBuilder | `ct-meshbuilder` |
 | MeshBuilder.AddTriangleVertex | `ct-meshbuilder` |
 | MeshBuilder.CreatePosition | `ct-meshbuilder` |
 | MeshBuilder.CreateVertexChannel | `ct-meshbuilder` |
@@ -823,7 +814,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Microsoft::Xna::Framework::Content::Pipeline::WavImporter | `ct-audiopipeline` |
 | Microsoft::Xna::Framework::Content::Pipeline::WavImporter.Import | `ct-audiopipeline` |
 | MipmapChain | `ct-processor` |
-| Model | `models`, `animation`, `model-load` |
+| Model | `models`, `model-load` |
 | Model.BoundingSphereEXT | `model-load`, `model-instances`, `model-bounds` |
 | Model.CamerasEXT | `model-cameras` |
 | Model.CopyAbsoluteBoneTransformsTo | `model-rigid`, `model-sampler` |
@@ -836,7 +827,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | ModelAnimationsEXT | `model-rigid` |
 | ModelBone | `model-rigid` |
 | ModelBone.Children | `model-load` |
-| ModelBoneContent | `ct-meshbuilder`, `ct-modelimport` |
+| ModelBoneContent | `ct-modelimport` |
 | ModelCameraEXT | `model-cameras` |
 | ModelCameraEXT.HasInfiniteFarPlane | `model-cameras` |
 | ModelCameraEXT.IsPerspective | `model-cameras` |
@@ -893,17 +884,18 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | NetworkSession.AllowJoinInProgress | `net-session` |
 | NetworkSession.BeginFind | `net-session` |
 | NetworkSession.BeginJoin | `net-session` |
+| NetworkSession.BeginJoinInvited | `net-session` |
 | NetworkSession.Create | `net-session` |
 | NetworkSession.EndFind | `net-session` |
 | NetworkSession.EndGame | `net-session` |
 | NetworkSession.EndJoin | `net-session` |
+| NetworkSession.EndJoinInvited | `net-session` |
 | NetworkSession.FindGamerById | `net-session` |
 | NetworkSession.GameStarted | `net-session` |
 | NetworkSession.GamerJoined | `net-session` |
 | NetworkSession.Host | `net-session` |
 | NetworkSession.HostChanged | `net-session` |
 | NetworkSession.InviteAccepted | `net-session` |
-| NetworkSession.JoinInvited | `net-session` |
 | NetworkSession.MaxGamers | `net-session` |
 | NetworkSession.PreviousGamers | `net-session` |
 | NetworkSession.PrivateGamerSlots | `net-session` |
@@ -959,7 +951,6 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | PbrEffect.MetallicFactor | `model-pbr`, `model-ibl` |
 | PbrEffect.NormalMap | `model-material` |
 | PbrEffect.RoughnessFactor | `model-pbr`, `model-ibl` |
-| PbrEffect.Texture | `model-sampler` |
 | PhoneApplicationService | `pl-window` |
 | PhoneApplicationService.Activated | `pl-window` |
 | PhoneApplicationService.AttachEXT | `pl-window` |
@@ -1022,7 +1013,6 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | QualityOfService | `net-session` |
 | QualityOfService.BytesPerSecondDownstream | `net-session` |
 | QualityOfService.MinimumRoundtripTime | `net-session` |
-| Quaternion | `animation` |
 | Quaternion.Concatenate | `quat-axis` |
 | Quaternion.Conjugate | `quat-axis` |
 | Quaternion.CreateFromAxisAngle | `quat-axis` |
@@ -1034,7 +1024,8 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Quaternion.Slerp | `quat-slerp`, `cam-transition` |
 | QuaternionConverter | `vt-converters` |
 | RasterizerState | `renderstates` |
-| RasterizerState.CullMode | `geo-triangle`, `rs-cull`, `rt-mirror`, `rv-geometry` |
+| RasterizerState.CullCounterClockwise | `rt-mirror` |
+| RasterizerState.CullMode | `geo-triangle`, `rs-cull`, `rv-geometry` |
 | RasterizerState.DepthBias | `rs-depthbias` |
 | RasterizerState.FillMode | `geo-procedural`, `geo-terrain`, `rs-fill` |
 | RasterizerState.MultiSampleAntiAlias | `rt-msaa` |
@@ -1108,7 +1099,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | ShaderEffect.GetShaderDiagnosticsEXT | `fx-errors` |
 | ShaderEffect.IsEffectValid | `fx-errors` |
 | ShaderEffect.SetTexture(Texture3D) | `tex-volshader` |
-| ShaderEffect.SetUniformFloat | `fx-grade`, `fx-blur`, `fx-pixelate`, `fx-ripple`, `fx-edge`, `fx-crt`, `fx-plasma`, `fx-swirl`, `fx-chromatic`, `fx-kernel`, `fx-halftone`, `fx-vertexwave`, `fx-colormatrix` |
+| ShaderEffect.SetUniformFloat | `fx-grade`, `fx-blur`, `fx-pixelate`, `fx-ripple`, `fx-edge`, `fx-crt`, `fx-plasma`, `fx-swirl`, `fx-chromatic`, `fx-kernel`, `fx-halftone`, `fx-vertexwave` |
 | ShaderLanguageEXT | `cx-package` |
 | ShaderPackageEXT.selectFor | `cx-package` |
 | ShadowCascadeStateEXT | `cx-shadow` |
@@ -1169,11 +1160,11 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | SoundEffectInstance.Pitch | `au-layers` |
 | SoundEffectInstance.Volume | `au-layers` |
 | SoundState | `au-layers` |
-| SpriteBatch | `sprite-stress`, `pt-fire`, `pt-smoke`, `pt-sparks`, `pt-snow`, `pt-rain`, `pt-fountain`, `pt-dust`, `pt-fireworks`, `pt-bubbles`, `pt-leaves`, `pt-magic`, `rf-weather` |
+| SpriteBatch | `sprite-stress`, `rf-weather` |
 | SpriteBatch.Begin | `sprite-basics`, `sprite-camera`, `sprite-tilemap`, `fx-compiled`, `rt-bloom`, `pl-exceptions`, `pf-sprites` |
 | SpriteBatch.Begin(effect) | `fx-grade`, `fx-blur`, `fx-pixelate`, `fx-ripple`, `fx-edge`, `fx-crt`, `fx-plasma`, `fx-swirl`, `fx-chromatic`, `fx-kernel`, `fx-halftone`, `fx-vertexwave`, `fx-colormatrix`, `cx-crt` |
 | SpriteBatch.Draw | `sprite-basics`, `sprite-origin`, `sprite-sheet`, `sprite-sort`, `sprite-parallax`, `sprite-ui`, `sprite-atlas`, `sprite-hit`, `sprite-anim`, `sprite-tilemap`, `sprite-lights`, `sprite-stress`, `rt-recursive`, `hist-compare`, `pf-sprites`, `pf-overdraw`, `rv-sprites` |
-| SpriteBatch.DrawString | `text-align`, `text-transform`, `text-hud`, `text-labels`, `ct-fontbuild`, `hist-compare` |
+| SpriteBatch.DrawString | `text-align`, `text-transform`, `text-hud`, `text-labels`, `ct-fontbuild`, `hist-xna`, `hist-compare`, `vr-index` |
 | SpriteBatch.End | `pl-exceptions` |
 | SpriteEffect | `be-model` |
 | SpriteEffects | `sprite-basics`, `text-transform`, `rv-sprites` |
@@ -1226,7 +1217,6 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | System.ObjectDisposedException | `pl-exceptions` |
 | System.Resources.ResourceManager | `ct-resource` |
 | System.Text.StringBuilder | `text-hud` |
-| TextInputEXT.StartTextInput | `in-text` |
 | TextInputEXT.StartTextInputWithTypeEXT | `in-text` |
 | TextInputEXT.TextInput | `in-text` |
 | TextInputTypeEXT | `in-text` |
@@ -1241,13 +1231,13 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Texture2DContent | `ct-processor`, `ct-compiler` |
 | Texture3D | `tex-volume`, `tex-volshader` |
 | Texture3D.GetData | `tex-volume` |
-| Texture3D.GetData(level, box) | `tex-volume` |
+| Texture3D.GetData(level, left, front) | `tex-volume` |
 | Texture3D.SetData | `tex-volume` |
 | TextureAddressMode | `sprite-sampler`, `tex-address`, `tex-volshader`, `model-sampler`, `rv-sampling` |
 | TextureCube | `tex-cube`, `model-ibl` |
 | TextureCube.GetData | `tex-cube` |
 | TextureCube.SetData | `tex-cube` |
-| TextureFilter | `sprite-sampler`, `tex-volshader`, `rv-sampling` |
+| TextureFilter | `tex-volshader` |
 | TextureFilter.MinLinearMagPointMipLinear | `tex-mip` |
 | TextureFilter.MinPointMagLinearMipPoint | `tex-mip` |
 | TextureImporter | `ct-processor`, `ct-compiler` |

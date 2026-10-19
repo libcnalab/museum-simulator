@@ -22,7 +22,7 @@ WingSpec ParticleWing()
         r.depth = 13;
         r.height = 5.5f;
         r.theme = "cave";
-        r.apis = {"DynamicVertexBuffer", "SetDataOptions.Discard", "IndexBuffer", "BlendState.Additive", "SpriteBatch"};
+        r.apis = {"DynamicVertexBuffer", "SetDataOptions.Discard", "IndexBuffer", "BlendState.Additive"};
         (void)outdoor;
         return r;
     };
@@ -78,7 +78,7 @@ WingSpec ModelWing()
         mo("model-material", "PBR Material Maps", "Base colour, normal and emissive maps, a texture transform and the three alpha modes on one PbrEffect", "material", {"PbrEffect.NormalMap", "PbrEffect.EmissiveMap", "TextureTransformEXT", "AlphaModeEXT", "PbrEffect.AlphaCutoffEXT"}, "sphere"),
         [&] {
             RoomSpec r = mo("model-sampler", "Sampler States from a glTF File", "Three quads with UVs from 0 to 2: the glTF sampler (repeat, clamp, mirror) travels on each ModelMeshPart and the application puts it on the device", "wrap",
-                            {"ModelMeshPart.SamplerStatesEXT", "ModelMesh.Draw", "Model.CopyAbsoluteBoneTransformsTo", "GraphicsDevice.SamplerStates", "SamplerState", "TextureAddressMode", "PbrEffect.Texture"});
+                            {"ModelMeshPart.SamplerStatesEXT", "ModelMesh.Draw", "Model.CopyAbsoluteBoneTransformsTo", "GraphicsDevice.SamplerStates", "SamplerState", "TextureAddressMode"});
             r.origin = ApiOrigin::CnaExtension;
             return r;
         }(),
@@ -136,7 +136,7 @@ WingSpec AnimationWing()
     w.rooms = {
         an("an-pendulum", "Pendulum Wave", "Eight pendulums whose periods step evenly, from a formula or by integration", "pendulum", {"MathHelper", "GameTime", "Vector3"}),
         an("an-clock", "A Clock", "Hour, minute and second hands as nested rotations driven by the time of day", "clock", {"Matrix.CreateRotationZ", "Matrix.Multiply"}),
-        an("an-gears", "Meshing Gears", "Gear ratios as rotation matrices, with an adjustable tooth count", "gears", {"Matrix.CreateRotationY", "Matrix.Multiply", "MeshBuilder"}),
+        an("an-gears", "Meshing Gears", "Gear ratios as rotation matrices, with an adjustable tooth count", "gears", {"Matrix.CreateRotationY", "Matrix.Multiply"}),
         an("an-conveyor", "Conveyor", "Scrolling texture coordinates, crates riding the belt and a swept gate counter", "conveyor", {"VertexPositionColorTexture", "SamplerState.LinearWrap", "BoundingBox"}),
         an("an-doors", "Proximity Doors", "Doors that open as you approach, with Lerp against SmoothStep easing", "doors", {"MathHelper.Lerp", "MathHelper.SmoothStep", "Vector3.Distance"}),
         an("an-kinetic", "Kinetic Sculpture", "Sixty rods whose phase depends on position: waves, twists and Lissajous figures", "kinetic", {"Matrix.CreateRotationZ", "Matrix.Multiply"}),

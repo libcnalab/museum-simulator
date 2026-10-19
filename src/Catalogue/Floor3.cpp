@@ -86,7 +86,7 @@ WingSpec TextureWing()
         tex("tex-formats", "Surface Formats", "The same gradient in Color, Bgr565, Bgra4444, Alpha8 and HalfVector4", "formats", {"SurfaceFormat", "PackedVector.Bgr565", "PackedVector.Bgra4444", "PackedVector.Alpha8", "PackedVector.HalfVector4"}),
         tex("tex-alpha", "Alpha: Test, Blend, Opaque", "AlphaTestEffect with a reference alpha against blending and opaque drawing", "alpha", {"AlphaTestEffect", "BlendState.NonPremultiplied", "CompareFunction"}),
         tex("tex-cube", "Cube Maps and Environment Maps", "A procedural TextureCube reflected by EnvironmentMapEffect", "cube", {"TextureCube", "EnvironmentMapEffect", "CubeMapFace", "TextureCube.SetData", "TextureCube.GetData"}),
-        tex("tex-volume", "Volume Textures", "Texture3D storage and readback in Color, float and Vector4 formats, whole volume or a box, shown slice by slice", "volume", {"Texture3D", "Texture3D.SetData", "Texture3D.GetData", "Texture3D.GetData(level, box)", "SurfaceFormat.Single", "SurfaceFormat.Vector4"}),
+        tex("tex-volume", "Volume Textures", "Texture3D storage and readback in Color, float and Vector4 formats, whole volume or a box, shown slice by slice", "volume", {"Texture3D", "Texture3D.SetData", "Texture3D.GetData", "Texture3D.GetData(level, left, front)", "SurfaceFormat.Single", "SurfaceFormat.Vector4"}),
         []{
             RoomSpec r;
             r.key = "tex-volshader";

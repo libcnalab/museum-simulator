@@ -42,6 +42,8 @@ WingSpec ShaderWing()
     };
     {
         RoomSpec cm = sh("fx-colormatrix", "Colour Matrix", "A 4 x 4 matrix and an offset turn each pixel's (r, g, b, a): grayscale, sepia, invert, hue and saturation are all one matrix", "colormatrix");
+        // The colour-matrix branch sets only matrix and vector uniforms; it never calls SetUniformFloat.
+        std::erase(cm.apis, std::string("ShaderEffect.SetUniformFloat"));
         cm.apis.insert(cm.apis.end(), {"ColorMatrixEffect", "ColorMatrixEffect.SetColorMatrix", "ColorMatrixEffect.SetColorOffset", "Matrix"});
         w.rooms.push_back(cm);
     }
@@ -61,7 +63,7 @@ WingSpec ShaderWing()
         RoomSpec er = sh("fx-errors", "Shader Compile Errors", "Six deliberate mistakes in a shader: what IsEffectValid, GetCompileErrorEXT and GetShaderDiagnosticsEXT hand back, and the log parser on fixed logs", "errors");
         er.exhibit = "shader-errors";
         er.params = {};
-        er.apis = {"ShaderEffect", "ShaderEffect.IsEffectValid", "ShaderEffect.GetCompileErrorEXT", "ShaderEffect.GetShaderDiagnosticsEXT", "CNA::ShaderDiagnosticEXT", "ShaderDiagnosticEXT.parseCompilerLog", "CNA::ShaderCompilationExceptionEXT",
+        er.apis = {"ShaderEffect", "ShaderEffect.IsEffectValid", "ShaderEffect.GetCompileErrorEXT", "ShaderEffect.GetShaderDiagnosticsEXT", "CNA::ShaderDiagnosticEXT", "ShaderDiagnosticEXT.parseCompilerLog",
                    "GraphicsDevice.ExecutesShaderEffectSourceEXT", "GraphicsDevice.GetShaderDialectEXT"};
         er.origin = ApiOrigin::CnaExtension;
         w.rooms.push_back(er);
@@ -106,9 +108,9 @@ WingSpec BasicEffectWing()
         fx("be-dual", "DualTextureEffect", "Two textures multiplied per pixel: a tiling surface and a lightmap", "dual", {"DualTextureEffect", "DualTextureEffect.Texture2"}),
         [&] {
             RoomSpec r = fx("be-model", "The Effect Object Model", "Parameters (class, type, size, annotations), techniques and passes of six stock effects, the IEffect interfaces and Effect.Clone", "",
-                            {"Effect", "EffectParameter", "EffectParameterClass", "EffectParameterType", "EffectParameterCollection", "EffectAnnotation", "EffectTechnique", "EffectPass",
+                            {"Effect", "EffectParameter", "EffectParameterClass", "EffectParameterType", "EffectParameterCollection", "EffectTechnique", "EffectPass",
                              "IEffectMatrices", "IEffectLights", "IEffectFog", "Effect.Clone", "SpriteEffect", "SkinnedEffect",
-                             "EffectParameter.GetValueBoolean", "EffectParameter.GetValueInt32", "EffectParameter.GetValueString", "EffectParameter.GetValueMatrix", "EffectParameter.GetValueMatrixArray", "EffectParameter.GetValueMatrixTranspose", "EffectParameter.GetValueMatrixTransposeArray", "EffectParameter.GetValueVector3", "EffectParameter.GetValueVector4", "EffectParameter.GetValueTexture2D", "EffectParameter.GetValueTextureCube"});
+                             "EffectParameter.GetValueInt32", "EffectParameter.GetValueMatrix", "EffectParameter.GetValueMatrixArray", "EffectParameter.GetValueMatrixTranspose", "EffectParameter.GetValueMatrixTransposeArray", "EffectParameter.GetValueVector3", "EffectParameter.GetValueVector4", "EffectParameter.GetValueTexture2D"});
             r.exhibit = "reflect-lab";
             return r;
         }(),

@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import collections
 import dataclasses
+import fnmatch
 import hashlib
 import json
 import pathlib
@@ -23,6 +24,7 @@ from typing import Any
 SCHEMA = "museum-cna-coverage-evidence/1"
 IMPLEMENTATION_SCHEMA = "museum-cna-implementation-evidence/1"
 EXECUTION_SCHEMA = "museum-cna-execution-evidence/1"
+AREA_SCHEMA = "museum-cna-area-classification/1"
 NON_DECLARATION_CLAIMS = {
     "ApiOrigin": "museum catalogue type, not CNA API",
     "CNAEXT": "compile-time API family label, not a declaration",
@@ -603,8 +605,9 @@ def resolve_claim(
             for symbol in candidates
             if all(token in symbol["signature"] or token in symbol["display"] for token in tokens)
         ]
-        if filtered:
-            candidates = filtered
+        # An argument-qualified claim names particular overloads: when none matches, it is unresolved,
+        # never silently widened to the whole member family.
+        candidates = filtered
 
     unique = {symbol["id"]: symbol for symbol in candidates}
     candidates = sorted(unique.values(), key=lambda item: item["id"])
@@ -1065,6 +1068,109 @@ def build_evidence(
     }
 
 
+def classify_areas(
+    inventory: dict[str, Any], evidence_symbols: list[dict[str, Any]], manifest: dict[str, Any]
+) -> dict[str, Any]:
+    """Give every public header a status: claimed by a room, or classified by a reviewed rule.
+
+    Headers with at least one catalogue-linked declaration are demonstrated (at whatever evidence
+    level the matrix shows). Every other header must match a rule (first match wins) whose status is
+    gap (with a backlog task), supporting or not-applicable; a rule that matches no unclaimed header
+    is stale, so the classification has to follow the catalogue.
+    """
+    if manifest.get("schema") != AREA_SCHEMA:
+        raise RuntimeError("unsupported area classification schema")
+    statuses = manifest.get("statuses")
+    rules = manifest.get("rules")
+    if not isinstance(statuses, dict) or not isinstance(rules, list) or not rules:
+        raise RuntimeError("area classification needs statuses and rules")
+    for index, rule in enumerate(rules):
+        if not isinstance(rule, dict) or not all(
+            isinstance(rule.get(key), str) for key in ("match", "area", "status", "backlog", "reason")
+        ):
+            raise RuntimeError(f"area rule {index} is malformed")
+        if rule["status"] not in statuses:
+            raise RuntimeError(f"area rule {rule['match']} has unknown status {rule['status']!r}")
+        if (rule["status"] == "gap") != bool(rule["backlog"].strip()):
+            raise RuntimeError(f"area rule {rule['match']}: a gap names its backlog task, other statuses do not")
+        if not rule["reason"].strip():
+            raise RuntimeError(f"area rule {rule['match']} needs a reason")
+    linked = {symbol["id"] for symbol in evidence_symbols if symbol["catalogLinked"]}
+    headers: collections.defaultdict[str, list[int]] = collections.defaultdict(lambda: [0, 0])
+    for symbol in inventory["symbols"]:
+        row = headers[symbol["header"]]
+        row[0] += 1
+        row[1] += symbol["id"] in linked
+    rule_rows = [dict(rule, headers=0, declarations=0) for rule in rules]
+    unmatched = []
+    demonstrated_headers = demonstrated_declarations = 0
+    for header, (declarations, claimed) in sorted(headers.items()):
+        if claimed:
+            demonstrated_headers += 1
+            demonstrated_declarations += declarations
+            continue
+        for row in rule_rows:
+            if fnmatch.fnmatchcase(header, row["match"]):
+                row["headers"] += 1
+                row["declarations"] += declarations
+                break
+        else:
+            unmatched.append(header)
+    if unmatched:
+        raise RuntimeError(
+            f"{len(unmatched)} unclaimed public header(s) have no area classification, first: "
+            + ", ".join(unmatched[:5])
+        )
+    stale = [row["match"] for row in rule_rows if row["headers"] == 0]
+    if stale:
+        raise RuntimeError("area rules that match no unclaimed header: " + ", ".join(stale[:5]))
+    totals: dict[str, dict[str, int]] = {}
+    for row in rule_rows:
+        total = totals.setdefault(row["status"], {"headers": 0, "declarations": 0})
+        total["headers"] += row["headers"]
+        total["declarations"] += row["declarations"]
+    return {
+        "demonstratedHeaders": demonstrated_headers,
+        "demonstratedHeaderDeclarations": demonstrated_declarations,
+        "classified": totals,
+        "statuses": statuses,
+        "rules": rule_rows,
+    }
+
+
+def render_areas(areas: dict[str, Any]) -> list[str]:
+    lines = [
+        "",
+        "## Public API areas",
+        "",
+        f"**{areas['demonstratedHeaders']}** public headers ({areas['demonstratedHeaderDeclarations']} declarations) "
+        "have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in",
+        "`audit/area_classification.json` (first match wins; the check fails for an unclassified header or a stale rule):",
+        "",
+        "| Status | Headers | Declarations | Meaning |",
+        "|---|---:|---:|---|",
+    ]
+    for status, meaning in areas["statuses"].items():
+        total = areas["classified"].get(status, {"headers": 0, "declarations": 0})
+        lines.append(f"| {status} | {total['headers']} | {total['declarations']} | {meaning} |")
+    lines.extend(("", "| Area | Status | Backlog | Headers | Declarations | Reason |", "|---|---|---|---:|---:|---|"))
+    merged: dict[tuple[str, str, str], list[Any]] = {}
+    for row in areas["rules"]:
+        key = (row["area"], row["status"], row["backlog"])
+        entry = merged.setdefault(key, [0, 0, []])
+        entry[0] += row["headers"]
+        entry[1] += row["declarations"]
+        if row["reason"] not in entry[2]:
+            entry[2].append(row["reason"])
+    order = {"gap": 0, "supporting": 1, "not-applicable": 2}
+    for (area, status, backlog), (count, declarations, reasons) in sorted(
+        merged.items(), key=lambda item: (order.get(item[0][1], 9), item[0][0])
+    ):
+        reason = reasons[0] if len(reasons) == 1 else reasons[0] + f" (+{len(reasons) - 1} more rule(s))"
+        lines.append(f"| {area} | {status} | {backlog or '-'} | {count} | {declarations} | {reason} |")
+    return lines
+
+
 def render_summary(evidence: dict[str, Any]) -> str:
     counts = evidence["counts"]
     resolutions = counts["resolutions"]
@@ -1204,6 +1310,8 @@ def render_summary(evidence: dict[str, Any]) -> str:
         for claim in external_claims:
             rooms = ", ".join(f"`{room['key']}`" for room in claim["rooms"])
             lines.append(f"| `{claim['claim']}` | {rooms} |")
+    if "areas" in evidence:
+        lines.extend(render_areas(evidence["areas"]))
     lines.extend(
         (
             "",
@@ -1255,6 +1363,11 @@ def parse_arguments() -> argparse.Namespace:
         default=root / "audit" / "execution_evidence.json",
     )
     parser.add_argument(
+        "--area-classification",
+        type=pathlib.Path,
+        default=root / "audit" / "area_classification.json",
+    )
+    parser.add_argument(
         "--cna-bin",
         type=pathlib.Path,
         default=root / "build" / "cna" / "libcna.so",
@@ -1301,6 +1414,8 @@ def main() -> int:
         current_museum_binary_sha256,
         current_cna_binary_sha256,
     )
+    area_manifest = json.loads(arguments.area_classification.read_text(encoding="utf-8"))
+    evidence["areas"] = classify_areas(inventory, evidence["symbols"], area_manifest)
     rendered_json = json.dumps(evidence, indent=2, ensure_ascii=False) + "\n"
     summary = render_summary(evidence)
 

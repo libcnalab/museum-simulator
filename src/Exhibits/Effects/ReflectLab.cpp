@@ -230,7 +230,12 @@ private:
         for (int i = 0; i < techs.getCountProperty(); ++i) {
             EffectTechnique* tech = techs[i];
             if (tech == nullptr) continue;
-            t += (i ? ", " : "") + tech->getNameProperty() + " (" + std::to_string(tech->getPassesProperty().getCountProperty()) + " pass" + (tech->getPassesProperty().getCountProperty() == 1 ? "" : "es") + ")";
+            EffectPassCollection& passes = tech->getPassesProperty();
+            std::string names;
+            for (int k = 0; k < passes.getCountProperty(); ++k)
+                if (const EffectPass* pass = passes[k]) names += (k ? " " : "") + pass->getNameProperty();
+            t += (i ? ", " : "") + tech->getNameProperty() + " (" + std::to_string(passes.getCountProperty()) + " pass" + (passes.getCountProperty() == 1 ? "" : "es") +
+                 (names.empty() ? "" : ": " + names) + ")";
         }
         const EffectTechnique* cur = fx.getCurrentTechniqueProperty();
         techniques_ = t + (cur != nullptr ? "; current: " + cur->getNameProperty() : "");

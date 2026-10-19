@@ -58,6 +58,13 @@ Packed Pack(const Vector4& v)
     std::snprintf(buf, sizeof buf, "0x%0*llX", static_cast<int>(sizeof(value) * 2), static_cast<unsigned long long>(value));
     out.hex = buf;
     out.back = p.ToVector4();
+    // Generic code sees every format only through the XNA interfaces: write the packed bits into a fresh value through
+    // IPackedVectorT<T>.PackedValue and read it back through IPackedVector.ToVector4. Both must agree with the direct calls.
+    T copy = p;
+    IPackedVectorT<std::remove_cv_t<decltype(value)>>& bits = copy;
+    bits.setPackedValueProperty(value);
+    const IPackedVector& any = copy;
+    if (bits.getPackedValueProperty() != value || any.ToVector4() != out.back) out.hex += " (interface disagrees)";
     return out;
 }
 

@@ -133,7 +133,7 @@ public:
         forward_ = ctx.playerForward;
         if (mode_ == Mode::Chase) {
             const float k = 1.0f - std::exp(-stiff_ * ctx.dt);
-            chaseEye_ = chaseEye_ + (Ideal() - chaseEye_) * k;
+            chaseEye_ = Vector3::Lerp(chaseEye_, Ideal(), k);   // move the fraction k of the remaining way each frame
         }
         if (mode_ == Mode::Transition && moving_) {
             progress_ = std::min(1.0f, progress_ + ctx.dt / duration_);
@@ -246,8 +246,9 @@ private:
             case Mode::Security: return {Stage() + Vector3(-3.0f, 2.4f, 3.2f), st + Vector3(std::sin(time_ * speed_) * range_, 0, 0)};
             case Mode::Clip: return {Stage() + Vector3(0.0f, 1.6f, 6.0f), Stage() + Vector3(0, 0.3f, 0)};
             case Mode::Transition: {
+                // The position eases with the Vector3 call the control names; the turn uses the same eased fraction.
                 const float t = smooth_ ? MathHelper::SmoothStep(0, 1, progress_) : progress_;
-                const Vector3 eye = Vector3::Lerp(from_.eye, to_.eye, t);
+                const Vector3 eye = smooth_ ? Vector3::SmoothStep(from_.eye, to_.eye, progress_) : Vector3::Lerp(from_.eye, to_.eye, progress_);
                 const Quaternion qa = Look(from_.eye, from_.target), qb = Look(to_.eye, to_.target);
                 const Vector3 fwd = Vector3::Transform(Vector3::Forward, Quaternion::Slerp(qa, qb, t));
                 return {eye, eye + fwd * 4.0f};

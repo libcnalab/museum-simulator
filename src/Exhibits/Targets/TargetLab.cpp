@@ -96,6 +96,7 @@ public:
                 p.AddToggle("Mip levels", false, [this](bool v) { mips_ = v; dirty_ = true; });
                 p.AddReadout("RenderTarget2D", [this] { return view_ ? std::to_string(view_->Target()->getWidthProperty()) + " x " + std::to_string(view_->Target()->getHeightProperty()) : std::string("-"); });
                 p.AddReadout("Levels / usage", [this] { return view_ ? std::to_string(view_->Target()->getLevelCountProperty()) + " / " + std::to_string(static_cast<int>(view_->Target()->getRenderTargetUsageProperty())) : std::string("-"); });
+                p.AddReadout("DepthStencilFormat", [this] { static const char* names[] = {"None", "Depth16", "Depth24", "Depth24Stencil8"}; return view_ ? std::string(names[std::clamp(static_cast<int>(view_->Target()->getDepthStencilFormatProperty()), 0, 3)]) : std::string("-"); });
                 p.AddReadout("IsContentLost", [this] { return view_ ? std::string(view_->Target()->getIsContentLostProperty() ? "true" : "false") : std::string("-"); });
                 break;
             case Mode::LowRes:
@@ -230,7 +231,8 @@ public:
             case Mode::Basic: {
                 if (dirty_ || !view_) {
                     const int w[] = {64, 160, 320, 640}, h[] = {36, 90, 180, 360};
-                    view_ = std::make_unique<MiniView>(S(), w[sizeIndex_], h[sizeIndex_]);
+                    const DepthFormat depth[] = {DepthFormat::None, DepthFormat::Depth16, DepthFormat::Depth24};
+                    view_ = std::make_unique<MiniView>(S(), w[sizeIndex_], h[sizeIndex_], depth[depthIndex_], mips_);
                     dirty_ = false;
                 }
                 Matrix v; Vector3 eye;
@@ -275,8 +277,10 @@ public:
             case Mode::Basic: if (view_) { float yw; const Vector3 c = FarPoint(0.0f, h, yw); view_->DrawInRoom(ctx, c, yw, 6.4f); }; break;
             case Mode::LowRes:
                 if (view_) {
-                    ctx.device.getSamplerStatesProperty()[0] = linear_ ? SamplerState::LinearClamp : SamplerState::PointClamp;
-                    { float yw; const Vector3 c = FarPoint(0.0f, h, yw); view_->DrawInRoom(ctx, c, yw, 6.4f); };
+                    // DrawInRoom sets the opaque 3D states first, so the upscale sampler goes in as its argument (set before it,
+                    // the choice would be overwritten and the control would do nothing).
+                    const SamplerState& upscale = linear_ ? SamplerState::LinearClamp : SamplerState::PointClamp;
+                    { float yw; const Vector3 c = FarPoint(0.0f, h, yw); view_->DrawInRoom(ctx, c, yw, 6.4f, &upscale); };
                 }
                 break;
             case Mode::Control:

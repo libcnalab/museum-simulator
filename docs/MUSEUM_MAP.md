@@ -49,11 +49,11 @@ Start here: a first look at what CNA can do
 
 | Room | Key | Title | Origin | APIs |
 |---|---|---|---|---|
-| 0.1.01 | `info` | CNA Information Hall | XNA 4.0 | Game, GraphicsDevice, GraphicsAdapter |
+| 0.1.01 | `info` | CNA Information Hall | XNA 4.0 | GraphicsDevice |
 | 0.1.02 | `models` | Model Gallery | XNA 4.0 | Model, ModelMesh, ContentManager, Matrix |
 | 0.1.03 | `materials` | Materials & Textures | XNA 4.0 | Texture2D, SamplerState, SamplerStateCollection |
-| 0.1.04 | `lighting` | Lighting Room | XNA 4.0 | BasicEffect, DirectionalLight, BasicEffect.EnableDefaultLighting, BasicEffect.PreferPerPixelLighting |
-| 0.1.05 | `sky` | Sky Courtyard | XNA 4.0 | DynamicVertexBuffer, BlendState, DepthStencilState |
+| 0.1.04 | `lighting` | Lighting Room | XNA 4.0 | BasicEffect, DirectionalLight, BasicEffect.PreferPerPixelLighting |
+| 0.1.05 | `sky` | Sky Courtyard | XNA 4.0 | BlendState, DepthStencilState |
 | 0.1.06 | `grounds-sculpture` | Sculpture Garden | XNA 4.0 | BasicEffect.World, BasicEffect.EmissiveColor, Matrix.CreateRotationY, Matrix.CreateScale |
 | 0.1.07 | `grounds-fountain` | Fountain Plaza | XNA 4.0 | DynamicVertexBuffer, BlendState.NonPremultiplied, Texture2D, SoundEffectInstance |
 
@@ -64,7 +64,7 @@ Start here: a first look at what CNA can do
 | 0.2.01 | `renderstates` | Render State Room | XNA 4.0 | DepthStencilState, RasterizerState, BlendState |
 | 0.2.02 | `rendertarget` | Render Target Room | XNA 4.0 | RenderTarget2D, GraphicsDevice.SetRenderTarget |
 | 0.2.03 | `particles` | Particle Room | XNA 4.0 | DynamicVertexBuffer, IndexBuffer, BlendState |
-| 0.2.04 | `animation` | Animation Room | XNA 4.0 | Matrix, Quaternion, Model |
+| 0.2.04 | `animation` | Animation Room | XNA 4.0 | Matrix |
 | 0.2.05 | `audio` | Audio Room | XNA 4.0 | SoundEffect, SoundEffectInstance, AudioEmitter, AudioListener |
 
 ### Floor 1: Fundamentals
@@ -75,7 +75,7 @@ The application model, the maths of games, geometry tests and cameras
 
 | Room | Key | Title | Origin | APIs |
 |---|---|---|---|---|
-| 1.1.01 | `app-lifecycle` | Game Lifecycle | XNA 4.0 | Game, GameTime, Game.IsFixedTimeStep, Game.TargetElapsedTime, Game.LaunchParameters, LaunchParameters, Game.Exiting |
+| 1.1.01 | `app-lifecycle` | Game Lifecycle | XNA 4.0 | Game, GameTime, Game.IsFixedTimeStep, Game.TargetElapsedTime, Game.LaunchParameters, LaunchParameters |
 | 1.1.02 | `app-gametime` | GameTime and Frame Rate | XNA 4.0 | GameTime.ElapsedGameTime, GameTime.TotalGameTime, Game.ResetElapsedTime, Game.SuppressDraw, Game.InactiveSleepTime |
 | 1.1.03 | `app-device` | Device and Renderer Report | XNA 4.0 | GraphicsDevice, GraphicsAdapter, GraphicsCapability, RendererCapabilityProfile, PresentationParameters |
 | 1.1.04 | `app-viewport` | Back Buffer, Viewport and Fullscreen | XNA 4.0 | GraphicsDeviceManager, PresentationParameters, PresentInterval, GraphicsDeviceStatus, GraphicsDeviceManager.DeviceReset, GraphicsDeviceManager.DeviceResetting, GraphicsDevice.DeviceLost, GraphicsDevice.Present, GraphicsDevice.VertexTextures, GraphicsDeviceManager.PreparingDeviceSettings, Viewport, Viewport.MinDepth, Viewport.MaxDepth, Viewport.Project, GameWindow.ClientBounds |
@@ -179,7 +179,7 @@ SpriteBatch, SpriteFont and the techniques built on them
 |---|---|---|---|---|
 | 2.2.01 | `sprite-blend` | BlendState Gallery | XNA 4.0 | BlendState, BlendState.Additive, BlendState.AlphaBlend, Blend, BlendFunction |
 | 2.2.02 | `sprite-sort` | SpriteSortMode and Layer Depth | XNA 4.0 | SpriteSortMode, SpriteBatch.Draw |
-| 2.2.03 | `sprite-sampler` | Filtering and Addressing | XNA 4.0 | SamplerState, TextureFilter, TextureAddressMode |
+| 2.2.03 | `sprite-sampler` | Filtering and Addressing | XNA 4.0 | SamplerState, TextureAddressMode |
 
 **Sprite Techniques** - Parallax, UI nine-slice, atlases, scissoring, 2D cameras and batching
 
@@ -239,7 +239,7 @@ Vertex data, buffers, primitives and textures
 | 3.2.06 | `tex-formats` | Surface Formats | XNA 4.0 | SurfaceFormat, PackedVector.Bgr565, PackedVector.Bgra4444, PackedVector.Alpha8, PackedVector.HalfVector4 |
 | 3.2.07 | `tex-alpha` | Alpha: Test, Blend, Opaque | XNA 4.0 | AlphaTestEffect, BlendState.NonPremultiplied, CompareFunction |
 | 3.2.08 | `tex-cube` | Cube Maps and Environment Maps | XNA 4.0 | TextureCube, EnvironmentMapEffect, CubeMapFace, TextureCube.SetData, TextureCube.GetData |
-| 3.2.09 | `tex-volume` | Volume Textures | XNA 4.0 | Texture3D, Texture3D.SetData, Texture3D.GetData, Texture3D.GetData(level, box), SurfaceFormat.Single, SurfaceFormat.Vector4 |
+| 3.2.09 | `tex-volume` | Volume Textures | XNA 4.0 | Texture3D, Texture3D.SetData, Texture3D.GetData, Texture3D.GetData(level, left, front), SurfaceFormat.Single, SurfaceFormat.Vector4 |
 | 3.2.10 | `tex-volshader` | Sampling a Volume in a Shader | CNA extension | ShaderEffect.SetTexture(Texture3D), SamplerState.AddressW, SamplerState.AddressU, SamplerState.AddressV, Texture3D, TextureAddressMode, TextureFilter |
 | 3.2.11 | `tex-io` | Encoding and Decoding Images | XNA 4.0 | Texture2D.SaveAsPng, Texture2D.SaveAsJpeg, Texture2D.FromStream, System.IO.MemoryStream |
 
@@ -259,7 +259,7 @@ BasicEffect, the stock effects, lighting and custom shaders
 | 4.1.06 | `be-alpha` | Alpha and Sorting | XNA 4.0 | BasicEffect.Alpha, BlendState.NonPremultiplied, DepthStencilState.DepthRead |
 | 4.1.07 | `be-punctual` | Point and Spot Lights | CNA extension | PunctualLightEXT, BasicEffect.setPunctualLightEXT |
 | 4.1.08 | `be-dual` | DualTextureEffect | XNA 4.0 | DualTextureEffect, DualTextureEffect.Texture2 |
-| 4.1.09 | `be-model` | The Effect Object Model | XNA 4.0 | Effect, EffectParameter, EffectParameterClass, EffectParameterType, EffectParameterCollection, EffectAnnotation, EffectTechnique, EffectPass, IEffectMatrices, IEffectLights, IEffectFog, Effect.Clone, SpriteEffect, SkinnedEffect, EffectParameter.GetValueBoolean, EffectParameter.GetValueInt32, EffectParameter.GetValueString, EffectParameter.GetValueMatrix, EffectParameter.GetValueMatrixArray, EffectParameter.GetValueMatrixTranspose, EffectParameter.GetValueMatrixTransposeArray, EffectParameter.GetValueVector3, EffectParameter.GetValueVector4, EffectParameter.GetValueTexture2D, EffectParameter.GetValueTextureCube |
+| 4.1.09 | `be-model` | The Effect Object Model | XNA 4.0 | Effect, EffectParameter, EffectParameterClass, EffectParameterType, EffectParameterCollection, EffectTechnique, EffectPass, IEffectMatrices, IEffectLights, IEffectFog, Effect.Clone, SpriteEffect, SkinnedEffect, EffectParameter.GetValueInt32, EffectParameter.GetValueMatrix, EffectParameter.GetValueMatrixArray, EffectParameter.GetValueMatrixTranspose, EffectParameter.GetValueMatrixTransposeArray, EffectParameter.GetValueVector3, EffectParameter.GetValueVector4, EffectParameter.GetValueTexture2D |
 
 **Lighting Laboratory** - Directional, point and spot lights, attenuation, colour, many lights, flashlight, emissive
 
@@ -288,9 +288,9 @@ BasicEffect, the stock effects, lighting and custom shaders
 | 4.3.10 | `fx-kernel` | Convolution Kernels | CNA extension | ShaderEffect, ShaderEffect.SetUniformFloat, ShaderEffect.DeclareUniformBlockEXT, GraphicsDevice.GetShaderDialectEXT, GraphicsDevice.SupportsShaderLanguageEXT, SpriteBatch.Begin(effect), RenderTarget2D |
 | 4.3.11 | `fx-halftone` | Halftone | CNA extension | ShaderEffect, ShaderEffect.SetUniformFloat, ShaderEffect.DeclareUniformBlockEXT, GraphicsDevice.GetShaderDialectEXT, GraphicsDevice.SupportsShaderLanguageEXT, SpriteBatch.Begin(effect), RenderTarget2D |
 | 4.3.12 | `fx-vertexwave` | Vertex Shader | CNA extension | ShaderEffect, ShaderEffect.SetUniformFloat, ShaderEffect.DeclareUniformBlockEXT, GraphicsDevice.GetShaderDialectEXT, GraphicsDevice.SupportsShaderLanguageEXT, SpriteBatch.Begin(effect), RenderTarget2D |
-| 4.3.13 | `fx-colormatrix` | Colour Matrix | CNA extension | ShaderEffect, ShaderEffect.SetUniformFloat, ShaderEffect.DeclareUniformBlockEXT, GraphicsDevice.GetShaderDialectEXT, GraphicsDevice.SupportsShaderLanguageEXT, SpriteBatch.Begin(effect), RenderTarget2D, ColorMatrixEffect, ColorMatrixEffect.SetColorMatrix, ColorMatrixEffect.SetColorOffset, Matrix |
+| 4.3.13 | `fx-colormatrix` | Colour Matrix | CNA extension | ShaderEffect, ShaderEffect.DeclareUniformBlockEXT, GraphicsDevice.GetShaderDialectEXT, GraphicsDevice.SupportsShaderLanguageEXT, SpriteBatch.Begin(effect), RenderTarget2D, ColorMatrixEffect, ColorMatrixEffect.SetColorMatrix, ColorMatrixEffect.SetColorOffset, Matrix |
 | 4.3.14 | `fx-compiled` | Compiled XNA Effects | XNA 4.0 | Effect, Effect(GraphicsDevice, byte[]), Effect.Parameters, Effect.Techniques, EffectParameter, EffectParameter.SetValue, EffectParameter.GetValueSingle, EffectParameter.GetValueVector2, EffectTechnique, EffectPass, EffectParameterClass, EffectParameterType, GraphicsCapability.CompiledEffects, GraphicsDevice.VertexTextures, GraphicsDevice.VertexSamplerStates, SpriteBatch.Begin, SamplerStateCollection.operator[], EffectContent, EffectContent.EffectCode, EffectImporter, EffectImporter.Import, EffectProcessor, EffectProcessor.DebugMode, EffectProcessor.Defines, EffectProcessor.Process, CompiledEffectContent, CompiledEffectContent.GetEffectCode, ContentCompiler.Compile(CompiledEffectContent), ContentManager.Load<Effect> |
-| 4.3.15 | `fx-errors` | Shader Compile Errors | CNA extension | ShaderEffect, ShaderEffect.IsEffectValid, ShaderEffect.GetCompileErrorEXT, ShaderEffect.GetShaderDiagnosticsEXT, CNA::ShaderDiagnosticEXT, ShaderDiagnosticEXT.parseCompilerLog, CNA::ShaderCompilationExceptionEXT, GraphicsDevice.ExecutesShaderEffectSourceEXT, GraphicsDevice.GetShaderDialectEXT |
+| 4.3.15 | `fx-errors` | Shader Compile Errors | CNA extension | ShaderEffect, ShaderEffect.IsEffectValid, ShaderEffect.GetCompileErrorEXT, ShaderEffect.GetShaderDiagnosticsEXT, CNA::ShaderDiagnosticEXT, ShaderDiagnosticEXT.parseCompilerLog, GraphicsDevice.ExecutesShaderEffectSourceEXT, GraphicsDevice.GetShaderDialectEXT |
 
 ### Floor 5: Render State and Render Targets
 
@@ -323,7 +323,7 @@ RasterizerState, DepthStencilState, BlendState and off-screen rendering
 | 5.2.02 | `rt-lowres` | Low-Resolution Rendering | XNA 4.0 | RenderTarget2D, SamplerState.PointClamp |
 | 5.2.03 | `rt-control` | Control Room | XNA 4.0 | RenderTarget2D, GraphicsDevice.SetRenderTarget |
 | 5.2.04 | `rt-recursive` | Feedback | XNA 4.0 | RenderTarget2D, RenderTargetUsage.PreserveContents, SpriteBatch.Draw |
-| 5.2.05 | `rt-mirror` | A Planar Mirror | XNA 4.0 | RenderTarget2D, Matrix.CreateLookAt, RasterizerState.CullMode |
+| 5.2.05 | `rt-mirror` | A Planar Mirror | XNA 4.0 | RenderTarget2D, Matrix.CreateLookAt, RasterizerState.CullCounterClockwise |
 | 5.2.06 | `rt-mrt` | Multiple Render Targets | CNA extension | GraphicsDevice.SetRenderTargets, GraphicsDevice.GetRenderTargets, RenderTargetBinding, RenderTargetBinding.RenderTarget, BlendState.ColorWriteChannels1, BlendState.ColorWriteChannels2, BlendState.ColorWriteChannels3, ShaderEffect |
 | 5.2.07 | `rt-formats` | Render Target Formats | CNA extension | SurfaceFormat, Texture.Format, GraphicsDevice.SupportsSurfaceFormatAsRenderTargetEXT |
 | 5.2.08 | `rt-cube` | A Live Cube Map | XNA 4.0 | RenderTargetCube, GraphicsDevice.SetRenderTarget, GraphicsDevice.GetRenderTargets, RenderTargetBinding, RenderTargetBinding.RenderTarget, RenderTargetBinding.CubeMapFace, CubeMapFace, EnvironmentMapEffect, EnvironmentMapEffect.EnvironmentMap |
@@ -347,7 +347,7 @@ glTF models and their effects, procedural and skeletal animation, particle syste
 | 6.1.07 | `model-effects` | Swapping Effects | CNA extension | ModelMeshPart.Effect, BasicEffect, PbrEffect |
 | 6.1.08 | `model-report` | Import Report | CNA extension | GltfImportReportEXT, GltfImportDiagnosticEXT |
 | 6.1.09 | `model-material` | PBR Material Maps | CNA extension | PbrEffect.NormalMap, PbrEffect.EmissiveMap, TextureTransformEXT, AlphaModeEXT, PbrEffect.AlphaCutoffEXT |
-| 6.1.10 | `model-sampler` | Sampler States from a glTF File | CNA extension | ModelMeshPart.SamplerStatesEXT, ModelMesh.Draw, Model.CopyAbsoluteBoneTransformsTo, GraphicsDevice.SamplerStates, SamplerState, TextureAddressMode, PbrEffect.Texture |
+| 6.1.10 | `model-sampler` | Sampler States from a glTF File | CNA extension | ModelMeshPart.SamplerStatesEXT, ModelMesh.Draw, Model.CopyAbsoluteBoneTransformsTo, GraphicsDevice.SamplerStates, SamplerState, TextureAddressMode |
 | 6.1.11 | `model-morph` | Morph Targets | CNA extension | MorphTargetDataEXT, SetMorphWeightsEXT, EvaluateMorphWeightsEXT, ModelMeshPart.Tag |
 | 6.1.12 | `model-variants` | Material Variants | CNA extension | Model.MaterialVariantEXT, Model.MaterialVariantNamesEXT, PbrEffect |
 | 6.1.13 | `model-ibl` | Image-Based Lighting | CNA extension | ImageBasedLightEXT, PbrEffect.ImageBasedLightEXT, TextureCube, PbrEffect.MetallicFactor, PbrEffect.RoughnessFactor, GraphicsDevice.SupportsImageBasedLightingEXT |
@@ -361,7 +361,7 @@ glTF models and their effects, procedural and skeletal animation, particle syste
 |---|---|---|---|---|
 | 6.2.01 | `an-pendulum` | Pendulum Wave | XNA 4.0 | MathHelper, GameTime, Vector3 |
 | 6.2.02 | `an-clock` | A Clock | XNA 4.0 | Matrix.CreateRotationZ, Matrix.Multiply |
-| 6.2.03 | `an-gears` | Meshing Gears | XNA 4.0 | Matrix.CreateRotationY, Matrix.Multiply, MeshBuilder |
+| 6.2.03 | `an-gears` | Meshing Gears | XNA 4.0 | Matrix.CreateRotationY, Matrix.Multiply |
 | 6.2.04 | `an-conveyor` | Conveyor | XNA 4.0 | VertexPositionColorTexture, SamplerState.LinearWrap, BoundingBox |
 | 6.2.05 | `an-doors` | Proximity Doors | XNA 4.0 | MathHelper.Lerp, MathHelper.SmoothStep, Vector3.Distance |
 | 6.2.06 | `an-kinetic` | Kinetic Sculpture | XNA 4.0 | Matrix.CreateRotationZ, Matrix.Multiply |
@@ -372,17 +372,17 @@ glTF models and their effects, procedural and skeletal animation, particle syste
 
 | Room | Key | Title | Origin | APIs |
 |---|---|---|---|---|
-| 6.3.01 | `pt-fire` | Fire | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
-| 6.3.02 | `pt-smoke` | Smoke | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
-| 6.3.03 | `pt-sparks` | Sparks | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
-| 6.3.04 | `pt-snow` | Snow | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
-| 6.3.05 | `pt-rain` | Rain | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
-| 6.3.06 | `pt-fountain` | Fountain | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
-| 6.3.07 | `pt-dust` | Dust Motes | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
-| 6.3.08 | `pt-fireworks` | Fireworks | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
-| 6.3.09 | `pt-bubbles` | Bubbles | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
-| 6.3.10 | `pt-leaves` | Falling Leaves | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
-| 6.3.11 | `pt-magic` | Magic Spiral | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive, SpriteBatch |
+| 6.3.01 | `pt-fire` | Fire | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
+| 6.3.02 | `pt-smoke` | Smoke | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
+| 6.3.03 | `pt-sparks` | Sparks | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
+| 6.3.04 | `pt-snow` | Snow | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
+| 6.3.05 | `pt-rain` | Rain | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
+| 6.3.06 | `pt-fountain` | Fountain | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
+| 6.3.07 | `pt-dust` | Dust Motes | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
+| 6.3.08 | `pt-fireworks` | Fireworks | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
+| 6.3.09 | `pt-bubbles` | Bubbles | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
+| 6.3.10 | `pt-leaves` | Falling Leaves | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
+| 6.3.11 | `pt-magic` | Magic Spiral | XNA 4.0 | DynamicVertexBuffer, SetDataOptions.Discard, IndexBuffer, BlendState.Additive |
 
 **Simulation Lab** - Flocking, collisions, numerical integration and inverse kinematics
 
@@ -421,7 +421,7 @@ Sound, music, keyboards, mice and game pads
 | 7.2.03 | `in-mouse` | The Mouse | XNA 4.0 | Mouse.GetState, Mouse.SetPosition, Mouse.WindowHandle, MouseState, ButtonState, Mouse.IsRelativeMouseModeEXT, Mouse.SetCursor, MouseCursor, MouseCursor.FromTexture2D, Mouse.SetCaptureEXT |
 | 7.2.04 | `in-pad` | The Game Pad | XNA 4.0 | GamePad.GetState, GamePad.GetCapabilities, GamePadState, GamePadCapabilities, GamePadCapabilities.IsConnected, GamePadCapabilities.HasAButton, GamePadCapabilities.HasBButton, GamePadCapabilities.HasXButton, GamePadCapabilities.HasYButton, GamePadCapabilities.HasBackButton, GamePadCapabilities.HasStartButton, GamePadCapabilities.HasBigButton, GamePadCapabilities.HasDPadUpButton, GamePadCapabilities.HasDPadDownButton, GamePadCapabilities.HasDPadLeftButton, GamePadCapabilities.HasDPadRightButton, GamePadCapabilities.HasLeftShoulderButton, GamePadCapabilities.HasRightShoulderButton, GamePadCapabilities.HasLeftStickButton, GamePadCapabilities.HasRightStickButton, GamePadCapabilities.HasLeftXThumbStick, GamePadCapabilities.HasLeftYThumbStick, GamePadCapabilities.HasRightXThumbStick, GamePadCapabilities.HasRightYThumbStick, GamePadCapabilities.HasLeftTrigger, GamePadCapabilities.HasRightTrigger, GamePadCapabilities.HasLeftVibrationMotor, GamePadCapabilities.HasRightVibrationMotor, GamePadCapabilities.HasVoiceSupport, GamePadDeadZone, Buttons, Buttons.BigButton, Buttons.LeftThumbstickUp, Buttons.RightThumbstickLeft, GamePadState.IsButtonDown, GamePadState.IsButtonUp, GamePadState.Equals, GamePad.SetVibration, GamePad.KeyboardEmulationEnabledEXT, GamePad.SetTriggerVibrationEXT, GamePad.SetLightBarEXT, GamePad.GetGUIDEXT, GamePad.GetGyroEXT, GamePad.GetPlayerIndexEXT, GamePad.GetButtonLabelEXT, GamePad.GetTouchpadFingerCountEXT, GamePadCapabilities.GamePadType |
 | 7.2.05 | `in-players` | Four Player Slots | XNA 4.0 | PlayerIndex, GamePad.GetCapabilities, GamePadCapabilities, GamePad.GetNameEXT |
-| 7.2.06 | `in-text` | Text Input and Clipboard | CNA extension | TextInputEXT.TextInput, TextInputEXT.StartTextInput, Clipboard.SetTextEXT, Clipboard.GetTextEXT, Clipboard.SetDataEXT, Clipboard.GetMimeTypesEXT, TextInputEXT.StartTextInputWithTypeEXT, TextInputTypeEXT, Clipboard.SetPrimarySelectionTextEXT, Clipboard.GetPrimarySelectionTextEXT, Clipboard.HasPrimarySelectionTextEXT |
+| 7.2.06 | `in-text` | Text Input and Clipboard | CNA extension | TextInputEXT.TextInput, Clipboard.SetTextEXT, Clipboard.GetTextEXT, Clipboard.SetDataEXT, Clipboard.GetMimeTypesEXT, TextInputEXT.StartTextInputWithTypeEXT, TextInputTypeEXT, Clipboard.SetPrimarySelectionTextEXT, Clipboard.GetPrimarySelectionTextEXT, Clipboard.HasPrimarySelectionTextEXT |
 | 7.2.07 | `in-joystick` | Raw Joysticks | CNA extension | Joysticks.GetJoysticksEXT, Joysticks.GetCapabilitiesEXT, Joysticks.GetStateEXT |
 | 7.2.08 | `in-touch` | Touch and Gestures | XNA 4.0 | TouchPanel.GetState, TouchPanel.ReadGesture, TouchPanel.EnabledGestures, GestureType, GestureSample.Position2, GestureSample.Delta2, GestureSample.Timestamp, TouchLocation.Id, TouchLocation.State, TouchLocation.TryGetPreviousLocation, TouchPanel.MouseTouchEmulationEnabledEXT |
 | 7.2.09 | `in-devices` | Other Input Devices | CNA extension | InputDevices.GetMiceEXT, TouchPanel.GetState, TouchPanel.MouseTouchEmulationEnabledEXT, Sensors.GetSensorsEXT, Power.GetInfoEXT, GamePad.GetConnectionStateEXT, GamePad.GetPowerInfoEXT, GamePad.GetTouchpadCountEXT, GamePad.GetFirmwareVersionEXT, GamePad.GetSerialEXT, Mouse.GetGlobalPositionEXT, Haptics.GetHapticsEXT, Haptics.IsMouseHapticEXT, Haptics.IsJoystickHapticEXT |
@@ -440,10 +440,10 @@ How assets arrive, what the platform reports, and what CNA adds to XNA
 | 8.1.03 | `ct-formats` | Loose Image Formats | CNA extension | ContentManager.Load<Texture2D>, Texture2D.GetData, Texture2D.DDSFromStreamEXT, SurfaceFormat.Dxt1 |
 | 8.1.04 | `ct-failure` | When Loading Fails | XNA 4.0 | ContentLoadException, ContentManager.Load |
 | 8.1.05 | `ct-pipeline` | The Content Compiler | CNA extension | ContentManager.Load, ContentManager.GetContentManifest |
-| 8.1.06 | `ct-intermediate` | The Pipeline in the Game | XNA 4.0 | IntermediateSerializer, IntermediateSerializer.Serialize, IntermediateSerializer.Deserialize, IntermediateSerializer.GetTypeSerializer, XmlImporter, XmlImporter.Import, XmlImporter.Attribute, ContentImporterAttribute, ContentItem, ContentTypeDescriptor, InvalidContentException, ContentSerializerAttribute, ContentSerializerIgnoreAttribute, ContentSerializerCollectionItemNameAttribute, ContentSerializerCollectionItemNameAttribute.CollectionItemName |
+| 8.1.06 | `ct-intermediate` | The Pipeline in the Game | XNA 4.0 | IntermediateSerializer, IntermediateSerializer.Serialize, IntermediateSerializer.Deserialize, IntermediateSerializer.GetTypeSerializer, XmlImporter, XmlImporter.Import, XmlImporter.Attribute, ContentImporterAttribute, ContentItem, ContentTypeDescriptor, InvalidContentException, ContentSerializerAttribute, ContentSerializerCollectionItemNameAttribute, ContentSerializerCollectionItemNameAttribute.CollectionItemName |
 | 8.1.07 | `ct-processor` | Processing a Texture | XNA 4.0 | TextureImporter, TextureImporter.Import, Processors::TextureProcessor, Processors::TextureProcessor.Process, Processors::TextureProcessor.ColorKeyEnabled, Processors::TextureProcessor.ColorKeyColor, Processors::TextureProcessor.PremultiplyAlpha, Processors::TextureProcessor.GenerateMipmaps, Processors::TextureProcessor.ResizeToPowerOfTwo, Processors::TextureProcessor.TextureFormat, TextureProcessorOutputFormat, Texture2DContent, MipmapChain, BitmapContent, PixelBitmapContent |
 | 8.1.08 | `ct-fontbuild` | Building a Font | XNA 4.0 | Graphics::FontDescription, Microsoft::Xna::Framework::Content::Pipeline::FontDescriptionImporter, Microsoft::Xna::Framework::Content::Pipeline::FontDescriptionImporter.Import, Graphics::FontDescription.FontName, Graphics::FontDescription.Size, Graphics::FontDescription.Spacing, Graphics::FontDescription.Style, Graphics::FontDescription.UseKerning, Processors::FontDescriptionProcessor, Graphics::FontDescriptionStyle, SpriteFontContent, Graphics::FontDescription.Characters, Graphics::FontDescription.DefaultCharacter, ContentIdentity, SpriteFont, SpriteFont.MeasureString, SpriteBatch.DrawString |
-| 8.1.09 | `ct-meshbuilder` | Building a Model | XNA 4.0 | MeshBuilder, MeshBuilder.StartMesh, MeshBuilder.CreatePosition, MeshBuilder.CreateVertexChannel, MeshBuilder.SetVertexChannelData, MeshBuilder.AddTriangleVertex, MeshBuilder.FinishMesh, MeshBuilder.MergeDuplicatePositions, MeshBuilder.SwapWindingOrder, MeshContent, VertexChannelNames, Processors::ModelProcessor, Processors::ModelProcessor.Scale, Processors::ModelProcessor.RotationY, Processors::ModelProcessor.GenerateTangentFrames, Processors::ModelProcessor.SwapWindingOrder, ModelContent, ModelMeshContent, ModelMeshPartContent, ModelBoneContent, VertexBufferContent, VertexDeclarationContent |
+| 8.1.09 | `ct-meshbuilder` | Building a Model | XNA 4.0 | MeshBuilder, MeshBuilder.StartMesh, MeshBuilder.CreatePosition, MeshBuilder.CreateVertexChannel, MeshBuilder.SetVertexChannelData, MeshBuilder.AddTriangleVertex, MeshBuilder.FinishMesh, MeshBuilder.MergeDuplicatePositions, MeshBuilder.SwapWindingOrder, MeshContent, VertexChannelNames, Processors::ModelProcessor, Processors::ModelProcessor.Scale, Processors::ModelProcessor.RotationY, Processors::ModelProcessor.GenerateTangentFrames, Processors::ModelProcessor.SwapWindingOrder, ModelContent, ModelMeshContent, ModelMeshPartContent, VertexBufferContent, VertexDeclarationContent |
 | 8.1.10 | `ct-modelimport` | Importing a Model File | XNA 4.0 | XImporter, FbxImporter, Microsoft::Xna::Framework::Content::Pipeline::ContentImporter, ContentImporterAttribute, Microsoft::Xna::Framework::Content::Pipeline::ContentImporterContext, NodeContent, NodeContent.Children, MeshContent, GeometryContent, MaterialContent, BasicMaterialContent, BasicMaterialContent.DiffuseColor, Processors::ModelProcessor, ModelContent, ModelMeshContent, ModelMeshPartContent, ModelBoneContent, ContentProcessorContext.Convert |
 | 8.1.11 | `ct-compiler` | Writing an .xnb | XNA 4.0 | ContentCompiler, ContentCompiler.Compile, ContentCompiler.GetTypeWriter, CompileOptions, CompileOptions.targetPlatform, CompileOptions.targetProfile, CompileOptions.compressContent, Microsoft::Xna::Framework::Content::Pipeline::TargetPlatform, Texture2DContent, Processors::TextureProcessor, TextureImporter, ContentManager.OpenStream, ContentManager.ReadAsset, ContentManager.RouteLoadsThroughOpenStreamEXT |
 | 8.1.12 | `ct-audiopipeline` | Importing and Processing Audio | XNA 4.0 | Microsoft::Xna::Framework::Content::Pipeline::WavImporter, Microsoft::Xna::Framework::Content::Pipeline::WavImporter.Import, Mp3Importer, Mp3Importer.Import, Mp3Importer.Attribute, ContentImporterAttribute, AudioContent, AudioContent.Format, AudioContent.Data, Audio::AudioFormat, Audio::AudioFormat.SampleRate, Audio::AudioFormat.ChannelCount, Audio::AudioFormat.BitsPerSample, Audio::AudioFormat.NativeWaveFormat, ConversionQuality, Processors::SoundEffectProcessor, Processors::SoundEffectProcessor.Quality, SoundEffectContent, Processors::SongProcessor, SongContent, SoundEffect.FromStream, ContentCompiler.Compile(SoundEffectContent), ContentCompiler.Compile(SongContent) |
@@ -490,7 +490,7 @@ How assets arrive, what the platform reports, and what CNA adds to XNA
 | 8.4.04 | `gs-guide` | The Guide | XNA 4.0 | Guide.BeginShowMessageBox, Guide.EndShowMessageBox, Guide.BeginShowKeyboardInput, Guide.IsTrialMode, Guide.SimulateTrialMode, Guide.IsVisible, Guide.IsScreenSaverEnabled, Guide.DelayNotifications, GamerServicesDispatcher.IsInitialized, GamerServicesDispatcher.WindowHandle, Guide.NotificationPosition, MessageBoxIcon |
 | 8.4.05 | `gs-avatar` | Avatars | XNA 4.0 | AvatarDescription, AvatarDescription.CreateRandom, AvatarDescription.BeginGetFromGamer, AvatarRenderer, AvatarAnimation, AvatarAnimationPreset, AvatarExpression, AvatarBodyType, AvatarBone, AvatarEye, AvatarMouth, AvatarEyebrow, AvatarRendererState, IAvatarAnimation |
 | 8.4.06 | `net-packets` | Packets | XNA 4.0 | PacketWriter, PacketWriter.Length, PacketWriter.Position, PacketWriter.Write, PacketReader, PacketReader.Length, PacketReader.Position, PacketReader.ReadVector3, PacketReader.ReadQuaternion, PacketReader.ReadMatrix |
-| 8.4.07 | `net-session` | A Network Session | XNA 4.0 | NetworkSession.AllowHostMigration, NetworkSession.SessionType, NetworkSession.MaxGamers, NetworkSession.PrivateGamerSlots, NetworkSession.Host, NetworkSession.RemoteGamers, NetworkSession.PreviousGamers, QualityOfService.MinimumRoundtripTime, QualityOfService.BytesPerSecondDownstream, NetworkSession.ResetReady, NetworkSession.AddLocalGamer, NetworkSession.FindGamerById, NetworkGamer.Id, NetworkGamer.IsPrivateSlot, NetworkGamer.HasVoice, NetworkGamer.IsTalking, NetworkGamer.IsMutedByLocalUser, NetworkGamer.HasLeftSession, NetworkSession.Create, NetworkSession.Update, NetworkSession.StartGame, NetworkSession.EndGame, NetworkSession.SimulatedLatency, NetworkSession.SimulatedPacketLoss, NetworkSession.SessionState, LocalNetworkGamer.SendData, LocalNetworkGamer.ReceiveData, SendDataOptions, NetworkGamer.IsReady, NetworkSession.GamerJoined, NetworkSession.GameStarted, NetworkSession.BeginFind, NetworkSession.EndFind, AvailableNetworkSession, AvailableNetworkSession.CurrentGamerCount, AvailableNetworkSession.HostGamertag, AvailableNetworkSession.OpenPrivateGamerSlots, AvailableNetworkSession.OpenPublicGamerSlots, AvailableNetworkSession.QualityOfService, AvailableNetworkSession.SessionProperties, AvailableNetworkSessionCollection, AvailableNetworkSessionCollection.IsDisposed, QualityOfService, NetworkSessionProperties, NetworkSession.SessionProperties, NetworkSession.AllowJoinInProgress, NetworkSession.BeginJoin, NetworkSession.EndJoin, NetworkGamer.IsGuest, NetworkGamer.IsLocal, NetworkGamer.IsHost, NetworkGamer.Machine, NetworkGamer.RoundtripTime, NetworkGamer.Session, NetworkMachine, NetworkMachine.Gamers, NetworkMachine.RemoveFromSession, NetworkSession.AllGamers, NetworkSessionJoinException, NetworkSessionJoinError, NetworkSessionEndReason, NetworkSessionEndedEventArgs, NetworkSessionEndedEventArgs.EndReason, HostChangedEventArgs, HostChangedEventArgs.NewHost, HostChangedEventArgs.OldHost, NetworkSession.HostChanged, NetworkSession.SessionEnded, NetworkSession.InviteAccepted, NetworkSession.JoinInvited, InviteAcceptedEventArgs, InviteAcceptedEventArgs.Gamer, InviteAcceptedEventArgs.IsCurrentSession, NetworkSessionType.PlayerMatch |
+| 8.4.07 | `net-session` | A Network Session | XNA 4.0 | NetworkSession.AllowHostMigration, NetworkSession.SessionType, NetworkSession.MaxGamers, NetworkSession.PrivateGamerSlots, NetworkSession.Host, NetworkSession.RemoteGamers, NetworkSession.PreviousGamers, QualityOfService.MinimumRoundtripTime, QualityOfService.BytesPerSecondDownstream, NetworkSession.ResetReady, NetworkSession.AddLocalGamer, NetworkSession.FindGamerById, NetworkGamer.Id, NetworkGamer.IsPrivateSlot, NetworkGamer.HasVoice, NetworkGamer.IsTalking, NetworkGamer.IsMutedByLocalUser, NetworkGamer.HasLeftSession, NetworkSession.Create, NetworkSession.Update, NetworkSession.StartGame, NetworkSession.EndGame, NetworkSession.SimulatedLatency, NetworkSession.SimulatedPacketLoss, NetworkSession.SessionState, LocalNetworkGamer.SendData, LocalNetworkGamer.ReceiveData, SendDataOptions, NetworkGamer.IsReady, NetworkSession.GamerJoined, NetworkSession.GameStarted, NetworkSession.BeginFind, NetworkSession.EndFind, AvailableNetworkSession, AvailableNetworkSession.CurrentGamerCount, AvailableNetworkSession.HostGamertag, AvailableNetworkSession.OpenPrivateGamerSlots, AvailableNetworkSession.OpenPublicGamerSlots, AvailableNetworkSession.QualityOfService, AvailableNetworkSession.SessionProperties, AvailableNetworkSessionCollection, AvailableNetworkSessionCollection.IsDisposed, QualityOfService, NetworkSessionProperties, NetworkSession.SessionProperties, NetworkSession.AllowJoinInProgress, NetworkSession.BeginJoin, NetworkSession.EndJoin, NetworkGamer.IsGuest, NetworkGamer.IsLocal, NetworkGamer.IsHost, NetworkGamer.Machine, NetworkGamer.RoundtripTime, NetworkGamer.Session, NetworkMachine, NetworkMachine.Gamers, NetworkMachine.RemoveFromSession, NetworkSession.AllGamers, NetworkSessionJoinException, NetworkSessionJoinError, NetworkSessionEndReason, NetworkSessionEndedEventArgs, NetworkSessionEndedEventArgs.EndReason, HostChangedEventArgs, HostChangedEventArgs.NewHost, HostChangedEventArgs.OldHost, NetworkSession.HostChanged, NetworkSession.SessionEnded, NetworkSession.InviteAccepted, NetworkSession.BeginJoinInvited, NetworkSession.EndJoinInvited, InviteAcceptedEventArgs, InviteAcceptedEventArgs.Gamer, InviteAcceptedEventArgs.IsCurrentSession, NetworkSessionType.PlayerMatch |
 
 **Online Service** - CNA's account service: accounts, friends, messages and parties through the Guide (offline unless tools/online_stack.sh runs one)
 
@@ -505,7 +505,7 @@ How assets arrive, what the platform reports, and what CNA adds to XNA
 
 | Room | Key | Title | Origin | APIs |
 |---|---|---|---|---|
-| 8.6.01 | `hist-xna` | XNA, 2004 to Today | XNA 4.0 | Game, GraphicsProfile |
+| 8.6.01 | `hist-xna` | XNA, 2004 to Today | XNA 4.0 | SpriteBatch.DrawString |
 | 8.6.02 | `hist-cna` | This Build of CNA | CNA extension | CNA::GraphicsRendererSelection.GetAvailable, CNA::GraphicsRendererSelection.GetSelected, CNA::GraphicsRendererSelection.GetActive, CNA::GraphicsRendererSelection.IsFallbackEnabled, CNA::GraphicsRendererSelection.GetFallbackHistory, CNA::GraphicsRendererFallbackReason, CNA::getGraphicsRendererMaturity, CNA::getGraphicsRendererName |
 | 8.6.03 | `hist-compare` | XNA 4.0 and What CNA Adds | CNA extension | SpriteBatch.Draw, SpriteBatch.DrawString, BlendState.NonPremultiplied |
 
@@ -535,7 +535,7 @@ Stress tests, renderer self-checks, reference scenes and the observation deck
 | 9.2.03 | `rv-blend` | Blending | XNA 4.0 | BlendState, BlendFunction, ColorWriteChannels, Blend.BlendFactor |
 | 9.2.04 | `rv-depth` | Depth Buffer | XNA 4.0 | DepthStencilState, CompareFunction, DepthFormat.Depth24 |
 | 9.2.05 | `rv-shading` | Interpolation, Lighting and Fog | XNA 4.0 | BasicEffect.VertexColorEnabled, BasicEffect.DirectionalLight0, BasicEffect.FogEnabled |
-| 9.2.06 | `rv-sampling` | Texture Sampling | XNA 4.0 | SamplerState.AddressU, TextureAddressMode, TextureFilter |
+| 9.2.06 | `rv-sampling` | Texture Sampling | XNA 4.0 | SamplerState.AddressU, TextureAddressMode |
 | 9.2.07 | `rv-targets` | Render Targets | XNA 4.0 | RenderTarget2D, GraphicsDevice.SetRenderTarget, Texture2D.GetData |
 | 9.2.08 | `rv-camera` | Camera Matrices | XNA 4.0 | Matrix.CreateLookAt, Matrix.CreatePerspectiveFieldOfView, Matrix.CreateOrthographic, BasicEffect.World |
 | 9.2.09 | `rv-formats` | Surface Formats | XNA 4.0 | SurfaceFormat, Texture2D.SetData, Texture2D.GetData, PackedVector.Bgr565, PackedVector.Rgba64, PackedVector.HalfVector4 |
@@ -545,7 +545,7 @@ Stress tests, renderer self-checks, reference scenes and the observation deck
 
 | Room | Key | Title | Origin | APIs |
 |---|---|---|---|---|
-| 9.3.01 | `rf-deck` | Sun, Moon and the Museum Clock | XNA 4.0 | Matrix.CreateLookAt, Vector3, BasicEffect.EmissiveColor, MathHelper |
+| 9.3.01 | `rf-deck` | Sun, Moon and the Museum Clock | XNA 4.0 | Vector3, BasicEffect.EmissiveColor, MathHelper |
 | 9.3.02 | `rf-garden` | Terrace Garden | XNA 4.0 | DynamicVertexBuffer, BlendState.NonPremultiplied, Texture2D, SoundEffectInstance |
 | 9.3.03 | `rf-telescope` | Telescope | XNA 4.0 | Matrix.CreatePerspectiveFieldOfView, RenderTarget2D, BasicEffect.FogEnabled, Matrix.CreateLookAt |
 | 9.3.04 | `rf-weather` | Weather Station | XNA 4.0 | PrimitiveType.LineList, DynamicVertexBuffer, SetDataOptions.Discard, SpriteBatch |
@@ -554,5 +554,5 @@ Stress tests, renderer self-checks, reference scenes and the observation deck
 
 | Room | Key | Title | Origin | APIs |
 |---|---|---|---|---|
-| 9.4.01 | `vr-index` | Reference Scenes | XNA 4.0 | GraphicsDevice.GetBackBufferData, Matrix.CreateLookAt |
+| 9.4.01 | `vr-index` | Reference Scenes | CNA extension | SpriteBatch.DrawString |
 <!-- END MAP -->
