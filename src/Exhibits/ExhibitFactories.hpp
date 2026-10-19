@@ -87,3 +87,5 @@ std::unique_ptr<Exhibit> MakeDeviceLab(const RoomDef& room, Services& services);
 std::unique_ptr<Exhibit> MakeNotificationLab(const RoomDef& room, Services& services);
 std::unique_ptr<Exhibit> MakeMediaLibraryLab(const RoomDef& room, Services& services);
 std::unique_ptr<Exhibit> MakePipelineChecksLab(const RoomDef& room, Services& services);
+std::unique_ptr<Exhibit> MakeMathChecksLab(const RoomDef& room, Services& services);
+std::unique_ptr<Exhibit> MakeCApiLab(const RoomDef& room, Services& services);

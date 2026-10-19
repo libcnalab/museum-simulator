@@ -1,0 +1,164 @@
+{
+ "asset": {
+  "version": "2.0",
+  "generator": "museum tools/gen_workshop.py"
+ },
+ "scene": 0,
+ "scenes": [
+  {
+   "nodes": [
+    0
+   ]
+  }
+ ],
+ "nodes": [
+  {
+   "mesh": 0,
+   "name": "MorphQuad"
+  }
+ ],
+ "meshes": [
+  {
+   "name": "MorphQuad",
+   "weights": [
+    0.25,
+    0.5
+   ],
+   "extras": {
+    "targetNames": [
+     "Bulge",
+     "Lift"
+    ]
+   },
+   "primitives": [
+    {
+     "attributes": {
+      "POSITION": 0,
+      "NORMAL": 1
+     },
+     "indices": 2,
+     "targets": [
+      {
+       "POSITION": 3
+      },
+      {
+       "POSITION": 4
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "buffers": [
+  {
+   "byteLength": 172,
+   "uri": "data:application/octet-stream;base64,AACAvwAAgL8AAAAAAACAPwAAgL8AAAAAAACAPwAAgD8AAAAAAACAvwAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAABAAIAAAACAAMAAAAAAAAAAAAAAAA/AAAAAAAAAAAAAIA+AAAAAAAAAAAAAIC+AAAAAAAAAAAAAAC/AgAAAAAAAAAAAIA/AACAPw=="
+  }
+ ],
+ "bufferViews": [
+  {
+   "buffer": 0,
+   "byteOffset": 0,
+   "byteLength": 48,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 48,
+   "byteLength": 48,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 96,
+   "byteLength": 12,
+   "target": 34963
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 108,
+   "byteLength": 48
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 156,
+   "byteLength": 1
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 160,
+   "byteLength": 12
+  }
+ ],
+ "accessors": [
+  {
+   "bufferView": 0,
+   "componentType": 5126,
+   "count": 4,
+   "type": "VEC3",
+   "min": [
+    -1.0,
+    -1.0,
+    0.0
+   ],
+   "max": [
+    1.0,
+    1.0,
+    0.0
+   ]
+  },
+  {
+   "bufferView": 1,
+   "componentType": 5126,
+   "count": 4,
+   "type": "VEC3"
+  },
+  {
+   "bufferView": 2,
+   "componentType": 5123,
+   "count": 6,
+   "type": "SCALAR"
+  },
+  {
+   "bufferView": 3,
+   "componentType": 5126,
+   "count": 4,
+   "type": "VEC3",
+   "min": [
+    0.0,
+    0.0,
+    -0.5
+   ],
+   "max": [
+    0.0,
+    0.0,
+    0.5
+   ]
+  },
+  {
+   "componentType": 5126,
+   "count": 4,
+   "type": "VEC3",
+   "sparse": {
+    "count": 1,
+    "indices": {
+     "bufferView": 4,
+     "componentType": 5121
+    },
+    "values": {
+     "bufferView": 5
+    }
+   },
+   "min": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "max": [
+    0.0,
+    1.0,
+    1.0
+   ]
+  }
+ ]
+}

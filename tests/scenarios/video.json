@@ -1,0 +1,10 @@
+{
+  "description": "VideoPlayer: play, pause holds the position, resume, stop, and a non-looped video ending by itself",
+  "script": "goto:au-video;wait:30;press:VideoPlayer.Play(video);wait:60;press:Log the player's state;press:VideoPlayer.Pause;wait:5;press:Log the player's state;wait:40;press:Log the player's state;press:VideoPlayer.Resume;wait:40;press:Log the player's state;press:VideoPlayer.Stop;wait:5;press:Log the player's state;press:VideoPlayer.IsLooped=0;press:VideoPlayer.Play(video);wait:400;press:Log the player's state;stats;quit",
+  "expectRegex": [
+    "\\[museum\\]\\[video\\] state Playing, position [0-9.]+ / [0-9.]+ s, frames [1-9][0-9]*",
+    "\\[museum\\]\\[video\\] state Paused, position ([0-9.]+) / [0-9.]+ s, frames [0-9]+\\n(.*\\n)*\\[museum\\]\\[video\\] state Paused, position \\1 / ",
+    "\\[museum\\]\\[video\\] state Stopped, position 0\\.0 / ",
+    "\\[museum\\]\\[video\\] state Stopped[^\\n]*\\n(.*\\n)*\\[museum\\]\\[script\\] press 'VideoPlayer.Play\\(video\\)': done\\n(.*\\n)*\\[museum\\]\\[video\\] state Stopped"
+  ]
+}

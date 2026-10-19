@@ -1,0 +1,18 @@
+{
+  "description": "Inspector agent and client: start, refused and accepted connections, ping, snapshot, events, previews",
+  "requires": "MUSEUM_INSPECTOR",
+  "script": "goto:pl-inspector;wait:20;press:Agent::Start;wait:5;press:Client::Connect with a wrong token;wait:5;press:Client::Connect with the token;wait:5;press:Client::Ping;wait:5;press:Client::CaptureSnapshot;wait:5;press:Client::ReadEvents;wait:5;press:Client::RequestPreview of a resource;wait:5;press:Client::RequestPreview of the room's own texture;wait:5;press:Client::PollPreview;wait:5;press:Agent::Stop;wait:5;press:Client::Ping;wait:5;stats;quit",
+  "expectRegex": [
+    "\\[museum\\]\\[inspector\\] Agent::Start: ok, port [0-9]+",
+    "\\[museum\\]\\[inspector\\] Client::Connect \\(wrong token\\): failed",
+    "\\[museum\\]\\[inspector\\] Client::Connect: ok, negotiated",
+    "\\[museum\\]\\[inspector\\] Client::Ping: ok, pong",
+    "\\[museum\\]\\[inspector\\] Client::CaptureSnapshot: ok, [1-9][0-9]* metrics",
+    "\\[museum\\]\\[inspector\\] Client::ReadEvents: (ok|failed)",
+    "\\[museum\\]\\[inspector\\] Client::RequestPreview: ok, Unavailable",
+    "\\[museum\\]\\[inspector\\] Client::RequestPreview \\(own texture\\): ok, Pending, ticket 1",
+    "\\[museum\\]\\[inspector\\] Client::PollPreview: ok, Ready 64x64 image/png, [0-9]+ bytes, PNG signature ok",
+    "\\[museum\\]\\[inspector\\] Agent::Stop: ok",
+    "\\[museum\\]\\[inspector\\] Client::Ping: failed, not connected"
+  ]
+}

@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <deque>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,8 @@
 #include "Diagnostics/Log.hpp"
 #include "Exhibits/ExhibitFactories.hpp"
 #include "Exhibits/ScreenExhibit.hpp"
+#include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
+#include "System/IO/MemoryStream.hpp"
 
 #ifdef MUSEUM_INSPECTOR
 #include "CNA/Inspector/Agent.hpp"
@@ -42,6 +45,69 @@ std::string CapabilityNames(std::uint64_t bits)
         if ((bits & static_cast<std::uint64_t>(n.bit)) != 0) text += (text.empty() ? "" : ", ") + std::string(n.name);
     return text.empty() ? "none" : text;
 }
+
+// The museum's preview source (the agent's IResourcePreviewProvider). It serves one resource: a texture the room made and
+// registered with a diagnostics ResourceHandle. The agent calls it on its network thread, where nothing may touch the
+// graphics device, so a request is only queued; the room encodes the texture on the game thread (Update) and the next
+// poll gets the PNG.
+class RoomPreviewProvider final : public Insp::IResourcePreviewProvider {
+public:
+    explicit RoomPreviewProvider(CNA::Diagnostics::ResourceId id) : id_(id) {}
+
+    [[nodiscard]] Insp::PreviewResponse RequestPreview(const Insp::PreviewRequest& request) override
+    {
+        Insp::PreviewResponse response;
+        if (request.resourceId != id_) {
+            response.status = Insp::PreviewStatus::Unavailable;
+            response.message = "only this room's own texture has a preview";
+            return response;
+        }
+        std::lock_guard<std::mutex> lock(mutex_);
+        response.status = Insp::PreviewStatus::Pending;
+        response.ticket = ++nextTicket_;
+        pending_.push_back(response.ticket);
+        return response;
+    }
+
+    [[nodiscard]] Insp::PreviewResponse PollPreview(std::uint64_t ticket) override
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        Insp::PreviewResponse response;
+        response.ticket = ticket;
+        for (auto it = ready_.begin(); it != ready_.end(); ++it)
+            if (it->ticket == ticket) {
+                response = std::move(*it);
+                ready_.erase(it);
+                return response;
+            }
+        const bool waiting = std::find(pending_.begin(), pending_.end(), ticket) != pending_.end();
+        response.status = waiting ? Insp::PreviewStatus::Pending : Insp::PreviewStatus::Failed;
+        if (!waiting) response.message = "unknown or already collected ticket";
+        return response;
+    }
+
+    /** Game thread: the tickets waiting for an image. */
+    [[nodiscard]] std::vector<std::uint64_t> TakePending()
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        std::vector<std::uint64_t> tickets;
+        tickets.swap(pending_);
+        return tickets;
+    }
+
+    void Complete(Insp::PreviewResponse response)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        ready_.push_back(std::move(response));
+    }
+
+private:
+    CNA::Diagnostics::ResourceId id_;
+    std::mutex mutex_;
+    std::uint64_t nextTicket_ = 0;
+    std::vector<std::uint64_t> pending_;
+    std::vector<Insp::PreviewResponse> ready_;
+};
 
 const char* PreviewName(Insp::PreviewStatus s)
 {
@@ -71,6 +137,8 @@ public:
         p.AddButton("Client::CaptureSnapshot", [this] { Snapshot(); });
         p.AddButton("Client::ReadEvents", [this] { Events(); });
         p.AddButton("Client::RequestPreview of a resource", [this] { Preview(); });
+        p.AddButton("Client::RequestPreview of the room's own texture", [this] { PreviewOwn(); });
+        p.AddButton("Client::PollPreview", [this] { PollOwn(); });
         p.AddReadout("Agent", [this] { return agent_ && agent_->IsRunning() ? "running on port " + std::to_string(agent_->GetPort()) : std::string("not started"); });
         p.AddReadout("Client", [this] { return client_.IsConnected() ? std::string("connected") : std::string("not connected"); });
         p.AddReadout("Last request", [this] { return last_; });
@@ -88,6 +156,32 @@ public:
         client_.Disconnect();
         if (agent_) agent_->Stop();
         if (fullLevel_) (void)CNA::Diagnostics::SetRuntimeMode(CNA::Diagnostics::Mode::Stats);
+#endif
+    }
+
+    void Update(const UpdateContext& ctx) override
+    {
+        if (!ctx.nearby) return;
+#ifdef MUSEUM_INSPECTOR
+        if (provider_ == nullptr || previewTexture_ == nullptr) return;
+        for (const std::uint64_t ticket : provider_->TakePending()) {
+            Insp::PreviewResponse response;
+            response.ticket = ticket;
+            try {
+                System::IO::MemoryStream png;
+                previewTexture_->SaveAsPng(&png, kPreviewSize, kPreviewSize);
+                const auto bytes = png.ToArray();
+                response.encodedImage.assign(bytes.begin(), bytes.end());
+                response.status = Insp::PreviewStatus::Ready;
+                response.width = response.height = kPreviewSize;
+                response.mimeType = "image/png";
+            } catch (const std::exception& e) {
+                response.status = Insp::PreviewStatus::Failed;
+                response.message = e.what();
+                ReportError(std::string("encoding the preview: ") + e.what());
+            }
+            provider_->Complete(std::move(response));
+        }
 #endif
     }
 
@@ -176,6 +270,29 @@ private:
         Insp::AgentConfiguration config;
         config.applicationName = "CNA 3D Museum";
         config.metadata = {{"Room", "pl-inspector"}, {"Started by", "the visitor's button press"}};
+        try {
+            // The one resource this agent can preview: a small texture, registered so the snapshot lists it with an id.
+            if (previewTexture_ == nullptr) {
+                previewTexture_ = std::make_unique<Texture2D>(*S().device, kPreviewSize, kPreviewSize);
+                std::vector<Color> pixels(static_cast<std::size_t>(kPreviewSize * kPreviewSize));
+                for (int y = 0; y < kPreviewSize; ++y)
+                    for (int x = 0; x < kPreviewSize; ++x) pixels[static_cast<std::size_t>(y * kPreviewSize + x)] = ((x / 8 + y / 8) % 2) ? Color(255, 200, 40, 255) : Color(30, 60, 140, 255);
+                previewTexture_->SetData(pixels.data(), static_cast<int>(pixels.size()));
+                CNA::Diagnostics::ResourceDescriptor descriptor;
+                descriptor.kind = CNA::Diagnostics::ResourceKind::Texture2D;
+                descriptor.label = "pl-inspector preview texture";
+                descriptor.format = "Color";
+                descriptor.width = descriptor.height = kPreviewSize;
+                descriptor.mipCount = 1;
+                descriptor.estimatedBytes = static_cast<std::uint64_t>(kPreviewSize) * kPreviewSize * 4;
+                descriptor.byteAccuracy = CNA::Diagnostics::Accuracy::Exact;
+                previewHandle_ = CNA::Diagnostics::ResourceHandle(descriptor);
+            }
+            provider_ = std::make_shared<RoomPreviewProvider>(previewHandle_.GetId());
+            config.previewProvider = provider_;
+        } catch (const std::exception& e) {
+            ReportError(std::string("preparing the preview texture: ") + e.what());
+        }
         std::string error;
         const double ms = Timed([&] { agent_ = Insp::Agent::Start(config, error); });
         Note("Agent::Start", agent_ != nullptr, agent_ ? "port " + std::to_string(agent_->GetPort()) : error, ms);
@@ -263,6 +380,43 @@ private:
         Note("Client::RequestPreview", ok, ok ? std::string(PreviewName(response.status)) + (response.message.empty() ? "" : ": " + response.message) : error, ms);
     }
 
+    void PreviewOwn()
+    {
+        if (!NeedClient("Client::RequestPreview (own texture)")) return;
+        Insp::PreviewRequest request;
+        request.resourceId = previewHandle_.GetId();
+        Insp::PreviewResponse response;
+        std::string error;
+        bool ok = false;
+        const double ms = Timed([&] { ok = client_.RequestPreview(request, response, error); });
+        previewTicket_ = ok ? response.ticket : 0;
+        Note("Client::RequestPreview (own texture)", ok, ok ? std::string(PreviewName(response.status)) + ", ticket " + std::to_string(response.ticket) : error, ms);
+    }
+
+    void PollOwn()
+    {
+        if (!NeedClient("Client::PollPreview")) return;
+        Insp::PreviewPollRequest request;
+        request.ticket = previewTicket_;
+        Insp::PreviewResponse response;
+        std::string error;
+        bool ok = false;
+        const double ms = Timed([&] { ok = client_.PollPreview(request, response, error); });
+        const auto& png = response.encodedImage;
+        const bool signature = png.size() > 8 && png[0] == 0x89 && png[1] == 'P' && png[2] == 'N' && png[3] == 'G';
+        Note("Client::PollPreview", ok,
+             ok ? std::string(PreviewName(response.status)) + (response.status == Insp::PreviewStatus::Ready ? " " + std::to_string(response.width) + "x" + std::to_string(response.height) + " " + response.mimeType + ", " +
+                                                                                   std::to_string(png.size()) + " bytes, PNG signature " + (signature ? "ok" : "missing")
+                                                                             : (response.message.empty() ? "" : ": " + response.message))
+                : error,
+             ms);
+    }
+
+    static constexpr int kPreviewSize = 64;
+    std::unique_ptr<Texture2D> previewTexture_;
+    CNA::Diagnostics::ResourceHandle previewHandle_;
+    std::shared_ptr<RoomPreviewProvider> provider_;
+    std::uint64_t previewTicket_ = 0;
     std::unique_ptr<Insp::Agent> agent_;
     Insp::Client client_;
     Insp::SnapshotResponse snapshot_;

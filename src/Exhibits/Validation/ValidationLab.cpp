@@ -12,11 +12,17 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "CNA/Graphics/VertexTypeRegistryEXT.hpp"
 #include "CNA/GraphicsCapability.hpp"
+#include "Microsoft/Xna/Framework/Graphics/RasterizerState.hpp"
+#include "Microsoft/Xna/Framework/Graphics/Texture3D.hpp"
+#include "Microsoft/Xna/Framework/Graphics/RenderTargetBinding.hpp"
+#include "Microsoft/Xna/Framework/Graphics/OcclusionQuery.hpp"
+#include "CNA/RendererCapabilityProfile.hpp"
 #include "Diagnostics/Log.hpp"
 #include "Exhibits/ExhibitFactories.hpp"
 #include "Exhibits/ScreenExhibit.hpp"
@@ -70,12 +76,12 @@ using namespace Microsoft::Xna::Framework::Graphics;
 
 namespace {
 
-enum class Mode { Geometry, Sprites, Blend, Depth, Shading, Sampling, Targets, Effects, Camera, Formats, VertexTypes };
+enum class Mode { Geometry, Sprites, Blend, Depth, Shading, Sampling, Targets, Effects, Camera, Formats, VertexTypes, Capabilities };
 
 Mode ParseMode(const std::string& s)
 {
     static const std::pair<const char*, Mode> table[] = {{"sprites", Mode::Sprites}, {"blend", Mode::Blend},       {"depth", Mode::Depth},     {"shading", Mode::Shading},
-                                                         {"sampling", Mode::Sampling}, {"targets", Mode::Targets}, {"effects", Mode::Effects}, {"camera", Mode::Camera}, {"formats", Mode::Formats}, {"vertextype", Mode::VertexTypes}};
+                                                         {"sampling", Mode::Sampling}, {"targets", Mode::Targets}, {"effects", Mode::Effects}, {"camera", Mode::Camera}, {"formats", Mode::Formats}, {"vertextype", Mode::VertexTypes}, {"capabilities", Mode::Capabilities}};
     for (const auto& [name, mode] : table)
         if (s == name) return mode;
     return Mode::Geometry;
@@ -205,7 +211,8 @@ protected:
 private:
     [[nodiscard]] std::string Title() const
     {
-        static const char* t[] = {"Geometry, culling and coverage", "SpriteBatch pixels", "Blending", "Depth buffer", "Interpolation, lighting and fog", "Texture sampling", "Render targets", "Stock effects", "Camera matrices", "Surface formats"};
+        static const char* t[] = {"Geometry, culling and coverage", "SpriteBatch pixels", "Blending", "Depth buffer", "Interpolation, lighting and fog", "Texture sampling", "Render targets", "Stock effects", "Camera matrices", "Surface formats", "A game's own vertex type", "Capability claims against operations"};
+        static_assert(sizeof(t) / sizeof(t[0]) == static_cast<std::size_t>(Mode::Capabilities) + 1, "one title per mode");
         return t[static_cast<int>(mode_)];
     }
     [[nodiscard]] std::vector<std::string> Explanation() const
@@ -219,6 +226,7 @@ private:
             case Mode::Sampling: return {"A 2 x 2 texture is sampled outside 0..1 with Wrap, Clamp and Mirror, and with point and linear filtering. Each", "result is the texel the address mode must select, or the average the filter must produce."};
             case Mode::Targets: return {"A render target keeps what was drawn into it: top-left stays top-left when read back and when drawn again, and a", "render target used as a texture reproduces the picture. Half-float targets must hold values above 1."};
             case Mode::Camera: return {"A quad in front of, above and beside a camera built with Matrix.CreateLookAt and CreatePerspectiveFieldOfView must", "land where the maths says: ahead in the centre, above in the top half, nearer objects larger, orthographic constant."};
+            case Mode::Capabilities: return {"The renderer's capability profile classifies each feature as Supported, Unsupported, Restricted or Unknown. Here the operation behind", "each claim is tried: a Supported feature must work, an Unsupported one must refuse. Restricted and Unknown are shown as information."};
             case Mode::VertexTypes: return {"A game's own IVertexType registered with VertexTypeRegistryEXT: a VertexBuffer made from its System::Type, filled with plain", "data of the same layout and drawn. An unregistered type is refused. A C++ IVertexType has a vtable, so its sizeof is not the stride."};
             case Mode::Formats: return {"For every uncompressed SurfaceFormat a 4 x 4 texture is filled with known values through the matching packed type,", "read back, and compared bit for bit: what SetData stores, GetData must return. A format the renderer cannot make is skipped."};
             default: return {"Every stock effect (BasicEffect, AlphaTestEffect, DualTextureEffect) draws a quad that must show up with", "roughly the colour its settings imply. A black or missing result is a renderer bug, not a museum choice."};
@@ -350,6 +358,7 @@ private:
                 case Mode::Camera: CameraChecks(d); break;
                 case Mode::Formats: Formats(d); break;
                 case Mode::VertexTypes: VertexTypes(d); break;
+                case Mode::Capabilities: Capabilities(d); break;
             }
         } catch (const std::exception& e) {
             d.SetRenderTarget(nullptr);
@@ -1107,6 +1116,133 @@ private:
         Sampled(d, SurfaceFormat::HalfSingle, "HalfSingle", HalfSingle(0.8f), 2);
         Sampled(d, SurfaceFormat::HalfVector2, "HalfVector2", HalfVector2(0.8f, 0.4f), 1);
         Sampled(d, SurfaceFormat::HalfVector4, "HalfVector4", HalfVector4(0.8f, 0.4f, 0.2f, 1.0f));
+    }
+
+    // --- capability claims against the operations behind them ------------------------------------
+    // Supported must work, Unsupported must refuse with an exception (the profile's own contract: "its public operation
+    // must refuse deterministically"); Restricted and Unknown are reported as information with what happened.
+    void Claim(GraphicsDevice& d, CNA::RendererFeature feature, const std::function<std::string()>& operation)
+    {
+        const CNA::RendererFeatureInfo& info = d.GetRendererCapabilityProfileEXT().GetFeature(feature);
+        const std::string name(CNA::GetRendererFeatureName(feature));
+        static const char* kinds[] = {"Unknown", "Unsupported", "Supported", "Restricted"};
+        const std::string support = kinds[std::min(static_cast<int>(info.support), 3)];
+        std::string outcome;
+        bool worked = false;
+        try {
+            outcome = operation();
+            worked = true;
+        } catch (const std::exception& e) {
+            outcome = std::string("refused: ") + e.what();
+        }
+        d.SetRenderTarget(nullptr);
+        d.setRasterizerStateProperty(RasterizerState::CullNone);
+        if (info.support == CNA::RendererFeatureSupport::Supported)
+            Add(name + " (" + support + ")", "the operation works", outcome.substr(0, 90), worked, std::nullopt);
+        else if (info.support == CNA::RendererFeatureSupport::Unsupported)
+            Add(name + " (" + support + ")", "the operation refuses", outcome.substr(0, 90), !worked, std::nullopt);
+        else
+            Add(name + " (" + support + ")", "information only", outcome.substr(0, 90), true, std::nullopt, true);
+    }
+
+    void Capabilities(GraphicsDevice& d)
+    {
+        Claim(d, CNA::RendererFeature::WireFrameRasterization, [&] {
+            RasterizerState wire;
+            wire.setFillModeProperty(FillMode::WireFrame);
+            wire.setCullModeProperty(CullMode::None);
+            RenderTarget2D& rt = Target(d, false);
+            Begin(d, rt, Color(0, 0, 0, 255));
+            d.setRasterizerStateProperty(wire);
+            DrawClip(d, Quad(8, 8, 56, 56, 0.5f, Color(255, 255, 255, 255)));
+            const std::optional<Image> img = End(d, rt);
+            if (!img) return std::string("drawn (no readback)");
+            const int lit = img->Count([](const Color& c) { return c.getRProperty() > 128; });
+            return "drawn, " + std::to_string(lit) + " of 2304 quad pixels lit (a filled quad lights all)";
+        });
+        Claim(d, CNA::RendererFeature::OcclusionQueries, [&] {
+            OcclusionQuery query(d);
+            RenderTarget2D& rt = Target(d, true);
+            Begin(d, rt, Color(0, 0, 0, 255));
+            query.Begin();
+            DrawClip(d, Quad(16, 16, 48, 48, 0.5f, Color(255, 255, 255, 255)));
+            query.End();
+            d.SetRenderTarget(nullptr);
+            return std::string("Begin/End accepted, IsComplete ") + (query.getIsCompleteProperty() ? "true" : "false (pending)");
+        });
+        Claim(d, CNA::RendererFeature::MultipleRenderTargets, [&] {
+            RenderTarget2D a(d, 16, 16, false, SurfaceFormat::Color, DepthFormat::None), b(d, 16, 16, false, SurfaceFormat::Color, DepthFormat::None);
+            d.SetRenderTargets({RenderTargetBinding(&a), RenderTargetBinding(&b)});
+            d.Clear(Color(10, 200, 30, 255));
+            d.SetRenderTarget(nullptr);
+            std::vector<Color> px(256);
+            b.GetData(px.data(), 256);
+            return "two targets bound, the second cleared to " + Rgb(px[0]);
+        });
+        Claim(d, CNA::RendererFeature::Float32RenderTargets, [&] {
+            // A colour interpolated across the target lands between the 1/255 steps an 8-bit target would round to; a
+            // 32-bit float target keeps the in-between values. (Vector4 targets allow no blending in HiDef, as in XNA.)
+            RenderTarget2D rt(d, 16, 1, false, SurfaceFormat::Vector4, DepthFormat::None);
+            d.SetRenderTarget(&rt);
+            d.setViewportProperty(Viewport(0, 0, 16, 1));
+            d.Clear(Color(0, 0, 0, 0));
+            d.setBlendStateProperty(BlendState::Opaque);
+            d.setDepthStencilStateProperty(DepthStencilState::None);
+            const Color black(0, 0, 0, 255), red(255, 0, 0, 255);
+            DrawClip(d, {VertexPositionColor(Vector3(-1, 1, 0.5f), black), VertexPositionColor(Vector3(1, 1, 0.5f), red), VertexPositionColor(Vector3(1, -1, 0.5f), red),
+                         VertexPositionColor(Vector3(-1, 1, 0.5f), black), VertexPositionColor(Vector3(1, -1, 0.5f), red), VertexPositionColor(Vector3(-1, -1, 0.5f), black)});
+            d.SetRenderTarget(nullptr);
+            std::vector<Vector4> px(16);
+            rt.GetData(px.data(), 16);
+            int between = 0;
+            for (const Vector4& v : px) {
+                const float steps = v.X * 255.0f;
+                between += std::fabs(steps - std::round(steps)) > 0.01f ? 1 : 0;
+            }
+            char buf[96];
+            std::snprintf(buf, sizeof buf, "%d of 16 gradient values lie between 8-bit steps (x=5: %.5f)", between, static_cast<double>(px[5].X));
+            if (between < 8) throw std::runtime_error(std::string("8-bit precision: ") + buf);
+            return std::string(buf);
+        });
+        Claim(d, CNA::RendererFeature::Float16RenderTargets, [&] {
+            // HdrBlendable is XNA's one blendable floating-point target format (the others refuse blending in HiDef, as in
+            // XNA): two additive white quads must add up to 2.0, beyond an 8-bit clamp.
+            RenderTarget2D rt(d, 8, 8, false, SurfaceFormat::HdrBlendable, DepthFormat::None);
+            d.SetRenderTarget(&rt);
+            d.setViewportProperty(Viewport(0, 0, 8, 8));
+            d.Clear(Color(0, 0, 0, 0));
+            d.setBlendStateProperty(BlendState::Additive);
+            d.setDepthStencilStateProperty(DepthStencilState::None);
+            const Color white(255, 255, 255, 255);
+            const std::vector<VertexPositionColor> full = {VertexPositionColor(Vector3(-1, 1, 0.5f), white), VertexPositionColor(Vector3(1, 1, 0.5f), white), VertexPositionColor(Vector3(1, -1, 0.5f), white),
+                                                           VertexPositionColor(Vector3(-1, 1, 0.5f), white), VertexPositionColor(Vector3(1, -1, 0.5f), white), VertexPositionColor(Vector3(-1, -1, 0.5f), white)};
+            DrawClip(d, full);
+            DrawClip(d, full);
+            d.setBlendStateProperty(BlendState::Opaque);
+            d.SetRenderTarget(nullptr);
+            std::vector<Microsoft::Xna::Framework::Graphics::PackedVector::HalfVector4> px(64);
+            rt.GetData(px.data(), 64);
+            const Vector4 v = px[27].ToVector4();
+            char buf[96];
+            std::snprintf(buf, sizeof buf, "two additive white quads read (%.3f, %.3f, %.3f, %.3f)", static_cast<double>(v.X), static_cast<double>(v.Y), static_cast<double>(v.Z), static_cast<double>(v.W));
+            if (std::fabs(v.X - 2.0f) > 1e-2f) throw std::runtime_error(std::string("clamped: ") + buf);
+            return std::string(buf);
+        });
+        Claim(d, CNA::RendererFeature::Texture3DStorage, [&] {
+            Texture3D volume(d, 4, 4, 4, false, SurfaceFormat::Color);
+            std::vector<Color> in(64), out(64);
+            for (int i = 0; i < 64; ++i) in[static_cast<std::size_t>(i)] = Color(static_cast<std::uint8_t>(i * 4), static_cast<std::uint8_t>(255 - i), static_cast<std::uint8_t>(7), static_cast<std::uint8_t>(255));
+            volume.SetData(in.data(), 64);
+            volume.GetData(out.data(), 64);
+            for (int i = 0; i < 64; ++i)
+                if (out[static_cast<std::size_t>(i)].getPackedValueProperty() != in[static_cast<std::size_t>(i)].getPackedValueProperty()) throw std::runtime_error("texel " + std::to_string(i) + " differs");
+            return std::string("64 texels written and read back identically");
+        });
+        Claim(d, CNA::RendererFeature::MultiSampleAntiAliasing, [&] {
+            RenderTarget2D rt(d, 32, 32, false, SurfaceFormat::Color, DepthFormat::Depth24, 4, RenderTargetUsage::DiscardContents);
+            if (rt.getMultiSampleCountProperty() <= 1) throw std::runtime_error("asked for 4 samples, got " + std::to_string(rt.getMultiSampleCountProperty()));
+            return "a 4x target reports " + std::to_string(rt.getMultiSampleCountProperty()) + " samples";
+        });
     }
 
     // --- a game's own vertex type -----------------------------------------------------------------

@@ -4,6 +4,7 @@
 # The checks are the museum's own rv-* rooms: every line "[museum][validate] <room> <check>: PASS|FAIL|INFO|SKIP"
 # in the log is one cell of the matrix. Exit status 0 requires a result from every room, the final stats marker,
 # no renderer/check/exhibit/draw failure, and a successful museum process.
+# MUSEUM_GPU=1 runs on the machine's real GPU with no display (see tools/_headless.sh); results are named <RENDERER>-gpu.
 set -u
 cd "$(dirname "$0")/.." || exit 2
 renderers=("$@")
@@ -26,26 +27,36 @@ mkdir -p "$out"
 printf '%s\n' "${rooms[@]}" > "$out/expected-rooms.txt"
 status=0
 for r in "${renderers[@]}"; do
-  CNA_GRAPHICS_RENDERER=$r MUSEUM_TIMEOUT=${MUSEUM_TIMEOUT:-600} tools/run.sh "$script" > "$out/$r.console" 2>&1
+  name=$r
+  [ -n "${MUSEUM_GPU:-}" ] && name=$r-gpu
+  CNA_GRAPHICS_RENDERER=$r MUSEUM_TIMEOUT=${MUSEUM_TIMEOUT:-600} tools/run.sh "$script" > "$out/$name.console" 2>&1
   rc=$?
   run_log=${BUILD_DIR:-build}/run.log
   if [ ! -f "$run_log" ]; then
-    echo "$r: museum exit $rc; FAIL: tools/run.sh produced no $run_log" >&2
-    : > "$out/$r.log"
-    : > "$out/$r.checks"
+    echo "$name: museum exit $rc; FAIL: tools/run.sh produced no $run_log" >&2
+    : > "$out/$name.log"
+    : > "$out/$name.checks"
     status=1
     continue
   fi
-  cp "$run_log" "$out/$r.log"
+  cp "$run_log" "$out/$name.log"
+  if [ -n "${MUSEUM_GPU:-}" ]; then
+    # The museum cannot tell which driver draws; Mesa's EGL and the Vulkan loader can: keep what they chose.
+    EGL_LOG_LEVEL=debug VK_LOADER_DEBUG=driver CNA_GRAPHICS_RENDERER=$r MUSEUM_LOG=$out/$name.device-run.log \
+      tools/run.sh "wait:5;quit" > /dev/null 2>&1
+    grep -E "libEGL debug: (using driver|pci id)|Loading driver|Found ICD|ICD .*(chosen|added)|on adapter" "$out/$name.device-run.log" \
+      | sort -u > "$out/$name.device"
+    rm -f "$out/$name.device-run.log" "$out/$name.device-run.log.lock"
+  fi
   summary=$(python3 tools/validate_renderer_log.py --rooms "$out/expected-rooms.txt" \
-      --log "$out/$r.log" --checks "$out/$r.checks" 2> "$out/$r.validation-errors")
+      --log "$out/$name.log" --checks "$out/$name.checks" 2> "$out/$name.validation-errors")
   validation_rc=$?
-  printf "%-10s exit %-3s  %s\n" "$r" "$rc" "$summary"
-  if [ -s "$out/$r.validation-errors" ]; then
-    sed "s/^/             /" "$out/$r.validation-errors" >&2
+  printf "%-10s exit %-3s  %s\n" "$name" "$rc" "$summary"
+  if [ -s "$out/$name.validation-errors" ]; then
+    sed "s/^/             /" "$out/$name.validation-errors" >&2
   fi
   [ "$validation_rc" -ne 0 ] && status=1
   [ "$rc" -ne 0 ] && status=1
 done
-echo "per-renderer results: $out/<RENDERER>.checks"
+echo "per-renderer results: $out/<RENDERER>[-gpu].checks"
 exit $status

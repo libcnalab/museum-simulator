@@ -89,6 +89,11 @@ void MuseumGame::LoadContent()
         Museum::Log("main", "renderer %s was passed over (%s): %s, using %s instead", std::string(CNA::getGraphicsRendererName(passedOver.type)).c_str(),
                     std::string(CNA::getGraphicsRendererFallbackReasonName(passedOver.reason)).c_str(), passedOver.message.c_str(), rendererName_.c_str());
     getWindowProperty().setTitleProperty("CNA 3D Museum  -  " + rendererName_);
+    // The adapter as CNA describes it (like FNA: the display's name and the machine's PCI ids, even when Mesa renders in
+    // software); which driver really draws is the driver loader's business (tools/renderer_check.sh records it on a GPU).
+    GraphicsAdapter& adapter = device.getAdapterProperty();
+    Museum::Log("main", "renderer %s on adapter \"%s\" (PCI vendor 0x%04X, device 0x%04X)", rendererName_.c_str(), adapter.getDescriptionProperty().c_str(),
+                static_cast<unsigned>(adapter.getVendorIdProperty()), static_cast<unsigned>(adapter.getDeviceIdProperty()));
 
     services_.game = this;
     services_.device = &device;

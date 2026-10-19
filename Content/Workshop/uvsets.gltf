@@ -1,0 +1,199 @@
+{
+ "asset": {
+  "version": "2.0",
+  "generator": "museum tools/gen_workshop.py"
+ },
+ "scene": 0,
+ "scenes": [
+  {
+   "nodes": [
+    0
+   ]
+  }
+ ],
+ "nodes": [
+  {
+   "mesh": 0,
+   "name": "UvQuad"
+  }
+ ],
+ "extensionsUsed": [
+  "KHR_texture_transform",
+  "KHR_materials_ior",
+  "KHR_materials_specular"
+ ],
+ "meshes": [
+  {
+   "name": "UvQuad",
+   "primitives": [
+    {
+     "attributes": {
+      "POSITION": 0,
+      "NORMAL": 1,
+      "TEXCOORD_0": 2,
+      "TEXCOORD_1": 3
+     },
+     "indices": 4,
+     "material": 0
+    }
+   ]
+  }
+ ],
+ "materials": [
+  {
+   "name": "TwoSets",
+   "pbrMetallicRoughness": {
+    "baseColorTexture": {
+     "index": 0,
+     "texCoord": 0,
+     "extensions": {
+      "KHR_texture_transform": {
+       "offset": [
+        0.25,
+        0.5
+       ],
+       "rotation": 0.5,
+       "scale": [
+        2.0,
+        3.0
+       ]
+      }
+     }
+    },
+    "metallicFactor": 0.25,
+    "roughnessFactor": 0.75
+   },
+   "normalTexture": {
+    "index": 1,
+    "texCoord": 0,
+    "extensions": {
+     "KHR_texture_transform": {
+      "offset": [
+       0.1,
+       0.2
+      ],
+      "scale": [
+       0.5,
+       0.5
+      ],
+      "texCoord": 1
+     }
+    }
+   },
+   "occlusionTexture": {
+    "index": 0,
+    "texCoord": 1,
+    "strength": 0.5
+   },
+   "extensions": {
+    "KHR_materials_ior": {
+     "ior": 1.33
+    },
+    "KHR_materials_specular": {
+     "specularFactor": 0.7,
+     "specularColorFactor": [
+      0.9,
+      0.8,
+      0.7
+     ]
+    }
+   }
+  }
+ ],
+ "textures": [
+  {
+   "source": 0
+  },
+  {
+   "source": 1
+  }
+ ],
+ "images": [
+  {
+   "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR42mP4DwQnTpz4zwAiQAAAg0MOp+Fne6wAAAAASUVORK5CYII="
+  },
+  {
+   "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR42mNoaPj/H4QZYAwAZ9IL+Q5/7FsAAAAASUVORK5CYII="
+  }
+ ],
+ "buffers": [
+  {
+   "byteLength": 172,
+   "uri": "data:application/octet-stream;base64,AACAvwAAgL8AAAAAAACAPwAAgL8AAAAAAACAPwAAgD8AAAAAAACAvwAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAAAAAAAA+AABgPwAAID8AAGA/AAAgPwAAwD4AAAA+AADAPgAAAQACAAAAAgADAA=="
+  }
+ ],
+ "bufferViews": [
+  {
+   "buffer": 0,
+   "byteOffset": 0,
+   "byteLength": 48,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 48,
+   "byteLength": 48,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 96,
+   "byteLength": 32,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 128,
+   "byteLength": 32,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 160,
+   "byteLength": 12,
+   "target": 34963
+  }
+ ],
+ "accessors": [
+  {
+   "bufferView": 0,
+   "componentType": 5126,
+   "count": 4,
+   "type": "VEC3",
+   "min": [
+    -1.0,
+    -1.0,
+    0.0
+   ],
+   "max": [
+    1.0,
+    1.0,
+    0.0
+   ]
+  },
+  {
+   "bufferView": 1,
+   "componentType": 5126,
+   "count": 4,
+   "type": "VEC3"
+  },
+  {
+   "bufferView": 2,
+   "componentType": 5126,
+   "count": 4,
+   "type": "VEC2"
+  },
+  {
+   "bufferView": 3,
+   "componentType": 5126,
+   "count": 4,
+   "type": "VEC2"
+  },
+  {
+   "bufferView": 4,
+   "componentType": 5123,
+   "count": 6,
+   "type": "SCALAR"
+  }
+ ]
+}

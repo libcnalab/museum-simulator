@@ -236,7 +236,18 @@ def resolve_execution_evidence(
         if scripted_rooms != rooms:
             raise RuntimeError(f"execution run {run_id} script rooms do not match metadata")
         interaction = raw.get("interaction", "pressall")
-        if interaction in ("pressall", "per-room-coverage"):
+        if interaction == "per-room-coverage":
+            # One process per room: each room's steps operate its controls, by the sweep or by named presses
+            # (a scenario); a press that finds no control is a script error, which the log check refuses.
+            segments: list[list[str]] = []
+            for token in script_tokens:
+                if token.startswith("goto:"):
+                    segments.append([])
+                elif segments:
+                    segments[-1].append(token)
+            if any(not any(t == "pressall" or t.startswith("press:") for t in segment) for segment in segments):
+                raise RuntimeError(f"execution run {run_id} has a room whose controls are never operated")
+        elif interaction == "pressall":
             if script_tokens.count("pressall") != len(rooms):
                 raise RuntimeError(f"execution run {run_id} does not press all controls in every room")
         elif interaction == "scripted-controls":
@@ -253,7 +264,16 @@ def resolve_execution_evidence(
         logged_rooms = re.findall(r"^\[museum\]\[script\] goto (\S+)$", log, re.MULTILINE)
         if logged_rooms != rooms:
             raise RuntimeError(f"execution run {run_id} log rooms do not match metadata")
-        if interaction in ("pressall", "per-room-coverage"):
+        if interaction == "per-room-coverage":
+            swept = sum(1 for segment in segments if "pressall" in segment)
+            pressed = re.findall(
+                r"^\[museum\]\[script\] pressall: ([1-9][0-9]*) panel\(s\) exercised$",
+                log,
+                re.MULTILINE,
+            )
+            if len(pressed) != swept:
+                raise RuntimeError(f"execution run {run_id} lacks a successful pressall for every swept room")
+        elif interaction == "pressall":
             pressed = re.findall(
                 r"^\[museum\]\[script\] pressall: ([1-9][0-9]*) panel\(s\) exercised$",
                 log,

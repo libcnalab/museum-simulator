@@ -1,0 +1,5 @@
+{
+  "description": "ContentManager cache: cached second load, a new manager loads again, Unload and IsDisposed of held copies",
+  "script": "goto:ct-cache;wait:20;press:Load brick (this manager);wait:5;press:Load brick (this manager);wait:5;press:Load brick (a new manager);wait:5;press:Unload() this manager;wait:5;stats;quit",
+  "expect": ["[museum][script] press 'Unload() this manager': done"]
+}

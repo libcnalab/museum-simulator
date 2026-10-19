@@ -412,6 +412,82 @@ WingSpec WorkshopWing()
             "GeometryContent", "GeometryContent.Indices", "GeometryContent.Vertices", "VertexContent.PositionIndices", "VertexContent.VertexCount", "VertexContent.Channels", "VertexChannelCollection.Contains",
             "VertexChannelCollection.Get", "VertexChannelNames.Normal", "VertexChannelNames.Tangent", "VertexChannelNames.Binormal", "VertexChannelNames.TextureCoordinate", "BoneContent", "NodeContent.Children",
             "NodeContent.AbsoluteTransform"}),
+        wk("wk-typewriter", "A Content Type of Your Own", "ContentTypeWriter and ContentTypeReader for a game type: compiled, loaded back, compared, and broken files refused", "typewriter",
+           {"Compiler.ContentTypeWriter", "ContentTypeWriterBase.GetRuntimeReader", "ContentTypeWriterBase.TypeVersion", "ContentTypeWriterBase.TargetType", "ContentTypeWriterAttribute", "ContentCompiler", "ContentCompiler.AddTypeWriter",
+            "ContentCompiler.GetTypeWriter", "ContentCompiler.Compile", "CompileOptions", "ContentWriter", "ContentWriter.Write", "ContentWriter.Write7BitEncodedInt", "ContentWriter.WriteObject",
+            "ContentWriter.WriteRawObject", "ContentWriter.WriteSharedResource", "ContentItem", "ContentTypeReader", "ContentTypeReaderBase.TypeVersion", "ContentTypeReaderManager.AddTypeCreator",
+            "ContentTypeReaderManager.RemoveTypeCreatorEXT", "ContentTypeReaderManager.IsRegistered", "ContentReader.ReadObject", "ContentReader.ReadRawObject", "ContentReader.ReadSharedResource",
+            "ContentReader.ReadColor", "ContentReader.ReadMatrix", "ContentReader.ReadQuaternion", "ContentReader.ReadVector2", "ContentReader.ReadVector3", "ContentReader.ReadVector4", "ContentReader.AssetName",
+            "ContentManager.Load", "ContentManager.OpenStream", "ContentLoadException"}),
+        wk("wk-xml", "XmlSerializer and XNA Values", "A settings record with vectors, a quaternion, a matrix and Keys, saved as XML and read back bit for bit", "xml",
+           {"Vector2", "Vector3", "Vector4", "Quaternion", "Matrix", "Keys", "SharpXmlRootName", "SharpXmlMembers", "SharpXmlEnumEntries", "Quaternion.CreateFromYawPitchRoll", "Matrix.CreatePerspectiveFieldOfView",
+            "Matrix.CreateLookAt", "System::Xml::Serialization::XmlSerializer"},
+           ApiOrigin::CnaExtension),
+        wk("wk-cnbloader", "A Custom .cnb Asset", "A game-defined type in CNA's own container: CnbWriter, CnbLoaderRegistry, ContentManager.Load; and a ContentTypeSerializer of its own", "cnbloader",
+           {"CnbLoaderRegistry", "CnbLoaderRegistry.Register", "CnbLoaderRegistry.Remove", "CnbLoaderRegistry.IsRegistered", "CnbLoaderRegistry.RegisteredTypeName", "CnbAssetTypeIdFromName", "IsCustomAssetTypeId",
+            "CnbWriter", "CnbWriter.SetMetadata", "CnbWriter.AddChunk", "CnbWriter.Build", "CnbByteWriter", "CnbByteWriter.WriteString", "CnbByteWriter.WriteI32", "CnbByteWriter.WriteF32", "CnbByteWriter.WriteF64",
+            "CnbByteWriter.WriteU64", "CnbByteWriter.WriteU32", "CnbByteWriter.Take", "CnbDocument", "CnbDocument.Parse", "CnbDocument.HasMagic", "CnbDocument.AssetTypeId", "CnbDocument.AssetSchemaVersion",
+            "CnbDocument.Metadata", "CnbDocument.FindSingle", "CnbDocument.RequireSingle", "CnbDocument.RequireAsset", "CnbDocument.OpenChunk", "CnbDocument.ChunkAt", "CnbDocument.ChunkData", "CnbChunkEntry.IsMandatory",
+            "ChunkIdToString", "MakeChunkId", "CnbByteReader", "CnbByteReader.ReadString", "CnbByteReader.ReadI32", "CnbByteReader.ReadF32", "CnbByteReader.ReadF64", "CnbByteReader.ReadU64",
+            "CnbByteReader.ReadCount", "CnbByteReader.RequireExhausted", "Crc32c", "ContentManager.Load", "ContentLoadException", "TitleLocation.Path", "ContentTypeSerializer", "IntermediateSerializer.AddTypeSerializer",
+            "IntermediateSerializer.FindTypeSerializer", "IntermediateSerializer.Serialize", "IntermediateSerializer.Deserialize", "IntermediateWriter.WriteObject", "IntermediateReader.ReadObject",
+            "ContentSerializerAttribute.ElementName", "InvalidContentException"},
+           ApiOrigin::CnaExtension),
+        wk("wk-importers", "Importers and Codecs", "WmaImporter, PassThroughProcessor, build-time MP3/WMA/WMV decoding and the XMA encoder service, with their availability reported honestly", "importers",
+           {"WmaImporter", "WmaImporter.Import", "WmaImporter.Attribute", "ContentImporterAttribute.FileExtensions", "ContentImporterAttribute.DefaultProcessor", "AudioContent", "AudioContent.FileType", "AudioContent.Format",
+            "AudioContent.Duration", "AudioContent.Data", "AudioFormat.ChannelCount", "AudioFormat.BitsPerSample", "AudioFormat.SampleRate", "AudioFormat.Format", "AudioFileType", "PassThroughProcessor", "PassThroughProcessor.Process", "ContentProcessor.InputTypeName",
+            "ContentProcessor.OutputTypeName", "BuildTimeMedia::IsAvailable", "BuildTimeMedia::UnavailableReason", "BuildTimeMedia::Identity", "BuildTimeMedia::DecodeAudio", "BuildTimeMedia::DecodedAudio",
+            "BuildTimeMedia::AudioSourceFormat", "BuildTimeMedia::ProbeVideo", "BuildTimeMedia::ProbedVideo", "BuildTimeMedia::ProbeAudioDurationTicks", "BuildTimeMedia::EncodeWindowsMediaAudio",
+            "XmaEncodeQualityName", "XmaEncodeQuality", "XmaEncodeRequest", "XmaEncodeResult", "XmaEncoderService", "XmaEncoderService.Available", "XmaEncoderService.UnavailableReason",
+            "XmaEncoderService.Encode", "XmaEncoderService.Identity", "XmaEncoderIdentity.ToString", "XmaEncoderUnavailableSentence", "MakeUnavailableXmaEncoder", "MakeExternalXmaEncoder", "BuildXmaEncoder",
+            "System.IO.FileNotFoundException"}),
+        wk("wk-material", "MaterialProcessor", "A BasicMaterialContent naming a texture: the texture built by TextureProcessor, the stock material types, and the refusals", "material",
+           {"MaterialProcessor", "MaterialProcessor.Process", "MaterialProcessor.ColorKeyColor", "MaterialProcessor.ColorKeyEnabled", "MaterialProcessor.GenerateMipmaps", "MaterialProcessor.PremultiplyTextureAlpha",
+            "MaterialProcessor.ResizeTexturesToPowerOfTwo", "MaterialProcessor.TextureFormat", "MaterialProcessor.DefaultEffect", "MaterialProcessorDefaultEffect", "TextureProcessorOutputFormat", "MaterialContent",
+            "MaterialContent.Textures", "TextureReferenceDictionary", "BasicMaterialContent", "BasicMaterialContent.DiffuseColor", "BasicMaterialContent.EmissiveColor", "BasicMaterialContent.SpecularColor",
+            "BasicMaterialContent.SpecularPower", "BasicMaterialContent.Alpha", "BasicMaterialContent.VertexColorEnabled", "BasicMaterialContent.Texture", "SkinnedMaterialContent", "EnvironmentMapMaterialContent",
+            "DualTextureMaterialContent", "AlphaTestMaterialContent", "EffectMaterialContent", "EffectMaterialContent.Effect", "ExternalReference", "ExternalReference.Filename", "InvalidContentException",
+            "XnaBridgeProcessorContext", "CNA::Content::Pipeline::ContentProcessorContext", "ContentProcessorContext.NestedOutputs", "ContentDependencyCollector.Dependencies", "ContentPipeline", "ContentPipelineRegistry",
+            "RegisterTexture2DContentPipeline", "MakeBlockCompressionTextureEncoder", "RegisterXnaModelSourceContentPipeline", "RegisterXnbOutputContentPipeline", "Texture2D.GetData", "Texture.LevelCount",
+            "System.ArgumentNullException"}),
+        wk("wk-processor", "A Processor and Its Context", "A game's own importer and processors on CNA's real processor context: dependencies, output files, Convert, BuildAsset, BuildAndLoadAsset", "processor",
+           {"Framework.Content.Pipeline.ContentImporter", "Framework.Content.Pipeline.ContentImporter.Import", "ContentImporterAttribute", "ContentImporterAttribute.DisplayName", "Framework.Content.Pipeline.ContentProcessor",
+            "Framework.Content.Pipeline.ContentProcessor.Process", "ContentProcessorAttribute",
+            "ContentProcessorAttribute.DisplayName", "ProcessorParameterBindings", "Framework.Content.Pipeline.ContentProcessorContext", "ContentProcessorContext.AddDependency", "ContentProcessorContext.AddOutputFile",
+            "ContentProcessorContext.Convert", "ContentProcessorContext.BuildAsset", "ContentProcessorContext.BuildAndLoadAsset", "ContentProcessorContext.OutputFilename", "ContentProcessorContext.OutputDirectory",
+            "ContentProcessorContext.IntermediateDirectory", "ContentProcessorContext.BuildConfiguration", "ContentProcessorContext.TargetPlatform", "ContentProcessorContext.TargetProfile",
+            "Framework.Content.Pipeline.ContentProcessorContext.Parameters", "Framework.Content.Pipeline.ContentProcessorContext.Logger", "ContentImporterContext.Logger", "ContentBuildLogger.LogMessage", "ContentBuildLogger.LogImportantMessage", "ContentIdentity",
+            "ExternalReference", "ExternalReference.Filename", "OpaqueDataDictionary", "PipelineException", "BasicMaterialContent", "MaterialContent.Textures", "Compiler.ContentTypeWriter",
+            "ContentWriter.WriteExternalReference", "ContentCompiler.AddTypeWriter", "ContentTypeReader", "ContentTypeReaderManager.AddTypeCreator", "ContentManager.Load", "RegisterXnaImporter",
+            "RegisterXnaProcessor", "RegisterXnaXnbOutput", "XnaBridgeProcessorContext", "CNA::Content::Pipeline::ContentProcessorContext", "ContentPipeline", "ContentPipeline.Build", "ContentBuildRequest", "ContentBuildResult",
+            "ContentBuildEnvironment", "ContentProcessorParameters", "ContentDependency", "ContentDeploymentFile", "ContentLogMessage", "ContentPipelineRegistry"},
+           ApiOrigin::Xna),
+        wk("wk-gltf", "glTF Import, Checked", "Two UV sets, texture transforms, specular and IOR, sparse accessors, morph targets, and extensions required, used and unknown", "gltf",
+           {"ContentManager.Load", "Model", "Model.Meshes", "ModelMesh.MeshParts", "ModelMeshPart.VertexBuffer", "ModelMeshPart.VertexOffset", "ModelMeshPart.NumVertices", "ModelMeshPart.Effect", "ModelMeshPart.Tag",
+            "VertexBuffer.GetData", "VertexBuffer.VertexDeclaration", "VertexBuffer.VertexCount", "VertexDeclaration.VertexStride", "VertexDeclaration.GetVertexElements", "VertexElement.Offset",
+            "VertexElement.VertexElementUsage", "VertexElement.UsageIndex", "VertexElementUsage", "PbrEffect", "PbrEffect.TextureCoordinateSetsEXT", "PbrEffect.TextureTransformsEXT", "PbrEffect.MetallicFactor",
+            "PbrEffect.RoughnessFactor", "PbrEffect.IorEXT", "PbrEffect.SpecularFactorEXT", "PbrEffect.SpecularColorFactorEXT", "TextureTransformEXT", "MorphTargetDataEXT", "MorphTargetDataEXT.PositionDeltas",
+            "MorphTargetDataEXT.Weights", "MorphTargetDataEXT.BaseVertexBytes", "MorphTargetDataEXT.Stride", "Model.GltfImportReportEXT", "GltfImportReportEXT", "GltfImportReportEXT.Diagnostics",
+            "GltfImportReportEXT.MeshInstanceCount", "GltfImportReportEXT.NodeCount", "GltfImportDiagnosticEXT", "GltfImportDiagnosticKindEXT", "ContentLoadException"},
+           ApiOrigin::CnaExtension),
+        [] {
+            // CNA's exported C ABI from a C17 translation unit (src/CApi/NativeCProbe.c).
+            RoomSpec r;
+            r.key = "cx-capi";
+            r.title = "CNA from C";
+            r.subtitle = "The native C ABI used from a C17 file: version, result codes, thread-local errors, value types and a handle's lifetime";
+            r.exhibit = "capi-lab";
+            r.width = 13;
+            r.depth = 13;
+            r.height = 5.0f;
+            r.theme = "workshop";
+            r.apis = {"cna_get_abi_version", "cna_vector3_init_xyz", "cna_vector3_cross", "cna_vector3_dot", "cna_matrix_create_rotation_y", "cna_matrix_create_translation_xyz", "cna_matrix_multiply",
+                      "cna_matrix_invert", "cna_vector3_transform_matrix", "cna_quaternion_create_from_yaw_pitch_roll", "cna_quaternion_length", "cna_half_from_single", "cna_curve_create", "cna_curve_get_keys",
+                      "cna_curve_key_init_position_value", "cna_curve_key_collection_add", "cna_curve_evaluate", "cna_curve_destroy", "cna_error_get_last_info", "cna_error_copy_last_message", "CNA_ErrorInfo",
+                      "CNA_Vector3", "CNA_Matrix", "CNA_Quaternion", "CNA_CurveKey"};
+            r.origin = ApiOrigin::CnaExtension;
+            return r;
+        }(),
     };
     return w;
 }

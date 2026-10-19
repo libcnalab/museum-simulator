@@ -15,6 +15,16 @@ WEBGL2 runs as an Emscripten browser build (below). Direct3D 9 runs only through
 (no 3D pipeline: the museum says so and exits 0 before executing a tour; `tools/tour.sh` therefore returns 4 for the missing final stats) and **HEADLESS** (all 293 rooms run cleanly; plain cube maps retain caller-authored CPU data while rendered pixels remain unavailable).
 VULKAN was retired from CNA on 2026-10-13 and has been removed from the museum's documentation and build lines.
 
+**Physical GPU (2026-10-20).** `MUSEUM_GPU=1` in front of any tool runs the museum with SDL's `offscreen` video driver:
+no display server, no window anywhere, EGL on the GPU's render node and Vulkan through `VK_EXT_headless_surface`. On the
+AMD Phoenix GPU here (PCI 1002:15bf, Mesa 25.0.7 radeonsi, as Mesa's EGL log in `build/renderer_check/<R>-gpu.device`
+shows): `tools/renderer_check.sh OPENGLES3 OPENGL33` 97 PASS, 0 FAIL, 2 INFO, 1 SKIP on each (the llvmpipe set),
+`tools/tour.sh -f 3 -p` on OPENGLES3 316 rooms, 0 exhibit errors, 0 script errors in 36 s (181 s on llvmpipe), and
+`tools/reference.sh compare` within 1 % of the llvmpipe references for every view (worst `formats` 0.59 %).
+From `build-probe` with `VK_ICD_FILENAMES=.../radeon_icd.json`: SDL_GPU on RADV 97/0/2/1, FNA3D on radeonsi 75 PASS,
+0 FAIL, 2 INFO, 23 SKIP (formats FNA3D cannot create). WEBGPU does not start offscreen (its surface needs a native
+window; `docs/CNA_FINDINGS.md`), so WEBGPU on the GPU needs a real display or a GPU-backed compositor.
+
 The second group needs CNA's optional dependencies from the shared checkouts (nothing is downloaded):
 
 ```bash

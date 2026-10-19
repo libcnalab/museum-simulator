@@ -40,19 +40,19 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 
 | Feature | Status |
 |---|---|
-| haptic effects (devices are listed, none played) | planned: see HANDOFF.md |
-| `MediaLibrary`, albums, playlists, pictures (`Microsoft.Xna.Framework.Media`) | deliberately not demonstrated: CNA builds them by scanning the visitor's own Music and Pictures folders, and the museum does not read personal files (the only way to point it elsewhere is a test-only hook inside CNA) |
+| Haptic devices (`CNA::Input::Haptics`, `HapticDevice`) | *Haptic Devices* (`dev-haptics`, floor 7): list, open, rumble, a constant effect's whole lifetime, gain, autocenter, pause and resume behind manual buttons; on a machine without a device `tools/devices_check.sh` verifies the refusals. Playing on real hardware is a manual check |
+| `MediaLibrary`, albums, playlists, pictures (`Microsoft.Xna.Framework.Media`) | *The Media Library* (`dev-medialib`, floor 7) reads the library only when the visitor presses its button, because CNA scans the visitor's own Music and Pictures folders (the public API cannot point it elsewhere). `tools/devices_check.sh` runs it with HOME pointing at the fixture library in `Content/MediaLibrary` and checks the exact songs, albums, artists, genres, playlist and pictures |
 | GamerServices voice chat, a shared party between three or more accounts, host migration | not demonstrated: the *Online Service* wing needs the sibling CNA gamer-services server (`tools/online_stack.sh`); it demonstrates accounts, friends, presence, messages, parties, online leaderboards, PlayerMatch sessions with find, join and invitations between two accounts. Voice needs a microphone and a second machine |
-| `FileDialog`, `MessageBox`, `SystemTray`, `UrlLauncher`, `Camera` (CNA_DEVICES) | not implemented: they open real dialogs or hardware; the room reports whether each is supported |
-| C API | not implemented: disabled in CNA's default build, and the museum is a C++ program |
+| `FileDialog`, `MessageBox`, `SystemTray`, `UrlLauncher`, `Camera` (CNA_DEVICES) | *Native Dialogs*, *Tray Icon and URLs* and *The Camera* (floor 7) open them only from manual buttons, which the automatic sweep never presses. `tools/devices_check.sh` presses them on a private display with fake `zenity`/`xdg-open` and no session bus: the dialogs and the URL launcher are verified; a tray needs a StatusNotifier host and a camera is opened only with `MUSEUM_ALLOW_CAMERA=1` |
+| C API | *Native C API* (`MUSEUM_C_API`, which turns on `CNA_BUILD_C_API`): a C17 translation unit (`src/CApi/NativeCProbe.c`) calls the exported C ABI for its version, error diagnostics, value types and a handle's lifetime. A C game's own runtime (`cna_game_create`) is outside the museum's single process |
 | Inspector (`CNA::Inspector::Agent`, `Client`) | `pl-inspector`: the museum builds CNA's optional Inspector module (`MUSEUM_INSPECTOR`, default ON) and the room starts the agent on a button press and plays the client in the same process. The separate `cna-inspector` bridge and browser page are not exercised |
-| Compiled XNA effects (`.fxb`) | demonstrated in *Compiled XNA Effects*, which runs a real XNA-compiled effect on FNA3D (the only renderer with `CompiledEffects`) and says so elsewhere |
+| Compiled XNA effects (`.fxb`) | *Compiled XNA Effects* runs real XNA-compiled effects wherever `GraphicsCapability::CompiledEffects` is true. In CNA's default configuration that is FNA3D only (measured 2026-10-19 on OPENGLES3, FNA3D, WEBGPU and SDL_GPU); EasyGL, WebGPU, SDL_GPU, SOFTWARE and DIRECTX9 implement it behind `CNA_<RENDERER>_COMPILED_EFFECTS` build options, which are off by default |
 | Retired renderers and removed CNA features (for example VULKAN, the post-process chain) | deliberately not demonstrated |
 
 ## Generated: API names claimed by rooms
 
 <!-- BEGIN COVERAGE -->
-1459 distinct API names are claimed by at least one room.
+1771 distinct API names are claimed by at least one room.
 
 | API | Rooms |
 |---|---|
@@ -79,6 +79,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | AlbumCollection | `dev-medialib` |
 | AlphaModeEXT | `model-material` |
 | AlphaTestEffect | `tex-alpha`, `rv-effects` |
+| AlphaTestMaterialContent | `wk-material` |
 | AnimationClipEXT | `model-skinext` |
 | AnimationPlayer | `model-skinned` |
 | ApplyBindPoseBoneTransformsEXT | `model-skinned` |
@@ -97,9 +98,11 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | AudioCategory.Pause | `au-xact` |
 | AudioCategory.SetVolume | `au-xact` |
 | AudioChannels | `au-synth`, `au-generate` |
-| AudioContent | `ct-audiopipeline` |
-| AudioContent.Data | `ct-audiopipeline` |
-| AudioContent.Format | `ct-audiopipeline` |
+| AudioContent | `ct-audiopipeline`, `wk-importers` |
+| AudioContent.Data | `ct-audiopipeline`, `wk-importers` |
+| AudioContent.Duration | `wk-importers` |
+| AudioContent.FileType | `wk-importers` |
+| AudioContent.Format | `ct-audiopipeline`, `wk-importers` |
 | AudioEmitter | `audio`, `au-spatial` |
 | AudioEngine | `au-xact` |
 | AudioEngine.GetCategory | `au-xact` |
@@ -107,6 +110,11 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | AudioEngine.RendererDetails | `au-xact` |
 | AudioEngine.SetGlobalVariable | `au-xact` |
 | AudioEngine.Update | `au-xact` |
+| AudioFileType | `wk-importers` |
+| AudioFormat.BitsPerSample | `wk-importers` |
+| AudioFormat.ChannelCount | `wk-importers` |
+| AudioFormat.Format | `wk-importers` |
+| AudioFormat.SampleRate | `wk-importers` |
 | AudioListener | `audio`, `au-spatial` |
 | AudioStopOptions | `au-xact` |
 | AvailableNetworkSession | `net-session` |
@@ -156,8 +164,14 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | BasicEffect.VertexColorEnabled | `geo-vertextypes`, `be-combos`, `cx-shadow`, `rv-shading` |
 | BasicEffect.World | `grounds-sculpture`, `rv-camera` |
 | BasicEffect.setPunctualLightEXT | `be-punctual` |
-| BasicMaterialContent | `ct-modelimport` |
-| BasicMaterialContent.DiffuseColor | `ct-modelimport` |
+| BasicMaterialContent | `ct-modelimport`, `wk-material`, `wk-processor` |
+| BasicMaterialContent.Alpha | `wk-material` |
+| BasicMaterialContent.DiffuseColor | `ct-modelimport`, `wk-material` |
+| BasicMaterialContent.EmissiveColor | `wk-material` |
+| BasicMaterialContent.SpecularColor | `wk-material` |
+| BasicMaterialContent.SpecularPower | `wk-material` |
+| BasicMaterialContent.Texture | `wk-material` |
+| BasicMaterialContent.VertexColorEnabled | `wk-material` |
 | Bgr565 | `vt-packed` |
 | Bgra4444 | `vt-packed` |
 | Bgra5551 | `vt-packed` |
@@ -181,29 +195,43 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | BoneContent | `wk-meshhelper` |
 | BoneTrackEXT | `model-skinext` |
 | BoundingBox | `col-ray-box`, `col-pick`, `an-conveyor`, `sim-balls` |
-| BoundingBox.Contains | `col-box-box` |
+| BoundingBox.Contains | `col-box-box`, `math-checks` |
 | BoundingBox.CreateFromPoints | `col-merge` |
-| BoundingBox.CreateFromSphere | `col-merge` |
-| BoundingBox.Intersects | `col-box-box` |
+| BoundingBox.CreateFromSphere | `col-merge`, `math-checks` |
+| BoundingBox.CreateMerged | `math-checks` |
+| BoundingBox.Intersects | `col-box-box`, `math-checks` |
 | BoundingBoxConverter | `vt-converters` |
 | BoundingFrustum | `mat-view`, `col-frustum`, `cam-orbit`, `cam-security`, `model-cameras` |
-| BoundingFrustum.Contains | `mat-perspective`, `col-frustum`, `model-instances` |
+| BoundingFrustum.Contains | `mat-perspective`, `col-frustum`, `math-checks`, `model-instances` |
 | BoundingFrustum.GetCorners | `col-frustum` |
+| BoundingFrustum.Intersects | `math-checks` |
 | BoundingSphere | `col-ray-sphere`, `col-pick` |
-| BoundingSphere.Contains | `col-sphere-box` |
-| BoundingSphere.CreateFromBoundingBox | `col-merge` |
+| BoundingSphere.Contains | `col-sphere-box`, `math-checks` |
+| BoundingSphere.CreateFromBoundingBox | `col-merge`, `math-checks` |
 | BoundingSphere.CreateFromFrustum | `col-frustum` |
 | BoundingSphere.CreateFromPoints | `col-merge` |
-| BoundingSphere.CreateMerged | `col-merge` |
-| BoundingSphere.Intersects | `col-sphere-box`, `sim-balls` |
-| BoundingSphere.Transform | `model-bounds` |
+| BoundingSphere.CreateMerged | `col-merge`, `math-checks` |
+| BoundingSphere.Intersects | `col-sphere-box`, `math-checks`, `sim-balls` |
+| BoundingSphere.Transform | `math-checks`, `model-bounds` |
 | BoundingSphereConverter | `vt-converters` |
+| BuildTimeMedia::AudioSourceFormat | `wk-importers` |
+| BuildTimeMedia::DecodeAudio | `wk-importers` |
+| BuildTimeMedia::DecodedAudio | `wk-importers` |
+| BuildTimeMedia::EncodeWindowsMediaAudio | `wk-importers` |
+| BuildTimeMedia::Identity | `wk-importers` |
+| BuildTimeMedia::IsAvailable | `wk-importers` |
+| BuildTimeMedia::ProbeAudioDurationTicks | `wk-importers` |
+| BuildTimeMedia::ProbeVideo | `wk-importers` |
+| BuildTimeMedia::ProbedVideo | `wk-importers` |
+| BuildTimeMedia::UnavailableReason | `wk-importers` |
+| BuildXmaEncoder | `wk-importers` |
 | ButtonState | `in-mouse` |
 | Buttons | `in-pad` |
 | Buttons.BigButton | `in-pad` |
 | Buttons.LeftThumbstickUp | `in-pad` |
 | Buttons.RightThumbstickLeft | `in-pad` |
 | Byte4 | `vt-packed` |
+| CNA::Content::Pipeline::ContentProcessorContext | `wk-material`, `wk-processor` |
 | CNA::DesktopOS | `dev-identity` |
 | CNA::Devices::Camera | `dev-camera` |
 | CNA::Devices::DisplayInfo | `cx-devices` |
@@ -241,6 +269,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | CNA::Diagnostics::Trace | `pl-diagnostics` |
 | CNA::Diagnostics::ZoneScope | `pl-diagnostics` |
 | CNA::GamerServices::resolveConfiguration | `on-account` |
+| CNA::GetRendererFeatureName | `rv-capabilities` |
 | CNA::Graphics::AsciiPostProcessEffect | `cx-ascii` |
 | CNA::Graphics::CRTEffect | `cx-crt` |
 | CNA::Graphics::DebugDraw | `cx-debugdraw` |
@@ -261,6 +290,8 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | CNA::Logger | `pl-log` |
 | CNA::Platform::IPlatform | `pl-platform` |
 | CNA::Platform::NativeWindowHandle | `pl-window` |
+| CNA::RendererFeature | `rv-capabilities` |
+| CNA::RendererFeatureSupport | `rv-capabilities` |
 | CNA::ShaderDiagnosticEXT | `fx-errors` |
 | CNA::TargetPlatform | `dev-identity` |
 | CNA::Unsupported3DGraphicsCallBehavior | `dev-identity` |
@@ -274,6 +305,11 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | CNA::getGraphicsRendererName | `dev-identity`, `hist-cna` |
 | CNA::isApplePlatform | `dev-identity` |
 | CNA::isMobilePlatform | `dev-identity` |
+| CNA_CurveKey | `cx-capi` |
+| CNA_ErrorInfo | `cx-capi` |
+| CNA_Matrix | `cx-capi` |
+| CNA_Quaternion | `cx-capi` |
+| CNA_Vector3 | `cx-capi` |
 | CRTMaskType | `cx-crt` |
 | Camera.AvailableCameras | `dev-camera` |
 | Camera.FrameHeight | `dev-camera` |
@@ -285,6 +321,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | CameraPosition | `dev-camera` |
 | CameraState | `dev-camera` |
 | Capability | `pl-inspector` |
+| ChunkIdToString | `wk-cnbloader` |
 | Client.CaptureSnapshot | `pl-inspector` |
 | Client.Connect | `pl-inspector` |
 | Client.Ping | `pl-inspector` |
@@ -298,6 +335,45 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Clipboard.SetPrimarySelectionTextEXT | `in-text` |
 | Clipboard.SetTextEXT | `in-text` |
 | ClosingEventArgs | `pl-window` |
+| CnbAssetTypeIdFromName | `wk-cnbloader` |
+| CnbByteReader | `wk-cnbloader` |
+| CnbByteReader.ReadCount | `wk-cnbloader` |
+| CnbByteReader.ReadF32 | `wk-cnbloader` |
+| CnbByteReader.ReadF64 | `wk-cnbloader` |
+| CnbByteReader.ReadI32 | `wk-cnbloader` |
+| CnbByteReader.ReadString | `wk-cnbloader` |
+| CnbByteReader.ReadU64 | `wk-cnbloader` |
+| CnbByteReader.RequireExhausted | `wk-cnbloader` |
+| CnbByteWriter | `wk-cnbloader` |
+| CnbByteWriter.Take | `wk-cnbloader` |
+| CnbByteWriter.WriteF32 | `wk-cnbloader` |
+| CnbByteWriter.WriteF64 | `wk-cnbloader` |
+| CnbByteWriter.WriteI32 | `wk-cnbloader` |
+| CnbByteWriter.WriteString | `wk-cnbloader` |
+| CnbByteWriter.WriteU32 | `wk-cnbloader` |
+| CnbByteWriter.WriteU64 | `wk-cnbloader` |
+| CnbChunkEntry.IsMandatory | `wk-cnbloader` |
+| CnbDocument | `wk-cnbloader` |
+| CnbDocument.AssetSchemaVersion | `wk-cnbloader` |
+| CnbDocument.AssetTypeId | `wk-cnbloader` |
+| CnbDocument.ChunkAt | `wk-cnbloader` |
+| CnbDocument.ChunkData | `wk-cnbloader` |
+| CnbDocument.FindSingle | `wk-cnbloader` |
+| CnbDocument.HasMagic | `wk-cnbloader` |
+| CnbDocument.Metadata | `wk-cnbloader` |
+| CnbDocument.OpenChunk | `wk-cnbloader` |
+| CnbDocument.Parse | `wk-cnbloader` |
+| CnbDocument.RequireAsset | `wk-cnbloader` |
+| CnbDocument.RequireSingle | `wk-cnbloader` |
+| CnbLoaderRegistry | `wk-cnbloader` |
+| CnbLoaderRegistry.IsRegistered | `wk-cnbloader` |
+| CnbLoaderRegistry.Register | `wk-cnbloader` |
+| CnbLoaderRegistry.RegisteredTypeName | `wk-cnbloader` |
+| CnbLoaderRegistry.Remove | `wk-cnbloader` |
+| CnbWriter | `wk-cnbloader` |
+| CnbWriter.AddChunk | `wk-cnbloader` |
+| CnbWriter.Build | `wk-cnbloader` |
+| CnbWriter.SetMetadata | `wk-cnbloader` |
 | Color | `vt-color`, `vt-colors`, `sprite-tint` |
 | Color.A | `vt-colors` |
 | Color.AliceBlue | `vt-colors` |
@@ -330,33 +406,48 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Compass | `in-phone` |
 | Compass.IsSupported | `in-phone` |
 | CompassReading.MagneticHeading | `in-phone` |
-| CompileOptions | `ct-compiler` |
+| CompileOptions | `ct-compiler`, `wk-typewriter` |
 | CompileOptions.compressContent | `ct-compiler` |
 | CompileOptions.targetPlatform | `ct-compiler` |
 | CompileOptions.targetProfile | `ct-compiler` |
 | CompiledEffectContent | `fx-compiled` |
 | CompiledEffectContent.GetEffectCode | `fx-compiled` |
-| ContainmentType | `col-box-box` |
-| ContentCompiler | `ct-compiler` |
-| ContentCompiler.Compile | `ct-compiler` |
+| Compiler.ContentTypeWriter | `wk-typewriter`, `wk-processor` |
+| ContainmentType | `col-box-box`, `math-checks` |
+| ContentBuildEnvironment | `wk-processor` |
+| ContentBuildLogger.LogImportantMessage | `wk-processor` |
+| ContentBuildLogger.LogMessage | `wk-processor` |
+| ContentBuildRequest | `wk-processor` |
+| ContentBuildResult | `wk-processor` |
+| ContentCompiler | `ct-compiler`, `wk-typewriter` |
+| ContentCompiler.AddTypeWriter | `wk-typewriter`, `wk-processor` |
+| ContentCompiler.Compile | `ct-compiler`, `wk-typewriter` |
 | ContentCompiler.Compile(CompiledEffectContent) | `fx-compiled` |
 | ContentCompiler.Compile(SongContent) | `ct-audiopipeline` |
 | ContentCompiler.Compile(SoundEffectContent) | `ct-audiopipeline` |
 | ContentCompiler.Compile(VideoContent) | `au-video` |
-| ContentCompiler.GetTypeWriter | `ct-compiler` |
-| ContentIdentity | `ct-fontbuild` |
-| ContentImporterAttribute | `ct-intermediate`, `ct-modelimport`, `ct-audiopipeline` |
-| ContentItem | `ct-intermediate` |
-| ContentLoadException | `app-content`, `ct-failure`, `ct-custom`, `ct-resource`, `pl-exceptions` |
+| ContentCompiler.GetTypeWriter | `ct-compiler`, `wk-typewriter` |
+| ContentDependency | `wk-processor` |
+| ContentDependencyCollector.Dependencies | `wk-material` |
+| ContentDeploymentFile | `wk-processor` |
+| ContentIdentity | `ct-fontbuild`, `wk-processor` |
+| ContentImporterAttribute | `ct-intermediate`, `ct-modelimport`, `ct-audiopipeline`, `wk-processor` |
+| ContentImporterAttribute.DefaultProcessor | `wk-importers` |
+| ContentImporterAttribute.DisplayName | `wk-processor` |
+| ContentImporterAttribute.FileExtensions | `wk-importers` |
+| ContentImporterContext.Logger | `wk-processor` |
+| ContentItem | `ct-intermediate`, `wk-typewriter` |
+| ContentLoadException | `app-content`, `ct-failure`, `ct-custom`, `ct-resource`, `pl-exceptions`, `wk-typewriter`, `wk-cnbloader`, `wk-gltf` |
+| ContentLogMessage | `wk-processor` |
 | ContentManager | `models`, `app-content` |
 | ContentManager.GetContentManifest | `ct-pipeline` |
-| ContentManager.Load | `app-content`, `ct-cache`, `ct-failure`, `ct-pipeline`, `ct-reader`, `ct-resource` |
+| ContentManager.Load | `app-content`, `ct-cache`, `ct-failure`, `ct-pipeline`, `ct-reader`, `ct-resource`, `wk-typewriter`, `wk-cnbloader`, `wk-processor`, `wk-gltf` |
 | ContentManager.Load<Effect> | `fx-compiled` |
 | ContentManager.Load<Model> | `model-load`, `ct-load` |
 | ContentManager.Load<SoundEffect> | `au-basics`, `ct-load` |
 | ContentManager.Load<Texture2D> | `ct-load`, `ct-formats` |
 | ContentManager.Load<Video> | `au-video` |
-| ContentManager.OpenStream | `ct-compiler` |
+| ContentManager.OpenStream | `ct-compiler`, `wk-typewriter` |
 | ContentManager.ReadAsset | `ct-compiler` |
 | ContentManager.RegisterCnjLoader | `ct-custom` |
 | ContentManager.RegisterTypeReader | `ct-custom` |
@@ -364,27 +455,66 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | ContentManager.RouteLoadsThroughOpenStreamEXT | `ct-compiler` |
 | ContentManager.ServiceProvider | `ct-load` |
 | ContentManager.Unload | `app-content`, `ct-cache`, `ct-lifetime` |
-| ContentProcessorContext.Convert | `ct-modelimport` |
+| ContentPipeline | `wk-material`, `wk-processor` |
+| ContentPipeline.Build | `wk-processor` |
+| ContentPipelineRegistry | `wk-material`, `wk-processor` |
+| ContentProcessor.InputTypeName | `wk-importers` |
+| ContentProcessor.OutputTypeName | `wk-importers` |
+| ContentProcessorAttribute | `wk-processor` |
+| ContentProcessorAttribute.DisplayName | `wk-processor` |
+| ContentProcessorContext.AddDependency | `wk-processor` |
+| ContentProcessorContext.AddOutputFile | `wk-processor` |
+| ContentProcessorContext.BuildAndLoadAsset | `wk-processor` |
+| ContentProcessorContext.BuildAsset | `wk-processor` |
+| ContentProcessorContext.BuildConfiguration | `wk-processor` |
+| ContentProcessorContext.Convert | `ct-modelimport`, `wk-processor` |
+| ContentProcessorContext.IntermediateDirectory | `wk-processor` |
+| ContentProcessorContext.NestedOutputs | `wk-material` |
+| ContentProcessorContext.OutputDirectory | `wk-processor` |
+| ContentProcessorContext.OutputFilename | `wk-processor` |
+| ContentProcessorContext.TargetPlatform | `wk-processor` |
+| ContentProcessorContext.TargetProfile | `wk-processor` |
+| ContentProcessorParameters | `wk-processor` |
 | ContentReader | `ct-reader` |
-| ContentReader.AssetName | `ct-reader` |
+| ContentReader.AssetName | `ct-reader`, `wk-typewriter` |
 | ContentReader.ContentManager | `ct-reader` |
 | ContentReader.Platform | `ct-reader` |
 | ContentReader.ReadBoundingSphere | `ct-reader` |
-| ContentReader.ReadColor | `ct-reader` |
-| ContentReader.ReadMatrix | `ct-reader` |
-| ContentReader.ReadQuaternion | `ct-reader` |
-| ContentReader.ReadVector2 | `ct-reader` |
-| ContentReader.ReadVector3 | `ct-reader` |
-| ContentReader.ReadVector4 | `ct-reader` |
+| ContentReader.ReadColor | `ct-reader`, `wk-typewriter` |
+| ContentReader.ReadMatrix | `ct-reader`, `wk-typewriter` |
+| ContentReader.ReadObject | `wk-typewriter` |
+| ContentReader.ReadQuaternion | `ct-reader`, `wk-typewriter` |
+| ContentReader.ReadRawObject | `wk-typewriter` |
+| ContentReader.ReadSharedResource | `wk-typewriter` |
+| ContentReader.ReadVector2 | `ct-reader`, `wk-typewriter` |
+| ContentReader.ReadVector3 | `ct-reader`, `wk-typewriter` |
+| ContentReader.ReadVector4 | `ct-reader`, `wk-typewriter` |
 | ContentReader.Version | `ct-reader` |
 | ContentSerializerAttribute | `ct-intermediate` |
+| ContentSerializerAttribute.ElementName | `wk-cnbloader` |
 | ContentSerializerCollectionItemNameAttribute | `ct-intermediate` |
 | ContentSerializerCollectionItemNameAttribute.CollectionItemName | `ct-intermediate` |
 | ContentTypeDescriptor | `ct-intermediate` |
-| ContentTypeReader | `ct-reader` |
-| ContentTypeReaderManager.AddTypeCreator | `ct-reader` |
+| ContentTypeReader | `ct-reader`, `wk-typewriter`, `wk-processor` |
+| ContentTypeReaderBase.TypeVersion | `wk-typewriter` |
+| ContentTypeReaderManager.AddTypeCreator | `ct-reader`, `wk-typewriter`, `wk-processor` |
 | ContentTypeReaderManager.GetTypeReader | `ct-reader` |
+| ContentTypeReaderManager.IsRegistered | `wk-typewriter` |
+| ContentTypeReaderManager.RemoveTypeCreatorEXT | `wk-typewriter` |
+| ContentTypeSerializer | `wk-cnbloader` |
+| ContentTypeWriterAttribute | `wk-typewriter` |
+| ContentTypeWriterBase.GetRuntimeReader | `wk-typewriter` |
+| ContentTypeWriterBase.TargetType | `wk-typewriter` |
+| ContentTypeWriterBase.TypeVersion | `wk-typewriter` |
+| ContentWriter | `wk-typewriter` |
+| ContentWriter.Write | `wk-typewriter` |
+| ContentWriter.Write7BitEncodedInt | `wk-typewriter` |
+| ContentWriter.WriteExternalReference | `wk-processor` |
+| ContentWriter.WriteObject | `wk-typewriter` |
+| ContentWriter.WriteRawObject | `wk-typewriter` |
+| ContentWriter.WriteSharedResource | `wk-typewriter` |
 | ConversionQuality | `ct-audiopipeline` |
+| Crc32c | `wk-cnbloader` |
 | CubeMapFace | `tex-cube`, `rt-cube` |
 | Cue.GetVariable | `au-xact` |
 | Cue.IsCreated | `au-xact` |
@@ -439,6 +569,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | DrawableGameComponent | `app-components` |
 | DualTextureEffect | `be-dual`, `rv-effects` |
 | DualTextureEffect.Texture2 | `be-dual` |
+| DualTextureMaterialContent | `wk-material` |
 | DynamicIndexBuffer | `geo-dynindex` |
 | DynamicSoundEffectInstance | `au-synth` |
 | DynamicSoundEffectInstance.BufferNeeded | `au-synth` |
@@ -458,6 +589,8 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | EffectContent.EffectCode | `fx-compiled` |
 | EffectImporter | `fx-compiled` |
 | EffectImporter.Import | `fx-compiled` |
+| EffectMaterialContent | `wk-material` |
+| EffectMaterialContent.Effect | `wk-material` |
 | EffectParameter | `be-model`, `fx-compiled` |
 | EffectParameter.GetValueInt32 | `be-model` |
 | EffectParameter.GetValueMatrix | `be-model` |
@@ -482,14 +615,25 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | EffectTechnique | `be-model`, `fx-compiled` |
 | EnvironmentMapEffect | `tex-cube`, `rt-cube` |
 | EnvironmentMapEffect.EnvironmentMap | `rt-cube` |
+| EnvironmentMapMaterialContent | `wk-material` |
 | EvaluateMorphWeightsEXT | `model-morph` |
 | EventsResponse | `pl-inspector` |
+| ExternalReference | `wk-material`, `wk-processor` |
+| ExternalReference.Filename | `wk-material`, `wk-processor` |
 | FbxImporter | `ct-modelimport` |
 | FileDialog.IsSupported | `dev-dialogs` |
 | FileDialog.ResultCallback | `dev-dialogs` |
 | FileDialog.ShowOpenFile | `dev-dialogs` |
 | FileDialog.ShowOpenFolder | `dev-dialogs` |
 | FileDialog.ShowSaveFile | `dev-dialogs` |
+| FillMode | `rv-capabilities` |
+| Framework.Content.Pipeline.ContentImporter | `wk-processor` |
+| Framework.Content.Pipeline.ContentImporter.Import | `wk-processor` |
+| Framework.Content.Pipeline.ContentProcessor | `wk-processor` |
+| Framework.Content.Pipeline.ContentProcessor.Process | `wk-processor` |
+| Framework.Content.Pipeline.ContentProcessorContext | `wk-processor` |
+| Framework.Content.Pipeline.ContentProcessorContext.Logger | `wk-processor` |
+| Framework.Content.Pipeline.ContentProcessorContext.Parameters | `wk-processor` |
 | FriendCollection | `on-friends` |
 | FriendCollection.IsDisposed | `on-friends` |
 | FriendGamer | `on-friends` |
@@ -615,8 +759,12 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | GestureSample.Position2 | `in-touch` |
 | GestureSample.Timestamp | `in-touch` |
 | GestureType | `in-touch` |
-| GltfImportDiagnosticEXT | `model-report` |
-| GltfImportReportEXT | `model-report` |
+| GltfImportDiagnosticEXT | `model-report`, `wk-gltf` |
+| GltfImportDiagnosticKindEXT | `wk-gltf` |
+| GltfImportReportEXT | `model-report`, `wk-gltf` |
+| GltfImportReportEXT.Diagnostics | `wk-gltf` |
+| GltfImportReportEXT.MeshInstanceCount | `wk-gltf` |
+| GltfImportReportEXT.NodeCount | `wk-gltf` |
 | Graphics::DisplayMode | `pl-adapter` |
 | Graphics::FontDescription | `ct-fontbuild` |
 | Graphics::FontDescription.Characters | `ct-fontbuild` |
@@ -660,7 +808,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | GraphicsDevice.GetGraphicsRendererType | `dev-identity` |
 | GraphicsDevice.GetLogicalSizeEXT | `pl-renderer` |
 | GraphicsDevice.GetRenderTargets | `rt-mrt`, `rt-cube` |
-| GraphicsDevice.GetRendererCapabilityProfileEXT | `pl-renderer` |
+| GraphicsDevice.GetRendererCapabilityProfileEXT | `pl-renderer`, `rv-capabilities` |
 | GraphicsDevice.GetRendererCapabilityReportEXT | `pl-renderer` |
 | GraphicsDevice.GetShaderDialectEXT | `fx-grade`, `fx-blur`, `fx-pixelate`, `fx-ripple`, `fx-edge`, `fx-crt`, `fx-plasma`, `fx-swirl`, `fx-chromatic`, `fx-kernel`, `fx-halftone`, `fx-vertexwave`, `fx-colormatrix`, `fx-errors` |
 | GraphicsDevice.GetTrackedResourceCount | `pl-renderer` |
@@ -674,7 +822,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | GraphicsDevice.ScissorRectangle | `sprite-scissor`, `rs-scissor`, `rv-geometry` |
 | GraphicsDevice.SetDisplayColorSpaceEXT | `pl-renderer` |
 | GraphicsDevice.SetRenderTarget | `rendertarget`, `rt-basic`, `rt-control`, `rt-cube`, `pf-targets`, `rv-targets` |
-| GraphicsDevice.SetRenderTargets | `rt-mrt` |
+| GraphicsDevice.SetRenderTargets | `rt-mrt`, `rv-capabilities` |
 | GraphicsDevice.SetStringMarkerEXT | `cx-points` |
 | GraphicsDevice.SetUnsupported3DGraphicsCallBehavior | `dev-identity` |
 | GraphicsDevice.SetVertexBuffers | `geo-instancing` |
@@ -791,14 +939,19 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | IndexBuffer | `particles`, `geo-indexed`, `geo-procedural`, `geo-index32`, `geo-dynindex`, `geo-terrain`, `model-skinfx`, `pt-fire`, `pt-smoke`, `pt-sparks`, `pt-snow`, `pt-rain`, `pt-fountain`, `pt-dust`, `pt-fireworks`, `pt-bubbles`, `pt-leaves`, `pt-magic` |
 | IndexElementSize | `geo-index32` |
 | InputDevices.GetMiceEXT | `in-devices` |
+| IntermediateReader.ReadObject | `wk-cnbloader` |
 | IntermediateSerializer | `ct-intermediate` |
-| IntermediateSerializer.Deserialize | `ct-intermediate` |
+| IntermediateSerializer.AddTypeSerializer | `wk-cnbloader` |
+| IntermediateSerializer.Deserialize | `ct-intermediate`, `wk-cnbloader` |
+| IntermediateSerializer.FindTypeSerializer | `wk-cnbloader` |
 | IntermediateSerializer.GetTypeSerializer | `ct-intermediate` |
-| IntermediateSerializer.Serialize | `ct-intermediate` |
-| InvalidContentException | `ct-intermediate` |
+| IntermediateSerializer.Serialize | `ct-intermediate`, `wk-cnbloader` |
+| IntermediateWriter.WriteObject | `wk-cnbloader` |
+| InvalidContentException | `ct-intermediate`, `wk-cnbloader`, `wk-material` |
 | InviteAcceptedEventArgs | `net-session` |
 | InviteAcceptedEventArgs.Gamer | `net-session` |
 | InviteAcceptedEventArgs.IsCurrentSession | `net-session` |
+| IsCustomAssetTypeId | `wk-cnbloader` |
 | Joysticks.GetCapabilitiesEXT | `in-joystick` |
 | Joysticks.GetJoysticksEXT | `in-joystick` |
 | Joysticks.GetStateEXT | `in-joystick` |
@@ -813,7 +966,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | KeyboardState.GetPressedKeys | `in-keyboard` |
 | KeyboardState.IsKeyDown | `in-keyboard` |
 | KeyframeEXT | `model-skinext` |
-| Keys | `in-edges` |
+| Keys | `in-edges`, `wk-xml` |
 | LaunchParameters | `app-lifecycle` |
 | LaunchingEventArgs | `pl-window` |
 | LeaderboardEntry | `gs-leaderboards` |
@@ -836,42 +989,66 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Logger.SetSink | `pl-log` |
 | Logger.WarnIf | `pl-log` |
 | LooseFileContentTypeReader | `ct-custom` |
-| MaterialContent | `ct-modelimport` |
+| MakeBlockCompressionTextureEncoder | `wk-material` |
+| MakeChunkId | `wk-cnbloader` |
+| MakeExternalXmaEncoder | `wk-importers` |
+| MakeUnavailableXmaEncoder | `wk-importers` |
+| MaterialContent | `ct-modelimport`, `wk-material` |
+| MaterialContent.Textures | `wk-material`, `wk-processor` |
+| MaterialProcessor | `wk-material` |
+| MaterialProcessor.ColorKeyColor | `wk-material` |
+| MaterialProcessor.ColorKeyEnabled | `wk-material` |
+| MaterialProcessor.DefaultEffect | `wk-material` |
+| MaterialProcessor.GenerateMipmaps | `wk-material` |
+| MaterialProcessor.PremultiplyTextureAlpha | `wk-material` |
+| MaterialProcessor.Process | `wk-material` |
+| MaterialProcessor.ResizeTexturesToPowerOfTwo | `wk-material` |
+| MaterialProcessor.TextureFormat | `wk-material` |
+| MaterialProcessorDefaultEffect | `wk-material` |
 | MathHelper | `an-pendulum`, `sim-integrators`, `rf-deck` |
 | MathHelper.CatmullRom | `curve-easing` |
+| MathHelper.Clamp | `math-checks` |
 | MathHelper.Hermite | `curve-easing` |
-| MathHelper.Lerp | `curve-easing`, `geo-terrain`, `an-doors` |
+| MathHelper.Lerp | `curve-easing`, `math-checks`, `geo-terrain`, `an-doors` |
 | MathHelper.SmoothStep | `curve-easing`, `an-doors` |
 | MathHelper.ToDegrees | `sim-ik` |
 | MathHelper.ToRadians | `sim-ik` |
-| MathHelper.WrapAngle | `an-walker` |
+| MathHelper.WrapAngle | `math-checks`, `an-walker` |
 | MathTypeConverter | `vt-converters` |
 | MathTypeConverter.CanConvertFrom | `vt-converters` |
 | MathTypeConverter.GetProperties | `vt-converters` |
-| Matrix | `models`, `animation`, `fx-colormatrix` |
-| Matrix.CreateBillboard | `mat-billboard` |
-| Matrix.CreateConstrainedBillboard | `mat-billboard` |
-| Matrix.CreateFromQuaternion | `quat-euler` |
-| Matrix.CreateLookAt | `mat-view`, `cam-orbit`, `cam-chase`, `cam-topdown`, `cam-mirror`, `rt-mirror`, `rv-camera`, `rf-telescope` |
-| Matrix.CreateOrthographic | `mat-ortho`, `cam-topdown`, `cx-shadow`, `rv-camera` |
-| Matrix.CreateOrthographicOffCenter | `mat-offcenter` |
-| Matrix.CreatePerspective | `mat-offcenter` |
-| Matrix.CreatePerspectiveFieldOfView | `mat-perspective`, `mat-ortho`, `col-frustum`, `cam-security`, `cam-fov`, `cam-clip`, `rv-camera`, `rf-telescope` |
-| Matrix.CreatePerspectiveOffCenter | `mat-offcenter` |
-| Matrix.CreateReflection | `mat-reflection` |
-| Matrix.CreateRotationX | `quat-euler`, `an-gyroscope` |
-| Matrix.CreateRotationY | `grounds-sculpture`, `mat-order`, `an-gears`, `an-gyroscope` |
-| Matrix.CreateRotationZ | `sprite-camera`, `an-clock`, `an-kinetic`, `an-gyroscope`, `an-walker` |
-| Matrix.CreateScale | `grounds-sculpture`, `mat-order`, `sprite-camera`, `sprite-tilemap`, `sim-flock` |
-| Matrix.CreateShadow | `rs-shadow` |
-| Matrix.CreateTranslation | `mat-order`, `sprite-camera`, `sim-flock` |
-| Matrix.CreateWorld | `cam-transition` |
+| Matrix | `models`, `animation`, `fx-colormatrix`, `wk-xml` |
+| Matrix.Add | `math-checks` |
+| Matrix.CreateBillboard | `mat-billboard`, `math-checks` |
+| Matrix.CreateConstrainedBillboard | `mat-billboard`, `math-checks` |
+| Matrix.CreateFromAxisAngle | `math-checks` |
+| Matrix.CreateFromQuaternion | `quat-euler`, `math-checks` |
+| Matrix.CreateFromYawPitchRoll | `math-checks` |
+| Matrix.CreateLookAt | `mat-view`, `math-checks`, `cam-orbit`, `cam-chase`, `cam-topdown`, `cam-mirror`, `rt-mirror`, `wk-xml`, `rv-camera`, `rf-telescope` |
+| Matrix.CreateOrthographic | `mat-ortho`, `math-checks`, `cam-topdown`, `cx-shadow`, `rv-camera` |
+| Matrix.CreateOrthographicOffCenter | `mat-offcenter`, `math-checks` |
+| Matrix.CreatePerspective | `mat-offcenter`, `math-checks` |
+| Matrix.CreatePerspectiveFieldOfView | `mat-perspective`, `mat-ortho`, `col-frustum`, `math-checks`, `cam-security`, `cam-fov`, `cam-clip`, `wk-xml`, `rv-camera`, `rf-telescope` |
+| Matrix.CreatePerspectiveOffCenter | `mat-offcenter`, `math-checks` |
+| Matrix.CreateReflection | `mat-reflection`, `math-checks` |
+| Matrix.CreateRotationX | `quat-euler`, `math-checks`, `an-gyroscope` |
+| Matrix.CreateRotationY | `grounds-sculpture`, `mat-order`, `math-checks`, `an-gears`, `an-gyroscope` |
+| Matrix.CreateRotationZ | `math-checks`, `sprite-camera`, `an-clock`, `an-kinetic`, `an-gyroscope`, `an-walker` |
+| Matrix.CreateScale | `grounds-sculpture`, `mat-order`, `math-checks`, `sprite-camera`, `sprite-tilemap`, `sim-flock` |
+| Matrix.CreateShadow | `math-checks`, `rs-shadow` |
+| Matrix.CreateTranslation | `mat-order`, `math-checks`, `sprite-camera`, `sim-flock` |
+| Matrix.CreateWorld | `math-checks`, `cam-transition` |
 | Matrix.Decompose | `mat-hierarchy` |
 | Matrix.Determinant | `mat-reflection` |
-| Matrix.Invert | `mat-view`, `mat-normals`, `model-cameras` |
-| Matrix.Multiply | `mat-order`, `mat-hierarchy`, `mat-screen`, `an-clock`, `an-gears`, `an-kinetic`, `an-walker` |
+| Matrix.Divide | `math-checks` |
+| Matrix.Invert | `mat-view`, `mat-normals`, `math-checks`, `model-cameras` |
+| Matrix.Lerp | `math-checks` |
+| Matrix.Multiply | `mat-order`, `mat-hierarchy`, `mat-screen`, `math-checks`, `an-clock`, `an-gears`, `an-kinetic`, `an-walker` |
+| Matrix.Negate | `math-checks` |
+| Matrix.Subtract | `math-checks` |
+| Matrix.Transform | `math-checks` |
 | Matrix.Translation | `mat-hierarchy` |
-| Matrix.Transpose | `mat-normals` |
+| Matrix.Transpose | `mat-normals`, `math-checks` |
 | MatrixConverter | `vt-converters` |
 | MediaLibrary | `dev-medialib` |
 | MediaLibrary.Albums | `dev-medialib` |
@@ -943,15 +1120,17 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Microsoft::Xna::Framework::Content::Pipeline::WavImporter | `ct-audiopipeline` |
 | Microsoft::Xna::Framework::Content::Pipeline::WavImporter.Import | `ct-audiopipeline` |
 | MipmapChain | `ct-processor` |
-| Model | `models`, `model-load` |
+| Model | `models`, `model-load`, `wk-gltf` |
 | Model.BoundingSphereEXT | `model-load`, `model-instances`, `model-bounds` |
 | Model.CamerasEXT | `model-cameras` |
 | Model.CopyAbsoluteBoneTransformsTo | `model-rigid`, `model-sampler` |
 | Model.CopyBoneTransformsFrom | `model-load` |
 | Model.CopyBoneTransformsTo | `model-load` |
 | Model.Draw | `model-instances` |
+| Model.GltfImportReportEXT | `wk-gltf` |
 | Model.MaterialVariantEXT | `model-variants` |
 | Model.MaterialVariantNamesEXT | `model-variants` |
+| Model.Meshes | `wk-gltf` |
 | Model.Root | `model-load` |
 | ModelAnimationsEXT | `model-rigid` |
 | ModelBone | `model-rigid` |
@@ -966,14 +1145,22 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | ModelMesh | `models`, `model-load` |
 | ModelMesh.BoundingSphere | `model-bounds` |
 | ModelMesh.Draw | `model-sampler` |
+| ModelMesh.MeshParts | `wk-gltf` |
 | ModelMeshContent | `ct-meshbuilder`, `ct-modelimport` |
 | ModelMeshPart | `model-load` |
-| ModelMeshPart.Effect | `model-effects` |
+| ModelMeshPart.Effect | `model-effects`, `wk-gltf` |
+| ModelMeshPart.NumVertices | `wk-gltf` |
 | ModelMeshPart.PrimitiveTypeEXT | `model-load` |
 | ModelMeshPart.SamplerStatesEXT | `model-load`, `model-sampler` |
-| ModelMeshPart.Tag | `model-morph` |
+| ModelMeshPart.Tag | `model-morph`, `wk-gltf` |
+| ModelMeshPart.VertexBuffer | `wk-gltf` |
+| ModelMeshPart.VertexOffset | `wk-gltf` |
 | ModelMeshPartContent | `ct-meshbuilder`, `ct-modelimport` |
-| MorphTargetDataEXT | `model-morph` |
+| MorphTargetDataEXT | `model-morph`, `wk-gltf` |
+| MorphTargetDataEXT.BaseVertexBytes | `wk-gltf` |
+| MorphTargetDataEXT.PositionDeltas | `wk-gltf` |
+| MorphTargetDataEXT.Stride | `wk-gltf` |
+| MorphTargetDataEXT.Weights | `wk-gltf` |
 | Motion | `in-phone` |
 | Motion.IsSupported | `in-phone` |
 | MotionReading.Attitude | `in-phone` |
@@ -1057,9 +1244,12 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | NormalizedShort4 | `vt-packed` |
 | NotificationChannelUriEventArgs | `dev-notify` |
 | NotificationChannelUriEventArgs.ChannelUri | `dev-notify` |
-| OcclusionQuery | `rs-occlusion` |
-| OcclusionQuery.IsComplete | `rs-occlusion` |
+| OcclusionQuery | `rs-occlusion`, `rv-capabilities` |
+| OcclusionQuery.Begin | `rv-capabilities` |
+| OcclusionQuery.End | `rv-capabilities` |
+| OcclusionQuery.IsComplete | `rs-occlusion`, `rv-capabilities` |
 | OcclusionQuery.PixelCount | `rs-occlusion` |
+| OpaqueDataDictionary | `wk-processor` |
 | PackedVector.Alpha8 | `tex-formats` |
 | PackedVector.Bgr565 | `tex-formats`, `rv-formats` |
 | PackedVector.Bgra4444 | `tex-formats` |
@@ -1075,14 +1265,21 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | PacketWriter.Length | `net-packets` |
 | PacketWriter.Position | `net-packets` |
 | PacketWriter.Write | `net-packets` |
-| PbrEffect | `model-pbr`, `model-effects`, `model-variants` |
+| PassThroughProcessor | `wk-importers` |
+| PassThroughProcessor.Process | `wk-importers` |
+| PbrEffect | `model-pbr`, `model-effects`, `model-variants`, `wk-gltf` |
 | PbrEffect.AlphaCutoffEXT | `model-material` |
 | PbrEffect.EmissiveFactor | `model-pbr` |
 | PbrEffect.EmissiveMap | `model-material` |
 | PbrEffect.ImageBasedLightEXT | `model-ibl` |
-| PbrEffect.MetallicFactor | `model-pbr`, `model-ibl` |
+| PbrEffect.IorEXT | `wk-gltf` |
+| PbrEffect.MetallicFactor | `model-pbr`, `model-ibl`, `wk-gltf` |
 | PbrEffect.NormalMap | `model-material` |
-| PbrEffect.RoughnessFactor | `model-pbr`, `model-ibl` |
+| PbrEffect.RoughnessFactor | `model-pbr`, `model-ibl`, `wk-gltf` |
+| PbrEffect.SpecularColorFactorEXT | `wk-gltf` |
+| PbrEffect.SpecularFactorEXT | `wk-gltf` |
+| PbrEffect.TextureCoordinateSetsEXT | `wk-gltf` |
+| PbrEffect.TextureTransformsEXT | `wk-gltf` |
 | PhoneApplicationService | `pl-window` |
 | PhoneApplicationService.Activated | `pl-window` |
 | PhoneApplicationService.AttachEXT | `pl-window` |
@@ -1101,14 +1298,17 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | PictureAlbum.Pictures | `dev-medialib` |
 | PictureAlbumCollection | `dev-medialib` |
 | PictureCollection | `dev-medialib` |
+| PipelineException | `wk-processor` |
 | PixelBitmapContent | `ct-processor` |
 | Plane | `vec-reflect`, `col-ray-plane` |
-| Plane.DotCoordinate | `col-plane-box` |
-| Plane.DotNormal | `col-plane-box` |
-| Plane.Intersects | `col-plane-box` |
-| Plane.Transform | `mat-reflection` |
+| Plane.Dot | `math-checks` |
+| Plane.DotCoordinate | `col-plane-box`, `math-checks` |
+| Plane.DotNormal | `col-plane-box`, `math-checks` |
+| Plane.Intersects | `col-plane-box`, `math-checks` |
+| Plane.Normalize | `math-checks` |
+| Plane.Transform | `mat-reflection`, `math-checks` |
 | PlaneConverter | `vt-converters` |
-| PlaneIntersectionType | `col-plane-box` |
+| PlaneIntersectionType | `col-plane-box`, `math-checks` |
 | PlatformCapabilities | `pl-platform` |
 | PlayerIndex | `in-players` |
 | Playlist.Duration | `dev-medialib` |
@@ -1124,6 +1324,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | PrimitiveType | `geo-primitives` |
 | PrimitiveType.LineList | `rf-weather` |
 | PrimitiveType.PointListEXT | `cx-points`, `pf-particles` |
+| ProcessorParameterBindings | `wk-processor` |
 | Processors::FontDescriptionProcessor | `ct-fontbuild` |
 | Processors::ModelProcessor | `ct-meshbuilder`, `ct-modelimport` |
 | Processors::ModelProcessor.GenerateTangentFrames | `ct-meshbuilder` |
@@ -1160,53 +1361,68 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | QualityOfService | `net-session` |
 | QualityOfService.BytesPerSecondDownstream | `net-session` |
 | QualityOfService.MinimumRoundtripTime | `net-session` |
-| Quaternion.Concatenate | `quat-axis` |
-| Quaternion.Conjugate | `quat-axis` |
-| Quaternion.CreateFromAxisAngle | `quat-axis` |
-| Quaternion.CreateFromYawPitchRoll | `quat-euler` |
-| Quaternion.Dot | `quat-slerp` |
-| Quaternion.Inverse | `quat-axis` |
-| Quaternion.Lerp | `quat-slerp` |
-| Quaternion.Normalize | `quat-slerp` |
-| Quaternion.Slerp | `quat-slerp`, `cam-transition` |
+| Quaternion | `wk-xml` |
+| Quaternion.Add | `math-checks` |
+| Quaternion.Concatenate | `quat-axis`, `math-checks` |
+| Quaternion.Conjugate | `quat-axis`, `math-checks` |
+| Quaternion.CreateFromAxisAngle | `quat-axis`, `math-checks` |
+| Quaternion.CreateFromRotationMatrix | `math-checks` |
+| Quaternion.CreateFromYawPitchRoll | `quat-euler`, `math-checks`, `wk-xml` |
+| Quaternion.Divide | `math-checks` |
+| Quaternion.Dot | `quat-slerp`, `math-checks` |
+| Quaternion.Inverse | `quat-axis`, `math-checks` |
+| Quaternion.Lerp | `quat-slerp`, `math-checks` |
+| Quaternion.Multiply | `math-checks` |
+| Quaternion.Negate | `math-checks` |
+| Quaternion.Normalize | `quat-slerp`, `math-checks` |
+| Quaternion.Slerp | `quat-slerp`, `math-checks`, `cam-transition` |
+| Quaternion.Subtract | `math-checks` |
 | QuaternionConverter | `vt-converters` |
 | RasterizerState | `renderstates` |
 | RasterizerState.CullCounterClockwise | `rt-mirror` |
 | RasterizerState.CullMode | `geo-triangle`, `rs-cull`, `rv-geometry` |
 | RasterizerState.DepthBias | `rs-depthbias` |
-| RasterizerState.FillMode | `geo-procedural`, `geo-terrain`, `rs-fill` |
+| RasterizerState.FillMode | `geo-procedural`, `geo-terrain`, `rs-fill`, `rv-capabilities` |
 | RasterizerState.MultiSampleAntiAlias | `rt-msaa` |
 | RasterizerState.ScissorTestEnable | `sprite-scissor`, `rs-scissor` |
 | RasterizerState.SlopeScaleDepthBias | `rs-depthbias` |
 | RawPushNotificationMessage | `dev-notify` |
 | RawPushNotificationMessage.RawData | `dev-notify` |
 | RawPushNotificationMessage.SendAsync | `dev-notify` |
-| Ray.Intersects | `col-ray-box`, `col-ray-sphere`, `col-ray-plane`, `col-pick` |
+| Ray.Intersects | `col-ray-box`, `col-ray-sphere`, `col-ray-plane`, `col-pick`, `math-checks` |
 | RayConverter | `vt-converters` |
 | Rectangle | `vt-rectangle`, `sprite-sheet`, `sprite-ui`, `sprite-anim` |
 | Rectangle.Bottom | `vt-rectangle` |
-| Rectangle.Contains | `vt-rectangle` |
+| Rectangle.Contains | `math-checks`, `vt-rectangle` |
 | Rectangle.Inflate | `vt-rectangle` |
-| Rectangle.Intersect | `vt-rectangle`, `sprite-hit` |
-| Rectangle.Intersects | `vt-rectangle`, `sprite-hit`, `sprite-tilemap` |
+| Rectangle.Intersect | `math-checks`, `vt-rectangle`, `sprite-hit` |
+| Rectangle.Intersects | `math-checks`, `vt-rectangle`, `sprite-hit`, `sprite-tilemap` |
 | Rectangle.IsEmpty | `vt-rectangle` |
 | Rectangle.Location | `vt-rectangle` |
-| Rectangle.Union | `vt-rectangle` |
+| Rectangle.Union | `math-checks`, `vt-rectangle` |
 | RectangleConverter | `vt-converters` |
+| RegisterTexture2DContentPipeline | `wk-material` |
+| RegisterXnaImporter | `wk-processor` |
+| RegisterXnaModelSourceContentPipeline | `wk-material` |
+| RegisterXnaProcessor | `wk-processor` |
+| RegisterXnaXnbOutput | `wk-processor` |
+| RegisterXnbOutputContentPipeline | `wk-material` |
 | RenderTarget2D | `rendertarget`, `cam-orbit`, `cam-fov`, `cam-split`, `cam-mirror`, `sprite-basics`, `sprite-lights`, `fx-grade`, `fx-blur`, `fx-pixelate`, `fx-ripple`, `fx-edge`, `fx-crt`, `fx-plasma`, `fx-swirl`, `fx-chromatic`, `fx-kernel`, `fx-halftone`, `fx-vertexwave`, `fx-colormatrix`, `rs-scissor`, `rt-basic`, `rt-lowres`, `rt-control`, `rt-recursive`, `rt-mirror`, `rt-bloom`, `rt-msaa`, `pf-targets`, `rv-targets`, `rf-telescope` |
 | RenderTarget2D.ContentLost | `dev-window` |
 | RenderTarget2D.IsContentLost | `dev-window` |
-| RenderTarget2D.MultiSampleCount | `rt-msaa` |
+| RenderTarget2D.MultiSampleCount | `rt-msaa`, `rv-capabilities` |
 | RenderTarget2D.NotifyContentLostEXT | `dev-window` |
-| RenderTargetBinding | `rt-mrt`, `rt-cube` |
+| RenderTargetBinding | `rt-mrt`, `rt-cube`, `rv-capabilities` |
 | RenderTargetBinding.CubeMapFace | `rt-cube` |
 | RenderTargetBinding.RenderTarget | `rt-mrt`, `rt-cube` |
 | RenderTargetCube | `rt-cube` |
 | RenderTargetUsage.PreserveContents | `rt-recursive` |
 | RendererCapabilityProfile | `app-device` |
+| RendererCapabilityProfile.GetFeature | `rv-capabilities` |
 | RendererDetail.FriendlyName | `au-xact` |
 | RendererFeature | `pl-renderer` |
 | RendererFeature.BaseInstanceDrawing | `geo-instancing` |
+| RendererFeatureInfo | `rv-capabilities` |
 | RendererFormatUsage | `pl-renderer` |
 | RendererLimit | `pl-renderer` |
 | ResourceContentManager | `ct-resource` |
@@ -1256,6 +1472,9 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | ShaderLanguageEXT | `cx-package` |
 | ShaderPackageEXT.selectFor | `cx-package` |
 | ShadowCascadeStateEXT | `cx-shadow` |
+| SharpXmlEnumEntries | `wk-xml` |
+| SharpXmlMembers | `wk-xml` |
+| SharpXmlRootName | `wk-xml` |
 | Short2 | `vt-packed` |
 | Short4 | `vt-packed` |
 | SignedInGamer.AwardAchievement | `gs-achievements` |
@@ -1272,6 +1491,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | SkinnedEffect.SetBoneTransforms | `model-skinfx`, `model-skinext` |
 | SkinnedEffect.WeightsPerVertex | `model-skinfx` |
 | SkinnedEffect.setPunctualLightEXT | `model-skinfx` |
+| SkinnedMaterialContent | `wk-material` |
 | SkinnedModelEXT | `model-skinext` |
 | SkinnedModelEXT.AddPartEXT | `model-skinext` |
 | SkinnedModelEXT.AttachPartEXT | `model-skinext` |
@@ -1366,14 +1586,16 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | SurfaceFormat.Dxt1 | `ct-formats` |
 | SurfaceFormat.Single | `tex-volume` |
 | SurfaceFormat.Vector4 | `tex-volume` |
+| System.ArgumentNullException | `wk-material` |
 | System.ArgumentOutOfRangeException | `pl-exceptions` |
-| System.IO.FileNotFoundException | `pl-exceptions` |
+| System.IO.FileNotFoundException | `pl-exceptions`, `wk-importers` |
 | System.IO.MemoryStream | `tex-io` |
 | System.InvalidOperationException | `pl-exceptions` |
 | System.ObjectDisposedException | `pl-exceptions` |
 | System.Resources.ResourceManager | `ct-resource` |
 | System.Text.StringBuilder | `text-hud` |
 | System::ArgumentException | `rv-vertextype` |
+| System::Xml::Serialization::XmlSerializer | `wk-xml` |
 | SystemTray.AddEntry | `dev-tray` |
 | SystemTray.GetEntryChecked | `dev-tray` |
 | SystemTray.GetEntryEnabled | `dev-tray` |
@@ -1388,15 +1610,16 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | TextInputEXT.TextInput | `in-text` |
 | TextInputTypeEXT | `in-text` |
 | Texture.Format | `rt-formats` |
+| Texture.LevelCount | `wk-material` |
 | Texture2D | `materials`, `grounds-fountain`, `app-content`, `tex-mip`, `rf-garden` |
 | Texture2D.DDSFromStreamEXT | `ct-formats` |
 | Texture2D.FromStream | `tex-io`, `dev-medialib` |
-| Texture2D.GetData | `sprite-atlas`, `sprite-hit`, `sprite-tilemap`, `geo-terrain`, `tex-dynamic`, `ct-formats`, `rv-targets`, `rv-formats` |
+| Texture2D.GetData | `sprite-atlas`, `sprite-hit`, `sprite-tilemap`, `geo-terrain`, `tex-dynamic`, `ct-formats`, `wk-material`, `rv-targets`, `rv-formats` |
 | Texture2D.SaveAsJpeg | `tex-io` |
 | Texture2D.SaveAsPng | `tex-io` |
 | Texture2D.SetData | `sprite-ui`, `sprite-atlas`, `sprite-anim`, `tex-dynamic`, `rv-formats` |
 | Texture2DContent | `ct-processor`, `ct-compiler` |
-| Texture3D | `tex-volume`, `tex-volshader` |
+| Texture3D | `tex-volume`, `tex-volshader`, `rv-capabilities` |
 | Texture3D.GetData | `tex-volume` |
 | Texture3D.GetData(level, left, front) | `tex-volume` |
 | Texture3D.SetData | `tex-volume` |
@@ -1409,9 +1632,11 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | TextureFilter.MinPointMagLinearMipPoint | `tex-mip` |
 | TextureImporter | `ct-processor`, `ct-compiler` |
 | TextureImporter.Import | `ct-processor` |
-| TextureProcessorOutputFormat | `ct-processor` |
-| TextureTransformEXT | `model-material` |
+| TextureProcessorOutputFormat | `ct-processor`, `wk-material` |
+| TextureReferenceDictionary | `wk-material` |
+| TextureTransformEXT | `model-material`, `wk-gltf` |
 | TitleContainer.OpenStream | `ct-storage`, `pl-exceptions` |
+| TitleLocation.Path | `wk-cnbloader` |
 | ToastPushNotificationMessage | `dev-notify` |
 | ToastPushNotificationMessage.SendAsync | `dev-notify` |
 | ToastPushNotificationMessage.SubTitle | `dev-notify` |
@@ -1427,31 +1652,80 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Trace.WriteBinary | `pl-diagnostics` |
 | Trace.WriteChromeTrace | `pl-diagnostics` |
 | UrlLauncher.Open | `dev-tray` |
-| Vector2 | `sprite-origin` |
+| Vector2 | `sprite-origin`, `wk-xml` |
+| Vector2.Add | `math-checks` |
+| Vector2.Barycentric | `math-checks` |
+| Vector2.CatmullRom | `math-checks` |
+| Vector2.Clamp | `math-checks` |
+| Vector2.Distance | `math-checks` |
+| Vector2.DistanceSquared | `math-checks` |
+| Vector2.Divide | `math-checks` |
+| Vector2.Dot | `math-checks` |
+| Vector2.Hermite | `math-checks` |
+| Vector2.Lerp | `math-checks` |
+| Vector2.Max | `math-checks` |
+| Vector2.Min | `math-checks` |
+| Vector2.Multiply | `math-checks` |
+| Vector2.Negate | `math-checks` |
+| Vector2.Normalize | `math-checks` |
+| Vector2.Reflect | `math-checks` |
+| Vector2.SmoothStep | `math-checks` |
+| Vector2.Subtract | `math-checks` |
+| Vector2.Transform | `math-checks` |
+| Vector2.TransformNormal | `math-checks` |
 | Vector2Converter | `vt-converters` |
-| Vector3 | `an-pendulum`, `sim-flock`, `sim-integrators`, `rf-deck` |
-| Vector3.Add | `vec-add` |
-| Vector3.Barycentric | `curve-barycentric` |
-| Vector3.CatmullRom | `vec-lerp`, `curve-spline` |
-| Vector3.Cross | `vec-cross`, `sim-ik` |
-| Vector3.Distance | `vec-normalize`, `an-doors` |
-| Vector3.Dot | `vec-dot`, `vec-project`, `sim-balls`, `sim-ik` |
+| Vector3 | `an-pendulum`, `sim-flock`, `sim-integrators`, `wk-xml`, `rf-deck` |
+| Vector3.Add | `vec-add`, `math-checks` |
+| Vector3.Barycentric | `curve-barycentric`, `math-checks` |
+| Vector3.CatmullRom | `vec-lerp`, `curve-spline`, `math-checks` |
+| Vector3.Clamp | `math-checks` |
+| Vector3.Cross | `vec-cross`, `math-checks`, `sim-ik` |
+| Vector3.Distance | `vec-normalize`, `math-checks`, `an-doors` |
+| Vector3.DistanceSquared | `math-checks` |
+| Vector3.Divide | `math-checks` |
+| Vector3.Dot | `vec-dot`, `vec-project`, `math-checks`, `sim-balls`, `sim-ik` |
+| Vector3.Hermite | `math-checks` |
 | Vector3.Length | `vec-cross`, `vec-normalize` |
 | Vector3.LengthSquared | `sim-flock` |
-| Vector3.Lerp | `vec-lerp`, `cam-chase` |
-| Vector3.Multiply | `vec-project` |
-| Vector3.Normalize | `vec-reflect`, `vec-normalize`, `sim-flock` |
-| Vector3.Reflect | `vec-reflect` |
-| Vector3.SmoothStep | `vec-lerp`, `cam-transition` |
-| Vector3.Subtract | `vec-add` |
-| Vector3.TransformNormal | `mat-normals` |
+| Vector3.Lerp | `vec-lerp`, `math-checks`, `cam-chase` |
+| Vector3.Max | `math-checks` |
+| Vector3.Min | `math-checks` |
+| Vector3.Multiply | `vec-project`, `math-checks` |
+| Vector3.Negate | `math-checks` |
+| Vector3.Normalize | `vec-reflect`, `vec-normalize`, `math-checks`, `sim-flock` |
+| Vector3.Reflect | `vec-reflect`, `math-checks` |
+| Vector3.SmoothStep | `vec-lerp`, `math-checks`, `cam-transition` |
+| Vector3.Subtract | `vec-add`, `math-checks` |
+| Vector3.Transform | `math-checks` |
+| Vector3.TransformNormal | `mat-normals`, `math-checks` |
 | Vector3Converter | `vt-converters` |
 | Vector3Converter.ConvertFrom | `vt-converters` |
 | Vector3Converter.ConvertTo | `vt-converters` |
-| Vector4.Transform | `mat-screen` |
+| Vector4 | `wk-xml` |
+| Vector4.Add | `math-checks` |
+| Vector4.Barycentric | `math-checks` |
+| Vector4.CatmullRom | `math-checks` |
+| Vector4.Clamp | `math-checks` |
+| Vector4.Distance | `math-checks` |
+| Vector4.DistanceSquared | `math-checks` |
+| Vector4.Divide | `math-checks` |
+| Vector4.Dot | `math-checks` |
+| Vector4.Hermite | `math-checks` |
+| Vector4.Lerp | `math-checks` |
+| Vector4.Max | `math-checks` |
+| Vector4.Min | `math-checks` |
+| Vector4.Multiply | `math-checks` |
+| Vector4.Negate | `math-checks` |
+| Vector4.Normalize | `math-checks` |
+| Vector4.SmoothStep | `math-checks` |
+| Vector4.Subtract | `math-checks` |
+| Vector4.Transform | `mat-screen`, `math-checks` |
 | Vector4Converter | `vt-converters` |
 | VertexBuffer | `geo-vertextypes`, `geo-indexed`, `geo-procedural`, `geo-manybuffers`, `geo-terrain`, `model-skinfx`, `pf-buffers` |
 | VertexBuffer(GraphicsDevice, Type, int, BufferUsage) | `rv-vertextype` |
+| VertexBuffer.GetData | `wk-gltf` |
+| VertexBuffer.VertexCount | `wk-gltf` |
+| VertexBuffer.VertexDeclaration | `wk-gltf` |
 | VertexBufferBinding | `geo-instancing`, `pf-objects` |
 | VertexBufferContent | `ct-meshbuilder` |
 | VertexChannelCollection.Contains | `wk-meshhelper` |
@@ -1465,12 +1739,15 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | VertexContent.PositionIndices | `wk-meshhelper` |
 | VertexContent.VertexCount | `wk-meshhelper` |
 | VertexDeclaration | `geo-vertextypes`, `rv-vertextype` |
-| VertexDeclaration.GetVertexElements | `geo-vertextypes`, `rv-vertextype` |
-| VertexDeclaration.VertexStride | `geo-vertextypes`, `rv-vertextype` |
+| VertexDeclaration.GetVertexElements | `geo-vertextypes`, `wk-gltf`, `rv-vertextype` |
+| VertexDeclaration.VertexStride | `geo-vertextypes`, `wk-gltf`, `rv-vertextype` |
 | VertexDeclarationContent | `ct-meshbuilder` |
 | VertexElement | `geo-vertextypes`, `rv-vertextype` |
+| VertexElement.Offset | `wk-gltf` |
+| VertexElement.UsageIndex | `wk-gltf` |
+| VertexElement.VertexElementUsage | `wk-gltf` |
 | VertexElementFormat | `geo-vertextypes` |
-| VertexElementUsage | `geo-vertextypes` |
+| VertexElementUsage | `geo-vertextypes`, `wk-gltf` |
 | VertexPositionColor | `geo-triangle`, `geo-vertextypes`, `cx-shadow` |
 | VertexPositionColorTexture | `geo-vertextypes`, `tex-uv`, `an-conveyor` |
 | VertexPositionNormalTexture | `geo-vertextypes`, `geo-dynamic`, `geo-terrain` |
@@ -1507,12 +1784,47 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | VisualizationData | `au-music` |
 | WaveBank | `au-xact` |
 | WaveBank.IsInUse | `au-xact` |
+| WmaImporter | `wk-importers` |
+| WmaImporter.Attribute | `wk-importers` |
+| WmaImporter.Import | `wk-importers` |
 | WmvImporter | `au-video` |
 | WmvImporter.Import | `au-video` |
 | WriteLeaderboardsEventArgs.Gamer | `gs-leaderboards` |
 | WriteLeaderboardsEventArgs.IsLeaving | `gs-leaderboards` |
 | XImporter | `ct-modelimport` |
+| XmaEncodeQuality | `wk-importers` |
+| XmaEncodeQualityName | `wk-importers` |
+| XmaEncodeRequest | `wk-importers` |
+| XmaEncodeResult | `wk-importers` |
+| XmaEncoderIdentity.ToString | `wk-importers` |
+| XmaEncoderService | `wk-importers` |
+| XmaEncoderService.Available | `wk-importers` |
+| XmaEncoderService.Encode | `wk-importers` |
+| XmaEncoderService.Identity | `wk-importers` |
+| XmaEncoderService.UnavailableReason | `wk-importers` |
+| XmaEncoderUnavailableSentence | `wk-importers` |
 | XmlImporter | `ct-intermediate` |
 | XmlImporter.Attribute | `ct-intermediate` |
 | XmlImporter.Import | `ct-intermediate` |
+| XnaBridgeProcessorContext | `wk-material`, `wk-processor` |
+| cna_curve_create | `cx-capi` |
+| cna_curve_destroy | `cx-capi` |
+| cna_curve_evaluate | `cx-capi` |
+| cna_curve_get_keys | `cx-capi` |
+| cna_curve_key_collection_add | `cx-capi` |
+| cna_curve_key_init_position_value | `cx-capi` |
+| cna_error_copy_last_message | `cx-capi` |
+| cna_error_get_last_info | `cx-capi` |
+| cna_get_abi_version | `cx-capi` |
+| cna_half_from_single | `cx-capi` |
+| cna_matrix_create_rotation_y | `cx-capi` |
+| cna_matrix_create_translation_xyz | `cx-capi` |
+| cna_matrix_invert | `cx-capi` |
+| cna_matrix_multiply | `cx-capi` |
+| cna_quaternion_create_from_yaw_pitch_roll | `cx-capi` |
+| cna_quaternion_length | `cx-capi` |
+| cna_vector3_cross | `cx-capi` |
+| cna_vector3_dot | `cx-capi` |
+| cna_vector3_init_xyz | `cx-capi` |
+| cna_vector3_transform_matrix | `cx-capi` |
 <!-- END COVERAGE -->

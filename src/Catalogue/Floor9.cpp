@@ -78,6 +78,10 @@ WingSpec ValidationWing()
            {"CNA::Graphics::VertexTypeRegistryEXT", "VertexTypeRegistryEXT.Register", "VertexTypeRegistryEXT.TryResolve", "VertexTypeRegistryEXT.Resolve", "IVertexType", "IVertexType.VertexDeclaration",
             "VertexBuffer(GraphicsDevice, Type, int, BufferUsage)", "DynamicVertexBuffer(GraphicsDevice, Type, int, BufferUsage)", "VertexDeclaration", "VertexElement", "VertexDeclaration.VertexStride",
             "VertexDeclaration.GetVertexElements", "System::ArgumentException", "GraphicsDevice.DrawPrimitives"}),
+        rv("rv-capabilities", "Claims Against Operations", "Each capability the renderer claims is tried: Supported must work, Unsupported must refuse", "capabilities",
+           {"GraphicsDevice.GetRendererCapabilityProfileEXT", "RendererCapabilityProfile.GetFeature", "RendererFeatureInfo", "CNA::RendererFeatureSupport", "CNA::RendererFeature", "CNA::GetRendererFeatureName",
+            "OcclusionQuery", "OcclusionQuery.Begin", "OcclusionQuery.End", "OcclusionQuery.IsComplete", "GraphicsDevice.SetRenderTargets", "RenderTargetBinding", "Texture3D", "RenderTarget2D.MultiSampleCount",
+            "FillMode", "RasterizerState.FillMode"}),
     };
     return w;
 }

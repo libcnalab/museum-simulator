@@ -1,0 +1,17 @@
+{
+  "description": "MeshHelper operations on a face-by-face cube, every result checked exactly",
+  "requires": "MUSEUM_PIPELINE",
+  "script": "goto:wk-meshhelper;wait:30;stats;quit",
+  "expect": [
+    "wk-meshhelper MergeDuplicatePositions(mesh, 0.001): PASS (expected 36 -> 8 positions, got 36 -> 8)",
+    "wk-meshhelper MergeDuplicateVertices(mesh): PASS",
+    "wk-meshhelper CalculateNormals(mesh, true) on shared positions: PASS",
+    "wk-meshhelper tangents are perpendicular to the normals: PASS",
+    "wk-meshhelper OptimizeForCache keeps every triangle: PASS",
+    "wk-meshhelper SwapWindingOrder reverses every triangle: PASS",
+    "wk-meshhelper TransformScene(scene, translation 0,2,0): PASS",
+    "wk-meshhelper FindSkeleton(scene): PASS",
+    "wk-meshhelper FlattenSkeleton(Hips): PASS"
+  ],
+  "forbid": [": FAIL ("]
+}

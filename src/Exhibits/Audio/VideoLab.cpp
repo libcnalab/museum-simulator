@@ -45,6 +45,8 @@ public:
         p.AddButton("VideoPlayer.Pause", [this] { if (player_) player_->Pause(); });
         p.AddButton("VideoPlayer.Resume", [this] { if (player_) player_->Resume(); });
         p.AddButton("VideoPlayer.Stop", [this] { if (player_) player_->Stop(); });
+        // A scripted run reads the player's state from the log: the same three readouts, one line per press.
+        p.AddButton("Log the player's state", [this] { Museum::Log("video", "state %s, position %s, frames %lld", state_.c_str(), position_.c_str(), frames_); });
         p.AddToggle("VideoPlayer.IsLooped", true, [this](bool v) { looped_ = v; if (player_) player_->setIsLoopedProperty(v); });
         p.AddToggle("VideoPlayer.IsMuted", false, [this](bool v) { if (player_) player_->setIsMutedProperty(v); });
         p.AddSlider("VideoPlayer.Volume", 0.0f, 1.0f, 0.6f, [this](float v) { volume_ = v; if (player_) player_->setVolumeProperty(v); });

@@ -1,6 +1,6 @@
 # Museum Simulator CNA Coverage Handoff
 
-Updated: 2026-10-19 (Europe/Prague)
+Updated: 2026-10-20 (Europe/Prague)
 
 ## Purpose and authority
 
@@ -18,8 +18,7 @@ records task state, dependencies, acceptance criteria, discoveries, and evidence
 declare completion until every applicable row is complete or has a documented external
 blocker and all final gates pass.
 
-The persistent goal was deliberately paused after the handoff commit at the user's
-request. A future agent should resume only when the user asks it to continue.
+The user resumed the goal on 2026-10-19 ("read the handoff and continue until the backlog is empty").
 
 ## Repository ownership and concurrency
 
@@ -35,64 +34,29 @@ request. A future agent should resume only when the user asks it to continue.
 - Never treat an old binary, a catalogue name, a support query, or a skipped test as proof
   that an API was implemented, executed, or correct.
 
-## Current authoritative audit state
+## Current state (2026-10-19, second session)
 
-The generated public API inventory currently observes CNA HEAD
-`df92342022eb7d80e2a041a1dad8cde43dc5e560` described as
-`v0.1.0-465-gdf9234202-dirty`.
+`plan.md` is the authoritative backlog with per-item status and evidence; read it first. In short:
 
-At handoff time the sibling CNA tree has concurrent documentation changes in:
-
-- `CNA_DEMOS_REPAIR_HANDOFF.md`
-- `CNA_DEMOS_REPAIR_MATRIX.json`
-
-The other agent committed the Quaternion implementation and tests as `df9234202`
-(`Preserve finite range in Quaternion inverse and division`). Neither that commit nor the
-remaining documentation changes alter a public header. The public-header SHA-256 remains
-`16f94e940a7d898f302fbdd293f75b904cb4741549fce2f14c8f8ca99849ea69`, with a
-declaration delta of +0/-0. Do not race or overwrite that work.
-
-Inventory and catalogue counts:
-
-- 699 public headers;
-- 19,851 public declarations: 12,941 C++ and 6,910 C;
-- 225 internal/detail headers excluded;
-- 40 internal/detail namespace declarations excluded;
-- 70 public declarations whose signatures expose an internal/detail type;
-- 295 museum rooms and 1,284 normalized claims;
-- 1,813 claim-room pairs;
-- 1,921 declarations linked by at least one catalogue claim;
-- zero ambiguous, unresolved, or non-declaration claims;
-- seven `System.*` dependency claims kept outside the CNA denominator.
-
-Evidence counts after completing `rt-formats`:
-
-- 99 reviewed implementation records;
-- 81 implementation-verified CNA declarations;
-- 69 fully implementation-verified claims;
-- 97 reviewed and 89 fully verified claim-room pairs;
-- two current recorded OPENGLES3 runs;
-- 81 executed CNA declarations, 69 fully executed claims, and 89 executed pairs;
-- five exact correctness oracles;
-- eight correctness-verified declarations, six fully verified claims, and seven pairs.
-
-Rooms fully reviewed at implementation and execution level:
-
-- `pl-diagnostics`: 26/26
-- `ct-compiler`: 14/14
-- `pl-exceptions`: 13 verified plus the exact parameterless `SpriteBatch.Begin`
-  overload; the family remains partial because the room does not call seven other overloads
-- `pf-dashboard`: 7/7
-- `app-gametime`: 5/5
-- `ct-resource`: 5/5
-- `cx-stats`: 4/4
-- `rt-formats`: 3/3
-
-Other reviewed partial rooms are shown in `docs/CNA_COVERAGE_AUDIT.md`. The most useful
-next contained review is `model-cameras`: its room is already present in the tracked
-OPENGLES3 run, but only `ModelCameraEXT.HasInfiniteFarPlane` has a reviewed record. Review
-the remaining seven claims against `src/Exhibits/Models/ModelCamerasLab.cpp`, add precise
-records with stable symbol IDs, and link only paths actually executed by the run.
+- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 851 declarations; the 70 declarations
+  whose signatures name internal types are classified in `audit/internal_type_classification.json` (A11).
+- **Implementation evidence** (`audit/implementation_evidence.json`): every claim-room pair is reviewed (2 000+
+  records). False catalogue claims found by the review were removed, renamed or made true in code (A05).
+- **Areas** (`audit/area_classification.json`): every public header without a claim has a reviewed status
+  (gap with a backlog id, supporting, not-applicable); the coverage check fails on a stale or missing rule (A06).
+- **Execution evidence:** `tools/execution_coverage.py` runs one museum process per room in a tree configured with
+  `-DMUSEUM_COVERAGE=ON` (gcov counters in the museum's own code only) and records the executed lines per room;
+  `tools/audit_api_coverage.py` then marks a record executed only when every step of its path ran in its own room's
+  process. Rooms with a single-room scenario in `tests/scenarios/` run that script instead of the sweep
+  (`--scenarios`). The two OPENGLES3 runs of the first session are historical (their binaries are gone).
+- **Correctness:** exact witnesses: `[museum][check]` lines of the checking rooms (wk-*, math-checks, cx-capi,
+  rv-* `[museum][validate]`), `tools/scenarios.py` (T05), `tools/devices_check.sh` (dialogs, tray, URL, camera list,
+  haptics refusals, media library on fixtures, notifications), `tools/audio_check.sh` (PCM through SDL's disk
+  driver), `tools/net_check.sh` (host migration across three processes), `tools/online_check.sh` (account service).
+- **CNA defects** found by the museum are in `docs/CNA_FINDINGS.md` with the exact change each needs. CNA is owned
+  by another agent: record, never edit.
+- New wings (appended so no existing room moved): floor 7 *Devices and the System*, floor 8 *Pipeline Workshop*,
+  the rv-vertextype room on floor 9.
 
 ## Meaning of the evidence levels
 
@@ -136,58 +100,16 @@ Correctness currently proves:
 - `Game.ResetElapsedTime` produces `ElapsedGameTime 0.0 ms` after a deliberate 400 ms
   stall.
 
-## Binary provenance caveat
-
-The last fully built and runtime-tested binary baseline predates the current concurrent
-Quaternion implementation change in CNA:
-
-- built CNA revision: `2a245b91f2e6388863cc81f5c93880494dad664a`;
-- museum binary SHA-256:
-  `22fe215c0883526f409e02f8c535a650b3bd629779f08cc69a8e187aedc7bfd3`;
-- `libcna.so` SHA-256:
-  `c7c14ed576f439e609978aa8de3f79921b3594d6276250ad693e222b5bd5ce71`;
-- `museum_tests`: 8,484 checks, zero failures;
-- `--validate`: passed;
-- CTest: 6/6 passed;
-- renderer self-check: 85 PASS, 0 FAIL, 1 INFO, 1 SKIP.
-
-The evidence tool still regards both recorded runs as current for those unchanged binaries,
-but task A07 is correctly `IN_PROGRESS`: current CNA source has not been rebuilt after the
-other agent's Quaternion changes. Once that agent has stabilized or committed the tree,
-rebuild with at most two jobs, run tests and validation, record new binary hashes, and repeat
-any execution runs whose CNA binary hash changes. Never edit new hashes into a manifest
-without rerunning the corresponding script.
-
-## Work completed in the final audit pass
-
-- `ct-compiler`: all 14 claims now have reviewed direct/indirect paths and execution
-  evidence. This covers compiler/options, platform/profile/compression fields,
-  importer/processor/content types, type-writer lookup, and the protected
-  `ReadAsset`/`OpenStream` route through `MemoryContentManager`.
-- `app-gametime`: all five claims now have reviewed implementation and execution evidence;
-  the existing exact log line is a correctness oracle for reset-after-stall.
-- `rt-formats`: all three room claims now have implementation and execution evidence:
-  `SurfaceFormat`, `SupportsSurfaceFormatAsRenderTargetEXT`, and `Texture.Format`.
-  Results are only shown in the panel, so no correctness oracle was fabricated.
-
-The current museum source also contains earlier audit fixes and tooling additions described
-in `plan.md`, including removal of direct `CNA::Internal` names, correction of false
-catalogue claims, truthful none/LZX compiler compression controls, deterministic inventory
-drift gates, execution provenance validation, and generated documentation gates.
-
 ## First steps for the next agent
 
-1. Confirm a clean museum checkout and read `plan.md` plus the two generated summaries.
-2. Inspect `git -C ../cna status --short` and `git -C ../cna rev-parse HEAD`. Do not touch
-   it while another agent owns dirty files.
-3. Run the nonmutating checks below. If only the CNA revision/diff changed with no public
-   declaration delta, regenerate inventory and coverage summaries, then record provenance.
-4. Continue A03/A05 with the remaining seven `model-cameras` claims. Use the current public
-   inventory to obtain stable IDs and verify unique anchors with the coverage generator.
-5. Link records to an execution run only when the run actually enters the room and executes
-   the required branch. Add correctness only for exact, logged outcomes.
-6. After sibling CNA work stabilizes, complete A07 before claiming the runtime baseline is
-   current.
+1. `git status`, `git log -5`, then read `plan.md` (status table and the newest entries at the end).
+2. `git -C ../cna status --short; git -C ../cna log -3`: CNA moves all the time; rerun
+   `python3 tools/generate_api_inventory.py --write` and `python3 tools/audit_api_coverage.py --write` when only the
+   revision changed (declaration delta +0/-0).
+3. Pick the first unblocked TODO/IN_PROGRESS row of `plan.md`; builds use at most two jobs and only the closed list
+   of build directories (`build/`, `build-probe/` = multi-renderer + coverage tree, `build-consumer/`).
+4. After new rooms: review their claims (records in the implementation manifest), add scenarios or checks with exact
+   expectations, run the per-room coverage on build-probe, regenerate docs (`tools/gen_docs.sh`) and commit.
 
 ## Validation commands
 
@@ -210,14 +132,21 @@ build/bin/museum_tests
 build/bin/cna-3d-museum --validate
 ```
 
-GPU/private-display runs may require the same elevated execution context used by the prior
-session. Keep renderer, command, build options, revisions, binary hashes, exact script/log
+Graphics runs use a private Xvfb display with llvmpipe by default. `MUSEUM_GPU=1` in front of any tool runs
+on the machine's real GPU with no display at all (SDL `offscreen`; nothing reaches the live desktop);
+`MUSEUM_GPU=1 tools/renderer_check.sh OPENGLES3 OPENGL33` records the driver that drew in
+`build/renderer_check/<R>-gpu.device` (CNA's adapter line cannot tell llvmpipe from the GPU). Vulkan renderers
+(WEBGPU, SDL_GPU) on the GPU: `BUILD_DIR=build-probe VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json`. Keep renderer, command, build options, revisions, binary hashes, exact script/log
 hashes, room order, interactions, final stats, and error counts in the execution manifest.
 
-## Known immediate limitation
+## Functional checks (each prints PASS/FAIL/UNAVAILABLE lines and a summary)
 
-At handoff, unit tests, coverage audit, inventory, generated docs, CTest, museum structural
-tests, `--validate`, and whitespace checks passed. The inventory initially reported stale
-because CNA advanced concurrently; it was regenerated against `df9234202`, with +0/-0
-declaration delta and the same public-header hash. A07 remains open until the new CNA
-Quaternion implementation is built and runtime evidence is refreshed.
+```bash
+tools/check_all.sh              # the battery; ONLINE=1 and SLOW=1 add profiles, skips are never ok
+tools/scenarios.py              # tests/scenarios/*.json: scripted visits with exact expected log lines
+tools/devices_check.sh          # manual-button rooms on a private display with fake zenity/xdg-open
+tools/audio_check.sh            # audio on, SDL disk driver, FFT of the real mixed output
+tools/net_check.sh              # three processes, host migration
+tools/online_check.sh           # the account service (needs ../cna-gamer-services-server built)
+tools/execution_coverage.py run --id <run> --build-dir build-probe --renderer OPENGLES3 --scenarios
+```

@@ -116,6 +116,19 @@ def collect_lines(build_dir: pathlib.Path) -> dict[str, list[int]]:
     return {path: sorted(lines) for path, lines in sorted(executed.items())}
 
 
+def load_scenarios() -> dict[str, str]:
+    """Single-room scenarios from tests/scenarios: their scripts replace the sweep for that room, so the manual
+    buttons a sweep never presses run too (each press must succeed, see room_failure)."""
+    scripts: dict[str, str] = {}
+    for path in sorted((ROOT / "tests" / "scenarios").glob("*.json")):
+        script = json.loads(path.read_text(encoding="utf-8"))["script"]
+        steps = [step for step in script.split(";") if step]
+        rooms = [step[5:] for step in steps if step.startswith("goto:")]
+        if len(rooms) == 1 and steps[0].startswith("goto:") and steps[-2:] == ["stats", "quit"] and rooms[0] not in scripts:
+            scripts[rooms[0]] = script
+    return scripts
+
+
 def room_failure(status: int, log_text: str) -> str | None:
     if status == 124:
         return "timed out"
@@ -133,8 +146,8 @@ def room_failure(status: int, log_text: str) -> str | None:
         if marker in log_text:
             line = next(line for line in log_text.splitlines() if marker in line)
             return line[:200]
-    if not re.search(r"^\[museum\]\[script\] pressall: [1-9][0-9]* panel\(s\) exercised$", log_text, re.MULTILINE):
-        return "pressall exercised no panel"
+    if not re.search(r"^\[museum\]\[script\] (pressall: [1-9][0-9]* panel\(s\) exercised|press '[^']+': done)$", log_text, re.MULTILINE):
+        return "no control was operated"
     return None
 
 
@@ -173,8 +186,9 @@ def run(arguments: argparse.Namespace) -> int:
     log_lines: list[str] = []
     env = dict(os.environ, BUILD_DIR=arguments.build_dir, CNA_GRAPHICS_RENDERER=arguments.renderer,
                MUSEUM_TIMEOUT=str(arguments.timeout))
+    scenarios = load_scenarios() if arguments.scenarios else {}
     for index, room in enumerate(rooms, 1):
-        script = f"goto:{room};wait:{arguments.frames};pressall;wait:4;stats;quit"
+        script = scenarios.get(room) or f"goto:{room};wait:{arguments.frames};pressall;wait:4;stats;quit"
         reset_counters(build_dir)
         room_log = work / f"{room}.log"
         env["MUSEUM_LOG"] = str(room_log)
@@ -222,7 +236,7 @@ def run(arguments: argparse.Namespace) -> int:
         "renderer": arguments.renderer,
         "platform": f"{platform.system()} {platform.release()} {platform.machine()}, private virtual display",
         "command": f"tools/execution_coverage.py run --id {arguments.id} --build-dir {arguments.build_dir} "
-                   f"--renderer {arguments.renderer} --frames {arguments.frames}"
+                   f"--renderer {arguments.renderer} --frames {arguments.frames}" + (" --scenarios" if arguments.scenarios else "")
                    + ("" if not arguments.rooms else " " + " ".join(arguments.rooms)),
         "configuration": {
             "CMAKE_BUILD_TYPE": cache_value(build_dir, "CMAKE_BUILD_TYPE"),
@@ -241,6 +255,7 @@ def run(arguments: argparse.Namespace) -> int:
         "museumBinarySha256": museum_sha,
         "cnaBinarySha256": cna_sha,
         "rooms": passed,
+        "scenarioRooms": sorted(room for room in passed if room in scenarios),
         "failedRooms": failed,
         "script": {"path": script_path.relative_to(ROOT).as_posix(), "sha256": sha256_bytes(script_path.read_bytes())},
         "log": {"path": log_path.relative_to(ROOT).as_posix(), "sha256": sha256_bytes(log_path.read_bytes())},
@@ -265,6 +280,7 @@ def main() -> int:
     run_parser.add_argument("--renderer", default="OPENGLES3")
     run_parser.add_argument("--frames", type=int, default=20)
     run_parser.add_argument("--timeout", type=int, default=180)
+    run_parser.add_argument("--scenarios", action="store_true", help="use tests/scenarios scripts for the rooms they cover")
     run_parser.add_argument("rooms", nargs="*")
     arguments = parser.parse_args()
     if not re.fullmatch(r"[A-Za-z0-9._-]+", arguments.id):

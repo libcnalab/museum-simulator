@@ -44,6 +44,12 @@ endif()
 set(CNA_BUILD_TESTS    OFF CACHE BOOL   "Build CNA's own tests")
 set(CNA_BUILD_EXAMPLES OFF CACHE BOOL   "Build CNA's example applications")
 set(CNA_BUILD_C_API    OFF CACHE BOOL   "Build the CNA C API")
+# The Native C API room is a C17 client of CNA's exported C ABI (src/CApi/NativeCProbe.c). It needs CNA's C API library,
+# so turning it on turns that on too; turned off, the room says it was not built.
+option(MUSEUM_C_API "Build the museum's C17 client of CNA's native C ABI (needs CNA_BUILD_C_API)" ON)
+if(MUSEUM_C_API AND NOT EMSCRIPTEN)
+    set(CNA_BUILD_C_API ON CACHE BOOL "Build the CNA C API" FORCE)
+endif()
 # Networking and GamerServices (Microsoft.Xna.Framework.Net / GamerServices) back the "Net and gamer services" wing. They pull in
 # ENet and CNA's offline profile service; turn them off for a smaller build (those rooms then say so).
 option(MUSEUM_NETWORKING "Demonstrate Microsoft.Xna.Framework.Net and GamerServices" ON)
@@ -59,7 +65,9 @@ set(CNA_CNAEXT      ON    CACHE BOOL   "Build CNA's graphics extensions")
 set(CNA_DEVICES     ON    CACHE BOOL   "Build CNA's device extensions")
 # FULL compiles the CPU zones, markers and event timeline in as well as the counters; the museum starts at runtime level STATS (see
 # MuseumGame) so nothing is recorded until a room asks (Instrumenting Your Own Code, The Inspector).
-set(CNA_DIAGNOSTICS FULL CACHE STRING "CNA diagnostics level (OFF|STATS|FULL)" FORCE)
+# The museum's diagnostics rooms show the most at FULL, which is the default; OFF and STATS are honest choices too
+# (those rooms then say what their level lacks), so the cache value is not forced.
+set(CNA_DIAGNOSTICS FULL CACHE STRING "CNA diagnostics level (OFF|STATS|FULL)")
 # CNA's optional Inspector (an agent that serves the diagnostics over an authenticated loopback socket, and a client) is a separate module that is
 # off in CNA's own default build. The museum links it for the Inspector room; the agent is never started until a visitor presses its button.
 option(MUSEUM_INSPECTOR "Link CNA's optional Inspector agent and client for the Inspector room" ON)
@@ -109,9 +117,16 @@ endif()
 file(GLOB_RECURSE MUSEUM_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 list(REMOVE_ITEM MUSEUM_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Main.cpp")
 
+if(MUSEUM_C_API AND NOT EMSCRIPTEN)
+    list(APPEND MUSEUM_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/CApi/NativeCProbe.c")
+endif()
 add_library(museum_core STATIC ${MUSEUM_SOURCES})
 target_include_directories(museum_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_link_libraries(museum_core PUBLIC CNA)
+if(MUSEUM_C_API AND NOT EMSCRIPTEN AND TARGET cna_c_api)
+    target_link_libraries(museum_core PUBLIC cna_c_api)
+    target_compile_definitions(museum_core PUBLIC MUSEUM_C_API=1)
+endif()
 if(MUSEUM_NETWORKING AND TARGET CNA_Net AND TARGET CNA_GamerServices)
     target_link_libraries(museum_core PUBLIC CNA_Net CNA_GamerServices)
     target_compile_definitions(museum_core PUBLIC MUSEUM_NETWORKING=1)

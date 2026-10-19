@@ -1,0 +1,10 @@
+{
+  "description": "CNA::Diagnostics at FULL: a bounded recording reports what it dropped; resources follow their handles",
+  "script": "goto:pl-diagnostics;wait:20;press:SetRuntimeMode(Full)=1;wait:10;press:Overflow;wait:5;press:Unregister the source;wait:5;press:SetRuntimeMode(Full)=0;wait:5;stats;quit",
+  "expectRegex": [
+    "\\[museum\\]\\[diagnostics\\] overflow: StartRecording\\(16\\) kept [0-9]+ events and reports [1-9][0-9]* dropped"
+  ],
+  "expect": [
+    "[museum][diagnostics] re-registration: after Reset the resource is gone; registered again it is listed"
+  ]
+}

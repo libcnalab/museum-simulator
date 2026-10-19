@@ -1,5 +1,7 @@
 #include "Rendering/SignFactory.hpp"
 
+#include "System/NotSupportedException.hpp"
+
 #include <algorithm>
 
 #include "Diagnostics/Log.hpp"
@@ -12,6 +14,7 @@
 #include "Microsoft/Xna/Framework/Rectangle.hpp"
 #include "Microsoft/Xna/Framework/Vector2.hpp"
 #include "Rendering/ImageUtil.hpp"
+#include "System/NotSupportedException.hpp"
 
 using namespace Microsoft::Xna::Framework;
 using namespace Microsoft::Xna::Framework::Graphics;
@@ -59,6 +62,13 @@ std::string SignFactory::CreateCustom(int w, int h, const Color& background,
         sprites_.End();
         device_.SetRenderTarget(nullptr);
         target.GetData(pixels.data(), static_cast<int>(pixels.size()));
+    } catch (const System::NotSupportedException& e) {
+        // A renderer that executes no rasterisation (HEADLESS) refuses to read a render target back, by design; CNA has
+        // no capability query for it, so the refusal is the answer. The sign stays its background colour.
+        device_.SetRenderTarget(nullptr);
+        static bool told = false;
+        if (!told) Museum::Log("signs", "signs drawn without text: %s", e.what());
+        told = true;
     } catch (const std::exception& e) {
         device_.SetRenderTarget(nullptr);
         Museum::Log("signs", "could not render sign: %s", e.what());

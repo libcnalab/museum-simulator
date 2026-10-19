@@ -1,5 +1,11 @@
 # CNA API survey (working notes)
 
+> **Historical (2026-10-13).** These planning notes are kept for orientation only and are not maintained. Several statements
+> are no longer true: the renderer list below names identities CNA has since retired (VULKAN, SDL_RENDERER, DIRECTX11 and
+> METAL are gone; the live set is in `../cna/modules/core/include/CNA/GraphicsRendererType.hpp`), and compiled-effect
+> support moved behind per-renderer `CNA_<RENDERER>_COMPILED_EFFECTS` options. The current public headers are the source of
+> truth; the audited denominator is `docs/CNA_API_INVENTORY.md` and the evidence is `docs/CNA_COVERAGE_AUDIT.md`.
+
 Compiled on 2026-10-13 by reading CNA's headers and docs while planning the museum. It is a **map, not a specification**: verify signatures against the headers in `../cna/modules/*/include` before relying on a name. Where it disagrees with CNA's `handoff.md` section 5, the handoff wins.
 
 CNA API SURVEY for museum-simulator

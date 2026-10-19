@@ -83,6 +83,8 @@ public:
         p.AddButton("StartRecording(4096 events)", [this] { Start(); });
         p.AddButton("StopRecording: read the Trace", [this] { Stop(); });
         p.AddButton("Trace.WriteBinary then ReadBinary", [this] { RoundTrip(); });
+        p.AddButton("Overflow: record 16 events while 200 markers fire", [this] { Overflow(); });
+        p.AddButton("Unregister the source and the resource, then register again", [this] { Reregister(); });
         p.AddReadout("Build / runtime level", [] { return std::string(ModeName(Diag::GetBuildMode())) + " / " + ModeName(Diag::GetRuntimeMode()); });
         p.AddReadout("Recording", [this] { return session_.IsActive() ? std::string("active") : std::string("no"); });
         p.AddReadout("Source collected", [this] { return std::to_string(source_->collected_.load()) + " times"; });
@@ -242,6 +244,41 @@ private:
         std::ostringstream chrome;
         const bool ok = trace_->WriteChromeTrace(chrome);
         traceLines_.push_back(std::string("Trace.WriteChromeTrace: ") + (ok ? std::to_string(chrome.str().size() / 1024) + " KB of JSON, starts " : "failed") + (ok ? chrome.str().substr(0, 40) : std::string()));
+    }
+
+    // A recording smaller than what happens: the trace must say how many events it could not keep.
+    void Overflow()
+    {
+        if (session_.IsActive()) { traceLines_ = {"already recording"}; return; }
+        if (Diag::GetRuntimeMode() != Diag::Mode::Full) {
+            traceLines_ = {"recording needs runtime level Full: switch on SetRuntimeMode(Full) first"};
+            Museum::Log("diagnostics", "overflow: not attempted, runtime level %s", ModeName(Diag::GetRuntimeMode()));
+            return;
+        }
+        session_ = Diag::StartRecording(16);
+        for (int i = 0; i < 200; ++i) Diag::MarkEvent(marker_, Diag::Category::Application, ++markerValue_);
+        trace_ = std::make_unique<Diag::Trace>(Diag::StopRecording(session_));
+        Describe();
+        Museum::Log("diagnostics", "overflow: StartRecording(16) kept %zu events and reports %llu dropped", trace_->GetEvents().size(), static_cast<unsigned long long>(trace_->GetDroppedEventCount()));
+    }
+
+    // A source and a resource leave the provider's view when their registrations end, and come back when renewed.
+    void Reregister()
+    {
+        const auto listed = [this] {
+            const Diag::Snapshot snap = Diag::GetProvider().CaptureSnapshot();
+            bool resource = false;
+            for (const Diag::ResourceRecord& r : snap.resources) resource = resource || r.label == "Museum custom buffer";
+            return resource;
+        };
+        registration_.Reset();
+        resource_.Reset();
+        const bool resourceAfterReset = listed();
+        registration_ = Diag::RegisterSource(source_);   // the engine polls the renewed source from the next frame on
+        UpdateResource();
+        const bool resourceBack = listed();
+        Museum::Log("diagnostics", "re-registration: after Reset the resource is %s; registered again it is %s", resourceAfterReset ? "still listed" : "gone", resourceBack ? "listed" : "missing");
+        if (resourceAfterReset || !resourceBack) ReportError("a diagnostics resource did not follow its ResourceHandle");
     }
 
     void RoundTrip()

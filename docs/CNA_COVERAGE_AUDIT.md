@@ -7,36 +7,36 @@ Implementation, execution and correctness counts rise only from recorded evidenc
 The complete per-claim and per-declaration matrix
 is generated in `build/api-audit/coverage-evidence.json`.
 
-Museum catalogue SHA-256: `bd89532a29be6c7b9760d852d3ff61f811d873eae7dc3e2b5908e23f2dc5ec64`; exhibit sources SHA-256: `2897475c7bd6d2d15b6ba0c3542ff30ea0d8502552bba6444315ff782832d732`
+Museum catalogue SHA-256: `092e3ac002c3c75fdcfd13af2ff40deabcd928aa56180bce87b489660daca226`; exhibit sources SHA-256: `82a95806ad056e3dd596f1fb85a2b2850c3f552c724ba8a649aec58d8edaa526`
 
-CNA revision: `0e7be08e0993741d4a67d3262331e6db1bb55d41` (`v0.1.0-477-g0e7be08e0`)
+CNA revision: `41305f5bab7cce308d4103e84242cbe5f130f2b4` (`v0.1.0-496-g41305f5ba-dirty`)
 
-Claims: **1459**; exact declaration matches: **1116**; member/overload families: **335**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **8**.
+Claims: **1771**; exact declaration matches: **1315**; member/overload families: **446**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
 
-Public declarations: **19851**; linked by at least one catalogue name: **2099**; implementation-verified: **1515**; executed: **0**; correctness-verified: **0**.
+Public declarations: **19851**; linked by at least one catalogue name: **2601**; implementation-verified: **2085**; executed: **0**; correctness-verified: **0**.
 
-Implementation source located through the exhibit registry for **305 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
-Reviewed implementation records: **2037**; fully implementation-verified claims: **1134**. Reviewed claim-room pairs: **1953** of **1989**; fully verified pairs: **1513**.
+Implementation source located through the exhibit registry for **315 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
+Reviewed implementation records: **2556**; fully implementation-verified claims: **1437**. Reviewed claim-room pairs: **2444** of **2444**; fully verified pairs: **1937**.
 Execution runs: **0 current** of **2 recorded**; execution records: **2**; fully executed claims: **0**; executed claim-room pairs: **0**.
 Correctness oracles: **5**; fully correctness-verified claims: **0**; correctness-verified claim-room pairs: **0**.
 
 | Module | Declarations | Catalogue-linked | Not catalogue-linked |
 |---|---:|---:|---:|
 | `audio` | 321 | 75 | 246 |
-| `c-api` | 6910 | 0 | 6910 |
-| `content` | 1546 | 35 | 1511 |
-| `content-pipeline` | 2249 | 177 | 2072 |
+| `c-api` | 6910 | 30 | 6880 |
+| `content` | 1546 | 108 | 1438 |
+| `content-pipeline` | 2249 | 337 | 1912 |
 | `core` | 128 | 30 | 98 |
 | `design` | 83 | 17 | 66 |
 | `devices` | 216 | 32 | 184 |
 | `devices-ext` | 84 | 37 | 47 |
 | `diagnostics` | 224 | 31 | 193 |
 | `gamer-services` | 690 | 120 | 570 |
-| `graphics` | 2912 | 722 | 2190 |
+| `graphics` | 2912 | 779 | 2133 |
 | `graphics-ext` | 106 | 16 | 90 |
-| `input` | 897 | 165 | 732 |
+| `input` | 897 | 166 | 731 |
 | `inspector` | 189 | 19 | 170 |
-| `math` | 954 | 278 | 676 |
+| `math` | 954 | 456 | 498 |
 | `media` | 339 | 94 | 245 |
 | `net` | 290 | 116 | 174 |
 | `phone` | 61 | 35 | 26 |
@@ -50,7 +50,7 @@ Correctness oracles: **5**; fully correctness-verified claims: **0**; correctnes
 | `renderers/software` | 0 | 0 | 0 |
 | `renderers/stub` | 0 | 0 | 0 |
 | `renderers/webgpu` | 0 | 0 | 0 |
-| `runtime` | 322 | 62 | 260 |
+| `runtime` | 322 | 65 | 257 |
 | `storage` | 44 | 30 | 14 |
 
 ## Implementation review progress
@@ -135,6 +135,7 @@ Only rooms with at least one reviewed pair are listed.
 | `curve-easing` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `curve-spline` | 0 | 1 | 0 | 0 | 0 | 1 |
 | `cx-ascii` | 2 | 0 | 0 | 0 | 0 | 2 |
+| `cx-capi` | 25 | 0 | 0 | 0 | 0 | 25 |
 | `cx-crt` | 2 | 1 | 0 | 0 | 0 | 3 |
 | `cx-debugdraw` | 5 | 0 | 0 | 0 | 0 | 5 |
 | `cx-depth` | 3 | 0 | 0 | 0 | 0 | 3 |
@@ -216,6 +217,7 @@ Only rooms with at least one reviewed pair are listed.
 | `mat-screen` | 2 | 2 | 0 | 0 | 0 | 4 |
 | `mat-view` | 1 | 2 | 0 | 0 | 0 | 3 |
 | `materials` | 3 | 0 | 0 | 0 | 0 | 3 |
+| `math-checks` | 108 | 21 | 0 | 0 | 0 | 129 |
 | `model-bounds` | 1 | 2 | 0 | 0 | 0 | 3 |
 | `model-cameras` | 6 | 2 | 0 | 0 | 0 | 8 |
 | `model-effects` | 3 | 0 | 0 | 0 | 0 | 3 |
@@ -302,6 +304,7 @@ Only rooms with at least one reviewed pair are listed.
 | `rt-recursive` | 2 | 1 | 0 | 0 | 0 | 3 |
 | `rv-blend` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `rv-camera` | 0 | 4 | 0 | 0 | 0 | 4 |
+| `rv-capabilities` | 15 | 1 | 0 | 0 | 0 | 16 |
 | `rv-depth` | 3 | 0 | 0 | 0 | 0 | 3 |
 | `rv-effects` | 3 | 0 | 0 | 0 | 0 | 3 |
 | `rv-formats` | 4 | 2 | 0 | 0 | 0 | 6 |
@@ -310,7 +313,7 @@ Only rooms with at least one reviewed pair are listed.
 | `rv-shading` | 0 | 3 | 0 | 0 | 0 | 3 |
 | `rv-sprites` | 3 | 1 | 0 | 0 | 0 | 4 |
 | `rv-targets` | 2 | 1 | 0 | 0 | 0 | 3 |
-| `rv-vertextype` | 13 | 0 | 0 | 0 | 0 | 14 |
+| `rv-vertextype` | 14 | 0 | 0 | 0 | 0 | 14 |
 | `sim-balls` | 1 | 2 | 0 | 0 | 0 | 3 |
 | `sim-flock` | 2 | 3 | 0 | 0 | 0 | 5 |
 | `sim-ik` | 2 | 2 | 0 | 0 | 0 | 4 |
@@ -363,6 +366,14 @@ Only rooms with at least one reviewed pair are listed.
 | `vt-converters` | 17 | 0 | 0 | 0 | 0 | 17 |
 | `vt-packed` | 17 | 0 | 0 | 0 | 0 | 17 |
 | `vt-rectangle` | 5 | 5 | 0 | 0 | 0 | 10 |
+| `wk-cnbloader` | 50 | 5 | 0 | 0 | 0 | 55 |
+| `wk-gltf` | 27 | 13 | 0 | 0 | 0 | 40 |
+| `wk-importers` | 43 | 1 | 0 | 0 | 0 | 44 |
+| `wk-material` | 38 | 6 | 0 | 0 | 0 | 44 |
+| `wk-meshhelper` | 27 | 8 | 0 | 0 | 0 | 35 |
+| `wk-processor` | 50 | 4 | 0 | 0 | 0 | 54 |
+| `wk-typewriter` | 30 | 5 | 0 | 0 | 0 | 35 |
+| `wk-xml` | 10 | 3 | 0 | 0 | 0 | 13 |
 
 ## Claims requiring review
 
@@ -374,55 +385,51 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 
 | Claim | Rooms |
 |---|---|
+| `System.ArgumentNullException` | `wk-material` |
 | `System.ArgumentOutOfRangeException` | `pl-exceptions` |
-| `System.IO.FileNotFoundException` | `pl-exceptions` |
+| `System.IO.FileNotFoundException` | `pl-exceptions`, `wk-importers` |
 | `System.IO.MemoryStream` | `tex-io` |
 | `System.InvalidOperationException` | `pl-exceptions` |
 | `System.ObjectDisposedException` | `pl-exceptions` |
 | `System.Resources.ResourceManager` | `ct-resource` |
 | `System.Text.StringBuilder` | `text-hud` |
 | `System::ArgumentException` | `rv-vertextype` |
+| `System::Xml::Serialization::XmlSerializer` | `wk-xml` |
 
 ## Public API areas
 
-**412** public headers (8318 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
+**456** public headers (9782 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
 `audit/area_classification.json` (first match wins; the check fails for an unclassified header or a stale rule):
 
 | Status | Headers | Declarations | Meaning |
 |---|---:|---:|---|
-| gap | 112 | 8425 | Application-facing API that the museum should demonstrate but does not yet; the backlog task that covers it is named. |
-| supporting | 145 | 2390 | Reached implicitly (exceptions, event arguments, option types, helper traits) by a demonstrated feature, or meaningful only inside a named gap. |
-| not-applicable | 24 | 718 | Not application API for this museum (bootstrap, backend contracts, build-time internals); the reason is stated. |
+| gap | 83 | 7208 | Application-facing API that the museum should demonstrate but does not yet; the backlog task that covers it is named. |
+| supporting | 132 | 2149 | Reached implicitly (exceptions, event arguments, option types, helper traits) by a demonstrated feature, or meaningful only inside a named gap. |
+| not-applicable | 22 | 712 | Not application API for this museum (bootstrap, backend contracts, build-time internals); the reason is stated. |
 
 | Area | Status | Backlog | Headers | Declarations | Reason |
 |---|---|---|---:|---:|---|
 | Application identity | gap | G07 | 2 | 8 | SetAssemblyTitleEXT/AssemblyTitleAttributeEXT (default window title, XNA AssemblyTitle counterpart) are never called by the museum. (+1 more rule(s)) |
-| CNA content build engine | gap | C06 | 15 | 715 | The CNA build API (ContentPipeline registry/requests, build configuration, manifest, compiler options and per-asset Cnj/Texture/Model/Song/Sound/Video/Effect/XNB routes) is not called by any room; ct-pipeline only loads prebuilt output. (+1 more rule(s)) |
+| CNA content build engine | gap | C06 | 11 | 376 | The CNA build API (ContentPipeline registry/requests, build configuration, manifest, compiler options and per-asset Cnj/Texture/Model/Song/Sound/Video/Effect/XNB routes) is not called by any room; ct-pipeline only loads prebuilt output. (+1 more rule(s)) |
 | CNJ/CNB build | gap | C06 | 3 | 28 | CompileCnjToCnb (public CNJ to CNB route) is never called by the museum. (+2 more rule(s)) |
 | Clipboard | gap | I05 | 1 | 4 | The museum demonstrates CNA::Input::Clipboard (InputLab) but never this second, text-only CNA::Devices::Clipboard facade. |
 | Content build tasks | gap | C06 | 5 | 135 | BuildContent/CleanContent/BuildXact/ContentProject (MSBuild-task counterparts with incremental build and clean) are never run. |
-| Custom CNB assets | gap | C07 | 1 | 11 | CnbLoaderRegistry::Register/Remove (the only CNB extension route for game-defined asset types) is never used. |
-| Custom content types | gap | C03 | 4 | 102 | Reflective .xnb reader for game-defined types (ReflectiveTypeReader<T>) is never instantiated. (+1 more rule(s)) |
-| Custom pipeline components | gap | C02 | 4 | 112 | RegisterXnaImporter/RegisterXnaProcessor and the canonical importer/processor contexts are the CNA service C02 asks to use instead of PipelineSupport's no-op context. (+3 more rule(s)) |
+| Custom content types | gap | C03 | 1 | 29 | Reflective .xnb reader for game-defined types (ReflectiveTypeReader<T>) is never instantiated. |
+| Custom pipeline components | gap | C02 | 1 | 15 | Importer/processor discovery via PipelineComponentScanner is not demonstrated. |
 | Diagnostics instrumentation | gap | O03 | 1 | 13 | CNA_DIAGNOSTICS_COUNTER_ADD/GAUGE_SET/FRAME_SCOPE macros are not used by the museum; their OFF/STATS/FULL behaviour is exactly O03. |
 | Effect compilation | gap | G04 | 2 | 71 | EffectCompilerService/EffectSourceContentPipeline (.fx source route, Reach/HiDef profile, external compiler) are not used; G04 covers conditional source compile. |
-| Importers and processors | gap | C05 | 2 | 11 | Stock PassThroughProcessor is not used by any room. (+1 more rule(s)) |
-| Intermediate serialization | gap | C07 | 4 | 113 | No custom ContentTypeSerializer is registered; C07 covers custom serializer registration and lifecycle. (+1 more rule(s)) |
-| Materials | gap | C04 | 1 | 23 | MaterialProcessor is never run; C04 asks for a real material and its textures. |
-| Media importers | gap | C05 | 2 | 68 | Build-time MP3/WMA/WMV decoding and its availability probe are not shown; C05 requires admitted codec availability. (+1 more rule(s)) |
+| Intermediate serialization | gap | C07 | 1 | 3 | No custom ContentTypeSerializer is registered; C07 covers custom serializer registration and lifecycle. |
 | Media library | gap | M01,M02 | 1 | 3 | MediaLibrary, MediaSource and the album/artist/genre/playlist/picture classes are not referenced in museum src; enumeration with isolated fixture roots is M01/M02. |
 | Mesh processing | gap | C01 | 2 | 75 | VertexContent/VertexChannel collections are not inspected or modified (MeshBuildLab only uses MeshBuilder and VertexChannelNames); C01 shows channel/declaration differences. (+1 more rule(s)) |
-| Native C API | gap | O04,O05 | 59 | 6910 | The museum has no C17 translation unit and links no CNA_C_API target, so none of the C ABI families (ABI version/result codes, handles, math, graphics, input, audio, content, net) is demonstrated. |
+| Native C API | gap | O04,O05 | 51 | 6436 | The museum has no C17 translation unit and links no CNA_C_API target, so none of the C ABI families (ABI version/result codes, handles, math, graphics, input, audio, content, net) is demonstrated. |
 | Phone sensors | gap | I06 | 1 | 12 | Legacy WP7 7.0 Accelerometer.ReadingChanged event is still public but PhoneSensorLab only uses the SensorBase CurrentValueChanged pattern. |
-| XML serialization adapters | gap | NEW | 2 | 11 | No exhibit serializes XNA math values through System::Xml::Serialization::XmlSerializer; missing an XmlSerializer round-trip exhibit (e.g. settings in a StorageContainer). (+1 more rule(s)) |
 | Audio and media | supporting | - | 3 | 15 | Game::Tick calls FrameworkDispatcher::Update itself (modules/runtime/src/Game.cpp), so every audio/media room exercises it implicitly; an explicit call only matters for non-Game hosts. (+1 more rule(s)) |
 | CNJ/CNB build | supporting | - | 2 | 33 | Output data of the SoundEffect build route; meaningful only inside gap C06. (+1 more rule(s)) |
 | Camera capture | supporting | - | 1 | 29 | Platform SPI behind CNA::Devices::Camera; meaningful only inside gap I04. |
 | Content build tasks | supporting | - | 1 | 13 | Name constants consumed by the BuildContent/ContentProject tasks; meaningful only inside gap C06. |
 | Content loading | supporting | - | 2 | 16 | Element of ContentManager.GetContentManifest, which ct-pipeline claims and ContentLab calls. (+1 more rule(s)) |
-| Custom CNB assets | supporting | - | 7 | 145 | CnbDocument/CnbWriter/CnbByteReader/CnbByteWriter/CnbFormat/CnbReadLimits are what a custom CNB loader and writer use; meaningful only inside gap C07. (+1 more rule(s)) |
+| Custom CNB assets | supporting | - | 2 | 11 | CnbDocument/CnbWriter/CnbByteReader/CnbByteWriter/CnbFormat/CnbReadLimits are what a custom CNB loader and writer use; meaningful only inside gap C07. (+1 more rule(s)) |
 | Custom content types | supporting | - | 6 | 107 | Carrier a custom ContentProcessor's dictionary is loaded as; meaningful only inside gap C03. (+3 more rule(s)) |
-| Custom pipeline components | supporting | - | 2 | 61 | ProcessorParameter metadata describes custom processor parameters; meaningful only inside gap C02. (+1 more rule(s)) |
 | Device extensions | supporting | - | 2 | 10 | LocaleInfo/PowerState are the value types returned by Locale::getPreferredLocalesProperty/PowerInfo::getStateProperty, which cx-devices (CnaExtLab) reads. |
 | Device loss | supporting | - | 2 | 8 | DeviceLost/DeviceNotReset are only raised by a real device loss; their demonstration is gap G06. |
 | Errors and exceptions | supporting | - | 3 | 16 | Base exception of CNA-specific failures; reached only when a CNAEXT call fails, which the exception room/O06 covers rather than a dedicated exhibit. (+2 more rule(s)) |
@@ -430,14 +437,13 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 | Game lifecycle | supporting | - | 1 | 2 | Args of Game.Exiting, which MuseumGame subscribes museum-wide (the event is logged at shutdown). |
 | Game window | supporting | - | 3 | 25 | Event args of GameWindow.FileDropEXT, which pl-window claims and PlatformLab subscribes. (+2 more rule(s)) |
 | Gamer services | supporting | - | 16 | 103 | GameUpdateRequired/Network/NetworkNotAvailable exceptions surface only from failing async Guide/session calls, which gap N08 covers. (+1 more rule(s)) |
-| Graphics core types | supporting | - | 15 | 200 | Enums and collection types (BufferUsage, ClearOptions, FillMode, Effect*/Model*Collection, TextureCollection, DisplayModeCollection, IRenderTarget) are used implicitly by rooms that demonstrate buffers, clearing, rasterizer state, effect reflection, models and render targets. |
+| Graphics core types | supporting | - | 14 | 197 | Enums and collection types (BufferUsage, ClearOptions, FillMode, Effect*/Model*Collection, TextureCollection, DisplayModeCollection, IRenderTarget) are used implicitly by rooms that demonstrate buffers, clearing, rasterizer state, effect reflection, models and render targets. |
 | Graphics device manager | supporting | - | 3 | 24 | GraphicsDeviceInformation/PreparingDeviceSettingsEventArgs/IGraphicsDeviceManager are reached through GraphicsDeviceManager.PreparingDeviceSettings, which AppLab demonstrates. |
 | Haptics | supporting | - | 3 | 130 | Effect/feature/direction/capability types of HapticDevice; meaningful only inside gap I01. (+1 more rule(s)) |
 | Input emulation | supporting | - | 2 | 14 | KeyboardGamepad/KeyboardAccelerometer are driven by GamePad/Accelerometer.KeyboardEmulationEnabledEXT, which InputLab and PhoneSensorLab toggle. |
 | Input extensions | supporting | - | 5 | 41 | Enums/records returned by demonstrated CNAEXT calls: GetButtonLabelEXT, GetConnectionStateEXT, GetPowerInfoEXT/Power::GetInfoEXT, GetModStateEXT and InputDevices.GetMiceEXT (InputLab). |
 | Input state | supporting | - | 9 | 111 | GamePadButtons/DPad/ThumbSticks/Triggers/Type, KeyState and touch collection/capabilities are the members of states read by in-pad, in-keyboard and in-touch. |
 | Intermediate serialization | supporting | - | 3 | 73 | Built-in/collection/dictionary serializers used implicitly by IntermediateSerializer, which PipelineLab demonstrates. |
-| Materials | supporting | - | 1 | 6 | Texture slots of MaterialContent; meaningful only inside gap C04. |
 | Microphone capture | supporting | - | 2 | 7 | State enum of Microphone, which AudioLab already touches; real start/stop/BufferReady capture is the open gap M04. (+1 more rule(s)) |
 | Model import | supporting | - | 2 | 59 | .x and FBX parsers behind XImporter/FbxImporter, which ModelImportLab demonstrates on real files. |
 | Models | supporting | - | 1 | 7 | Created internally by the content pipeline for every loaded model mesh part; games never instantiate it, and model rooms load such models. |
@@ -445,7 +451,7 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 | PBR rendering | supporting | - | 2 | 30 | Tangent-frame vertex layouts used by WireMesh and by skinned models drawn with SkinnedPbrEffect in ModelLab, but no room claims the structs. |
 | Packed vectors | supporting | - | 2 | 19 | HalfSingle is used in ValidationLab/PlatformLab without a claim; HalfTypeHelper is the conversion helper behind HalfSingle/HalfVector*. |
 | Phone sensors | supporting | - | 4 | 15 | Args of Compass/Motion.Calibrate, which no room subscribes; calibration events are listed in gap I06. (+1 more rule(s)) |
-| Pipeline infrastructure | supporting | - | 8 | 86 | Base/infrastructure types (ContentObject, ChildCollection, Named/OpaqueDataDictionary, ContentBuildLogger, IContentImporter/IContentProcessor, PipelineException) used by PipelineSupport, ProcessorLab and the importer rooms. |
+| Pipeline infrastructure | supporting | - | 5 | 54 | Base/infrastructure types (ContentObject, ChildCollection, Named/OpaqueDataDictionary, ContentBuildLogger, IContentImporter/IContentProcessor, PipelineException) used by PipelineSupport, ProcessorLab and the importer rooms. |
 | Platform SPI | supporting | - | 2 | 138 | IPlatformWindow/IPlatformSystemServices sit behind GameWindow, Clipboard and cx-devices facades the museum demonstrates; dialogs/tray/URL parts belong to gaps I02/I03. |
 | Platform capabilities | supporting | - | 1 | 33 | Enum twin of the PlatformCapabilities struct that pl-platform reads. |
 | Platform input SPI | supporting | - | 9 | 592 | Platform contracts and key enums behind Keyboard/Mouse/GamePad/Joysticks/Sensors/TextInputEXT; pl-platform reaches IPlatform::GetKeyboard etc. and the input rooms demonstrate the facades. |
@@ -453,12 +459,11 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 | Renderer capabilities | supporting | - | 2 | 13 | DisplayColorSpace and ShaderDialectEXT are the parameter/return types of SetDisplayColorSpaceEXT and GetShaderDialectEXT, which PlatformLab/CnaExtLab/TargetLab call. |
 | Storage | supporting | - | 1 | 7 | Thrown when a StorageDevice disconnects; StorageDevice itself is used (Progress, ContentLab), the disconnect/error scenario is gap M06. |
 | Texture processing | supporting | - | 4 | 64 | S3TC encoder behind TextureProcessor DxtCompressed, which ProcessorLab selects and verifies (Dxt1/3/5 levels). (+1 more rule(s)) |
-| Title content | supporting | - | 1 | 5 | Used by src/Rendering/AssetPaths.cpp to resolve the content root beside TitleContainer, but no room claims it. |
 | Audio backend SPI | not-applicable | - | 2 | 52 | Pure-virtual audio output/recording device contracts implemented by CNA's audio backends; applications reach audio only through SoundEffect/DynamicSoundEffectInstance/Microphone, which the audio rooms already use. |
 | Build-time markers | not-applicable | - | 1 | 1 | Defines only the CNAEXT documentation macro (or [[deprecated]] under CNA_STRICT_XNA_API); it has no runtime behaviour to show. |
-| CNB codec internals | not-applicable | - | 12 | 394 | Built-in schema chunk IDs, decoded model/texture/audio/media data and CRC-32C used only by CNA's privately registered built-in loaders; games get Model/Texture2D/SoundEffect from ContentManager::Load, which content rooms show. |
+| CNB codec internals | not-applicable | - | 11 | 389 | Built-in schema chunk IDs, decoded model/texture/audio/media data and CRC-32C used only by CNA's privately registered built-in loaders; games get Model/Texture2D/SoundEffect from ContentManager::Load, which content rooms show. |
 | Dead runtime export | not-applicable | - | 1 | 11 | CNA::Runtime/RuntimeOptions are declared but have no definition anywhere in CNA and no includer, so calling them would not link; it is a stale public export, not demonstrable API. |
-| Pipeline wiring | not-applicable | - | 2 | 2 | Adapter that hands the build-time BC encoder to RegisterTexture2DContentPipeline across module boundaries; no game-level behaviour beyond TextureProcessor. (+1 more rule(s)) |
+| Pipeline wiring | not-applicable | - | 1 | 1 | ToCanonicalModel converts ModelContent for the internal XNB writer (CNA::Internal::Xnb); reached implicitly when ModelProcessor output is compiled. |
 | Platform bootstrap | not-applicable | - | 3 | 170 | Chooses the compiled-in IPlatform implementation when the runtime starts; applications receive the result via Game::GetPlatformEXT, which pl-platform shows. (+2 more rule(s)) |
 | Renderer plumbing | not-applicable | - | 3 | 88 | OpenGL context creation contract consumed by GL renderers, not by game code. (+2 more rule(s)) |
 

@@ -1,10 +1,22 @@
 // The Pipeline Workshop: content-pipeline operations whose results can be checked exactly, run in the game on
 // data the room builds itself. Each check logs one line
 //     [museum][check] <room> <name>: PASS|FAIL|INFO (expected ..., got ...)
-// like the renderer-validation rooms, so a run's log is the witness of the result. One class, one mode per room.
+// like the renderer-validation rooms, so a run's log is the witness of the result. One class, one mode per room; the modes
+// other than meshhelper live in their own files (Workshop*Checks.cpp) behind WorkshopChecks.hpp.
 //
 //   meshhelper   MeshHelper on a cube built with MeshBuilder: merging duplicate positions and vertices, normals,
 //                tangent frames, cache optimisation, winding order, TransformScene, and skeleton search/flattening.
+//   processor    a game's own importer and processor run through CNA's real processor context (XnaBridgeProcessorContext over a
+//                coordinator): AddDependency, AddOutputFile, Convert to a stock processor, BuildAsset and BuildAndLoadAsset.
+//   typewriter   a game type with its own ContentTypeWriter and ContentTypeReader: compiled to .xnb bytes, loaded back through a
+//                ContentManager, compared field by field; shared resources, nested objects, and corrupted streams refused.
+//   material     MaterialProcessor on a BasicMaterialContent naming a texture: the texture is built by TextureProcessor.
+//   importers    the importers and probes no other room shows: WmaImporter, PassThroughProcessor, build-time media decoding.
+//   cnbloader    a game-defined .cnb asset type: CnbWriter/CnbByteWriter, CnbLoaderRegistry::Register, ContentManager.Load, and a
+//                custom ContentTypeSerializer for the IntermediateSerializer.
+//   gltf         CNA's glTF import on small files written for the room: UV sets, texture transforms, specular/ior, sparse
+//                accessors, morph targets, and a refused required extension.
+//   xml          System::Xml::Serialization::XmlSerializer round trips of XNA values through CNA's adapters.
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -14,9 +26,11 @@
 #include <set>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include "Diagnostics/Log.hpp"
+#include "Exhibits/Content/WorkshopChecks.hpp"
 #include "Exhibits/ExhibitFactories.hpp"
 #include "Exhibits/ScreenExhibit.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SpriteBatch.hpp"
@@ -35,14 +49,53 @@ using namespace Microsoft::Xna::Framework::Graphics;
 
 namespace {
 
-enum class Mode { MeshHelper };
+enum class Mode { MeshHelper, Processor, TypeWriter, Material, Importers, CnbLoader, Gltf, Xml };
 
-Mode ParseMode(const std::string&) { return Mode::MeshHelper; }
+Mode ParseMode(const std::string& name)
+{
+    static const std::pair<const char*, Mode> modes[] = {{"meshhelper", Mode::MeshHelper}, {"processor", Mode::Processor}, {"typewriter", Mode::TypeWriter}, {"material", Mode::Material},
+                                                         {"importers", Mode::Importers},   {"cnbloader", Mode::CnbLoader}, {"gltf", Mode::Gltf},             {"xml", Mode::Xml}};
+    for (const auto& [key, mode] : modes)
+        if (name == key) return mode;
+    return Mode::MeshHelper;
+}
 
-struct Check {
-    std::string name, expected, got;
-    bool pass = false, informational = false;
+struct ModeText {
+    const char* title;
+    const char* sign;
+    std::vector<std::string> lines;
 };
+
+const ModeText& TextFor(Mode mode)
+{
+    static const ModeText texts[] = {
+        {"MeshHelper, checked", "MeshHelper",
+         {"XNA's MeshHelper works on imported meshes before ModelProcessor: it merges duplicate positions and vertices, computes normals and tangent",
+          "frames, reorders triangles for the vertex cache, flips winding, moves a whole scene and finds a skeleton. Each result here is checked exactly."}},
+        {"A processor context, checked", "ContentProcessorContext",
+         {"A processor talks to the build through its context: it records dependencies and extra output files, converts objects with other processors",
+          "and builds other assets. Here a game's own importer and processor run through CNA's real context over a coordinator, and every call is checked."}},
+        {"ContentTypeWriter and ContentTypeReader, checked", "A game's own content type",
+         {"A game type reaches an .xnb through its own ContentTypeWriter and comes back through a matching ContentTypeReader. The room compiles one,",
+          "loads it through a ContentManager, compares every field, shares one object between two references, and feeds the loader broken bytes."}},
+        {"MaterialProcessor, checked", "MaterialProcessor",
+         {"MaterialProcessor builds the textures a material names (through TextureProcessor, with its own colour-key and premultiply settings) and",
+          "can turn a BasicMaterialContent into another stock material type. The room runs it on a material it builds and checks the result."}},
+        {"Importers and codecs, checked", "Importers not shown elsewhere",
+         {"WmaImporter, PassThroughProcessor and CNA's build-time media decoder, run on tiny files generated for the room. A codec that this",
+          "machine does not have is reported as unavailable: it is never counted as a pass."}},
+        {"A custom .cnb asset type, checked", "CnbLoaderRegistry",
+         {"CNA's own compiled container, .cnb, has one extension route for a game's types: write the file with CnbWriter, register a loader under",
+          "the type's identifier, and ContentManager.Load does the rest. The room also registers a ContentTypeSerializer for the XML side."}},
+        {"glTF import, checked", "CNA's glTF importer",
+         {"Small glTF files written for this room (JSON with base64 buffers) are loaded through ContentManager: two UV sets, texture transforms,",
+          "specular and IOR, sparse accessors and morph targets are compared with the values written, and a file requiring an unknown extension is refused."}},
+        {"XmlSerializer, checked", "XmlSerializer and XNA values",
+         {"A game saves settings with System.Xml.Serialization.XmlSerializer. CNA states the member lists of XNA's value types once (XmlSerializationEXT),",
+          "so a Vector3, a Matrix or a Keys value round-trips exactly. The room serializes a settings record and compares every value it reads back."}},
+    };
+    return texts[static_cast<int>(mode)];
+}
 
 #ifdef MUSEUM_PIPELINE
 namespace Xna = Microsoft::Xna::Framework::Content::Pipeline;
@@ -89,11 +142,19 @@ public:
         ControlPanel& p = AddPanel("Pipeline checks", -4.8f, 1.5f, 1.8f, MathHelper::PiOver2, 2.1f);
         p.AddButton("Run the checks again", [this] { Run(); });
         p.AddReadout("Passed / failed / info", [this] { return Summary(); });
-        AddInfoSign(b, "MeshHelper", {"XNA's MeshHelper works on imported meshes before ModelProcessor: it merges duplicate positions and vertices, computes normals and tangent",
-                                       "frames, reorders triangles for the vertex cache, flips winding, moves a whole scene and finds a skeleton. Each result here is checked exactly."});
+        const ModeText& text = TextFor(mode_);
+        AddInfoSign(b, text.sign, text.lines);
     }
 
     void OnScreenLoaded() override { Run(); }
+
+    void OnLeave() override
+    {
+#ifdef MUSEUM_PIPELINE
+        // The .cnb loader registry is process-wide: the room's game type must not outlive the visit.
+        if (mode_ == Mode::CnbLoader) Workshop::CnbLoaderLeave();
+#endif
+    }
 
 protected:
     void DrawScreen(SpriteBatch& sb) override
@@ -101,13 +162,22 @@ protected:
         if (S().font == nullptr) return;
         const auto text = [&](const std::string& t, float x, float y, Color c, float s = 0.6f) { sb.DrawString(*S().font, t, Vector2(x, y), c, 0.0f, Vector2(0, 0), s, SpriteEffects::None, 0.0f); };
         sb.Begin(SpriteSortMode::Deferred, &BlendState::NonPremultiplied, &SamplerState::LinearClamp, nullptr, nullptr);
-        text("MeshHelper, checked", 24, 12, Kit::kGold, 1.0f);
-        float y = 64.0f;
-        for (const Check& c : checks_) {
+        text(TextFor(mode_).title, 24, 12, Kit::kGold, 1.0f);
+        // Up to 13 rows at full size; longer lists shrink their rows, and past 26 rows they continue in a second column.
+        const std::vector<Workshop::Check>& list = checks_.List();
+        const std::size_t count = list.size();
+        const bool twoColumns = count > 26;
+        const std::size_t perColumn = twoColumns ? (count + 1) / 2 : count;
+        const float row = perColumn == 0 ? 34.0f : std::min(34.0f, 460.0f / static_cast<float>(perColumn));
+        const float scale = std::min(1.0f, row / 34.0f);
+        for (std::size_t i = 0; i < count; ++i) {
+            const Workshop::Check& c = list[i];
+            const float x = twoColumns && i >= perColumn ? 488.0f : 24.0f;
+            const float y = 64.0f + row * static_cast<float>(twoColumns && i >= perColumn ? i - perColumn : i);
             const Color colour = c.informational ? Kit::kDim : (c.pass ? Kit::Rgba(120, 230, 140) : Kit::Rgba(255, 120, 110));
-            text(std::string(c.informational ? "info " : (c.pass ? "PASS " : "FAIL ")) + c.name, 24, y, colour, 0.58f);
-            text(c.got.substr(0, 70), 520, y, Kit::kText, 0.5f);
-            y += 34.0f;
+            const std::size_t nameChars = twoColumns ? 34 : 44;
+            text(std::string(c.informational ? "info " : (c.pass ? "PASS " : "FAIL ")) + c.name.substr(0, nameChars), x, y, colour, 0.58f * scale);
+            if (!twoColumns) text(c.got.substr(0, 70), 520, y, Kit::kText, 0.5f * scale);
         }
         sb.End();
     }
@@ -116,28 +186,33 @@ private:
     [[nodiscard]] std::string Summary() const
     {
         int pass = 0, fail = 0, info = 0;
-        for (const Check& c : checks_) (c.informational ? info : (c.pass ? pass : fail))++;
+        for (const Workshop::Check& c : checks_.List()) (c.informational ? info : (c.pass ? pass : fail))++;
         return std::to_string(pass) + " / " + std::to_string(fail) + " / " + std::to_string(info);
     }
 
-    void Add(const std::string& name, const std::string& expected, const std::string& got, bool pass, bool informational = false)
-    {
-        checks_.push_back({name, expected, got, pass, informational});
-        Museum::Log("check", "%s %s: %s (expected %s, got %s)", R().key.c_str(), name.c_str(), informational ? "INFO" : (pass ? "PASS" : "FAIL"), expected.c_str(), got.c_str());
-    }
+    void Add(const std::string& name, const std::string& expected, const std::string& got, bool pass) { checks_.Add(name, expected, got, pass); }
 
     void Run()
     {
-        checks_.clear();
-#ifdef MUSEUM_PIPELINE
+        checks_ = Workshop::Checks(R().key);
         try {
-            MeshHelperChecks();
-        } catch (const std::exception& e) {
-            Add("the check run itself", "no exception", e.what(), false);
-        }
+            switch (mode_) {
+                case Mode::Xml: Workshop::XmlSerializerChecks(checks_, S()); return;
+#ifdef MUSEUM_PIPELINE
+                case Mode::MeshHelper: MeshHelperChecks(); return;
+                case Mode::Processor: Workshop::ProcessorContextChecks(checks_, S()); return;
+                case Mode::TypeWriter: Workshop::TypeWriterChecks(checks_, S()); return;
+                case Mode::Material: Workshop::MaterialProcessorChecks(checks_, S()); return;
+                case Mode::Importers: Workshop::ImporterChecks(checks_, S()); return;
+                case Mode::CnbLoader: Workshop::CnbLoaderChecks(checks_, S()); return;
+                case Mode::Gltf: Workshop::GltfImportChecks(checks_, S()); return;
 #else
-        Add("content pipeline", "MUSEUM_PIPELINE=ON", "not compiled in", false, true);
+                default: checks_.Info("content pipeline", "MUSEUM_PIPELINE=ON", "not compiled in"); return;
 #endif
+            }
+        } catch (const std::exception& e) {
+            Add("the check run itself", "no exception", Workshop::Checks::Short(e.what()), false);
+        }
     }
 
 #ifdef MUSEUM_PIPELINE
@@ -270,7 +345,7 @@ private:
 #endif
 
     Mode mode_;
-    std::vector<Check> checks_;
+    Workshop::Checks checks_{""};
 };
 
 }  // namespace

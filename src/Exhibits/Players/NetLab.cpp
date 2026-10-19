@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <deque>
 #include <exception>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -112,6 +113,7 @@ public:
             p.AddButton("NetworkMachine.RemoveFromSession (first remote)", [this] { RemoveRemoteMachine(); });
             p.AddButton("NetworkSession.ResetReady", [this] { NetworkSession* n = Primary(); if (n != nullptr) { try { n->ResetReady(); Museum::Log("net", "ResetReady; gamers: %s", GamerDetails().c_str()); } catch (const std::exception& e) { Log(std::string("ResetReady refused: ") + std::string(e.what()).substr(0, 48)); } } });
             p.AddButton("Guide.ShowSignIn: an account for PlayerMatch", [this] { try { Microsoft::Xna::Framework::GamerServices::Guide::ShowSignIn(1, true); Museum::Log("online", "ShowSignIn(1, true) opened"); } catch (const std::exception& e) { status_ = std::string(e.what()).substr(0, 50); } });
+            p.AddChoice("Local gamers in a new session (maxLocalGamers)", {"2", "1"}, 0, [this](int v) { localGamers_ = v == 1 ? 1 : 2; });
             p.AddToggle("Deliver packets: a SystemLink session (visible on your network)", false, [this](bool v) { SetTransport(v); });
             p.AddSlider("SimulatedLatency (ms, on arriving packets)", 0.0f, 500.0f, 0.0f, [this](float v) { latencyMs_ = v; ApplyImpairment(); }, "%.0f", 10.0f);
             p.AddSlider("SimulatedPacketLoss", 0.0f, 0.5f, 0.0f, [this](float v) { loss_ = v; ApplyImpairment(); }, "%.2f", 0.05f);
@@ -174,6 +176,7 @@ public:
             Pump(ctx.dt);
             PollFind();
             PollJoin();
+            WatchVoice();
         }
 #endif
     }
@@ -373,10 +376,12 @@ private:
         received_trail_.clear();
     }
 
+    // The room's event list, also written to the museum log (one line per event) so a scripted run keeps the witness.
     void Log(const std::string& line)
     {
         log_.push_back(line);
         while (log_.size() > 9) log_.pop_front();
+        Museum::Log("net", "%s", line.c_str());
     }
 
     void SetTransport(bool on)
@@ -390,11 +395,11 @@ private:
         try {
             ResetStats();
             DisposeLobby();   // the same profiles cannot be in a Local lobby and a SystemLink session at once (one session per process, as in XNA)
-            host_ = NetworkSession::Create(NetType(), 2, 8);
+            host_ = NetworkSession::Create(NetType(), localGamers_, 8);
             phase_ = Phase::Connected;
             HookHost();
             transportStatus_ = online_ ? "PlayerMatch session through the account service: packets travel by its relay" : "SystemLink session, both profiles local: packets flow in memory";
-            Log(std::string("Create(") + (online_ ? "PlayerMatch" : "SystemLink") + ", 2 local, 8 max): " + std::to_string(host_->getLocalGamersProperty().getCountProperty()) + " local gamer(s)");
+            Log(std::string("Create(") + (online_ ? "PlayerMatch" : "SystemLink") + ", " + std::to_string(localGamers_) + " local, 8 max): " + std::to_string(host_->getLocalGamersProperty().getCountProperty()) + " local gamer(s)");
             if (wantReady_) SetReady(true);
         } catch (const std::exception& e) {
             CloseTransport();
@@ -423,7 +428,6 @@ private:
                 n->Update();
                 Log("AddLocalGamer: " + gamer->getGamertagProperty() + ", now " +
                     std::to_string(n->getLocalGamersProperty().getCountProperty()) + " local");
-                Museum::Log("net", "%s", log_.back().c_str());
                 return;
             }
             Log("AddLocalGamer: every signed-in profile is already in this session");
@@ -543,6 +547,23 @@ private:
         }
         return text.empty() ? "no gamers" : text;
     }
+    // Voice is routed by CNA itself; the room only watches who has voice and who is talking, and logs every change
+    // of a remote gamer's talking state (the witness for a voice round between two museums).
+    void WatchVoice()
+    {
+        NetworkSession* n = host_ != nullptr ? host_ : nullptr;
+        if (n == nullptr) return;
+        const auto& remote = n->getRemoteGamersProperty();
+        for (int i = 0; i < remote.getCountProperty(); ++i) {
+            const NetworkGamer* g = remote[i];
+            const bool talking = g->getIsTalkingProperty();
+            const std::string key = g->getGamertagProperty() + "#" + std::to_string(static_cast<int>(g->getIdProperty()));
+            if (talking != talking_[key]) {
+                talking_[key] = talking;
+                Log(std::string("voice: ") + key + (talking ? " started talking" : " stopped talking") + " (HasVoice " + (g->getHasVoiceProperty() ? "true" : "false") + ")");
+            }
+        }
+    }
     [[nodiscard]] std::string GamerRoles()
     {
         NetworkSession* n = Primary();
@@ -563,7 +584,7 @@ private:
     void RemoveRemoteMachine()
     {
         NetworkSession* n = Primary();
-        if (n == nullptr) { Log("RemoveFromSession: no session"); Museum::Log("net", "%s", log_.back().c_str()); return; }
+        if (n == nullptr) { Log("RemoveFromSession: no session"); return; }
         try {
             const auto& all = n->getAllGamersProperty();
             for (int i = 0; i < all.getCountProperty(); ++i) {
@@ -572,15 +593,12 @@ private:
                     const std::string name = g->getGamertagProperty();
                     g->getMachineProperty().RemoveFromSession();
                     Log("RemoveFromSession: removed " + name + "'s machine");
-                    Museum::Log("net", "%s", log_.back().c_str());
                     return;
                 }
             }
             Log("RemoveFromSession: no remote machine (join from a second museum first)");
-            Museum::Log("net", "%s", log_.back().c_str());
         } catch (const std::exception& e) {
             Log(std::string("RemoveFromSession refused: ") + std::string(e.what()).substr(0, 48));
-            Museum::Log("net", "%s", log_.back().c_str());
         }
     }
     [[nodiscard]] bool HasRemoteGamers() const
@@ -701,8 +719,8 @@ private:
             transportStatus_ = "joined a session on another museum: packets travel over the network";
             found_ = "joined";
             ApplyImpairment();
-            Log("Joined: " + std::to_string(host_->getAllGamersProperty().getCountProperty()) + " gamer(s) in the session");
-            Museum::Log("net", "%s", log_.back().c_str());
+            Log("Joined: " + std::to_string(host_->getAllGamersProperty().getCountProperty()) + " gamer(s) in the session; this machine sees AllowHostMigration " +
+                (host_->getAllowHostMigrationProperty() ? "true" : "false") + ", AllowJoinInProgress " + (host_->getAllowJoinInProgressProperty() ? "true" : "false"));
             if (wantReady_) SetReady(true);
         } catch (const NetworkSessionJoinException& e) {
             delete join_;
@@ -869,6 +887,8 @@ private:
     int sent_ = 0, received_ = 0, lastSeq_ = 0, sequence_ = 0;
     std::deque<Vector2> trail_, received_trail_;
     std::deque<std::string> log_;
+    std::map<std::string, bool> talking_;
+    int localGamers_ = 2;
     std::string status_ = "-";
     int gameMode_ = 3, searchMode_ = 0, remoteReceived_ = 0;
     std::size_t hostEnded_ = 0, hostChanged_ = 0, hostLeft_ = 0;
