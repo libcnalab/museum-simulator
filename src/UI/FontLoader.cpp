@@ -61,6 +61,7 @@ std::unique_ptr<SpriteFont> FontLoader::Load(Content::ContentManager& content, c
                                             static_cast<SharpRuntime::charcs>(defaultChar));
     } catch (const std::exception& e) {
         Museum::Log("font", "cannot load atlas for font '%s': %s", name.c_str(), e.what());
+        Museum::ReportExhibitError("font", ("cannot load atlas for font '" + name + "': " + e.what()).c_str());
         return nullptr;
     }
 }

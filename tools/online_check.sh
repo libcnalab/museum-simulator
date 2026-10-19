@@ -45,7 +45,7 @@ export DISPLAY=:$display
 sleep 1
 kill -0 $xvfb 2> /dev/null || { xvfb=; echo "FAIL: Xvfb :$display did not start"; exit 1; }
 script="goto:gs-leaderboards;wait:20;e;wait:20;press:Guide.ShowSignIn=1;wait:1200;press:add 10 to=1;wait:900;goto:gs-players;wait:200;quit"
-timeout "${MUSEUM_TIMEOUT:-300}" "$bin" --script "$script" --fixed-step 0.02 --no-audio > "$log" 2>&1 & museum=$!
+timeout -k 15 "${MUSEUM_TIMEOUT:-300}" "$bin" --script "$script" --fixed-step 0.02 --no-audio > "$log" 2>&1 & museum=$!
 fail() { echo "FAIL: $1 (log: $log)"; exit 1; }
 wait_for() { for _ in $(seq 1 240); do grep -q "$1" "$log" && return 0; kill -0 $museum 2> /dev/null || return 1; sleep 0.5; done; return 1; }
 wait_for "ShowSignIn(1, true) opened" || fail "the sign-in page never opened"

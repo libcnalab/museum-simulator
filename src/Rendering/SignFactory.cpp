@@ -43,6 +43,7 @@ std::string SignFactory::CreateCustom(int w, int h, const Color& background,
     } catch (const std::exception& e) {
         device_.SetRenderTarget(nullptr);
         Museum::Log("signs", "could not render sign: %s", e.what());
+        Museum::ReportExhibitError("signs", (std::string("could not render sign: ") + e.what()).c_str());
     }
     textures_.Register(name, std::move(target));
 #else
@@ -61,6 +62,7 @@ std::string SignFactory::CreateCustom(int w, int h, const Color& background,
     } catch (const std::exception& e) {
         device_.SetRenderTarget(nullptr);
         Museum::Log("signs", "could not render sign: %s", e.what());
+        Museum::ReportExhibitError("signs", (std::string("could not render sign: ") + e.what()).c_str());
     }
     for (Color& c : pixels) c = Color(c.getRProperty(), c.getGProperty(), c.getBProperty(), static_cast<std::uint8_t>(255));
     textures_.Register(name, ImageUtil::CreateMipmapped(device_, pixels, w, h));

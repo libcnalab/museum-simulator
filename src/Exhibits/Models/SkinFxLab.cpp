@@ -73,6 +73,7 @@ public:
         } catch (const std::exception& e) {
             ok_ = false;
             Museum::Log("skinfx", "SkinnedEffect unavailable: %s", e.what());
+            ReportError(std::string("SkinnedEffect or mesh: ") + e.what());
         }
     }
 

@@ -256,6 +256,7 @@ private:
             traceLines_.push_back("WriteBinary " + std::string(written ? "ok" : "failed") + ", " + std::to_string(bytes / 1024) + " KB; ReadBinary gave " + std::to_string(again.GetEvents().size()) + " events, " + (again.GetEvents().size() == trace_->GetEvents().size() ? "the same count" : "a DIFFERENT count"));
         } catch (const std::exception& e) {
             traceLines_.push_back(std::string("ReadBinary threw: ") + e.what());
+            ReportError(std::string("Trace ReadBinary of a trace just written: ") + e.what());   // its own output must read back
         }
     }
 

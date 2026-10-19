@@ -355,6 +355,9 @@ private:
             }
         } catch (const std::exception& e) {
             lastError_ = e.what();
+            // The profiles are local: reading them should not fail, and lastError_ is not on any panel. Runs twice a second.
+            static bool reported = false;
+            if (!reported) { reported = true; ReportError(std::string("profile refresh: ") + e.what()); }
         }
     }
 

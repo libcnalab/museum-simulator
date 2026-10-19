@@ -549,6 +549,8 @@ void main() {
             }
         } catch (const std::exception& e) {
             Museum::Log("cnaext", "point list: %s", e.what());
+            static bool reported = false;   // per-frame path: report the first failure only
+            if (!reported) { reported = true; ReportError(std::string("point list draw: ") + e.what()); }
         }
     }
 

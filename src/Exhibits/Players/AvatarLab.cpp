@@ -228,6 +228,7 @@ private:
             MakeRenderer();
         } catch (const std::exception& e) {
             Museum::Log("avatar", "CreateRandom: %s", e.what());
+            ReportError(std::string("CreateRandom: ") + e.what());   // local generation: nothing here depends on a service
         }
     }
     void FromGamer()
@@ -242,6 +243,7 @@ private:
             MakeRenderer();
         } catch (const std::exception& e) {
             Museum::Log("avatar", "BeginGetFromGamer: %s", e.what());
+            summary_ = std::string("BeginGetFromGamer: ") + std::string(e.what()).substr(0, 48);
         }
     }
     void MakeRenderer()

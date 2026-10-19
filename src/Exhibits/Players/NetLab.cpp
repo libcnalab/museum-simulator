@@ -104,13 +104,13 @@ public:
             p.AddReadout("SessionState", [this] { NetworkSession* n = Primary(); return n != nullptr ? std::string(StateName(n->getSessionStateProperty())) + (n->getIsHostProperty() ? ", this machine hosts" : "") : std::string("no session"); });
             p.AddReadout("IsEveryoneReady", [this] { NetworkSession* n = Primary(); return n != nullptr ? std::string(n->getIsEveryoneReadyProperty() ? "true" : "false") : std::string("-"); });
             p.AddReadout("Gamers (local / all)", [this] { NetworkSession* n = Primary(); return n != nullptr ? std::to_string(n->getLocalGamersProperty().getCountProperty()) + " / " + std::to_string(n->getAllGamersProperty().getCountProperty()) : std::string("-"); });
-            p.AddToggle("AllowHostMigration", false, [this](bool v) { NetworkSession* n = Primary(); if (n != nullptr) { try { n->setAllowHostMigrationProperty(v); } catch (const std::exception&) {} } });
+            p.AddToggle("AllowHostMigration", false, [this](bool v) { NetworkSession* n = Primary(); if (n != nullptr) { try { n->setAllowHostMigrationProperty(v); } catch (const std::exception& e) { Log(std::string("AllowHostMigration refused: ") + std::string(e.what()).substr(0, 48)); } } });
             p.AddReadout("SessionType / MaxGamers / private slots", [this] { return SessionShape(); });
             p.AddReadout("Host / remote / previous gamers", [this] { return GamerRoles(); });
             p.AddReadout("Gamer 0..1: Id, slot, voice, talking, muted, left", [this] { return GamerDetails(); });
             p.AddReadout("NetworkMachine.Gamers / Session / guest", [this] { return MachineDetails(); });
             p.AddButton("NetworkMachine.RemoveFromSession (first remote)", [this] { RemoveRemoteMachine(); });
-            p.AddButton("NetworkSession.ResetReady", [this] { NetworkSession* n = Primary(); if (n != nullptr) { try { n->ResetReady(); Museum::Log("net", "ResetReady; gamers: %s", GamerDetails().c_str()); } catch (const std::exception&) {} } });
+            p.AddButton("NetworkSession.ResetReady", [this] { NetworkSession* n = Primary(); if (n != nullptr) { try { n->ResetReady(); Museum::Log("net", "ResetReady; gamers: %s", GamerDetails().c_str()); } catch (const std::exception& e) { Log(std::string("ResetReady refused: ") + std::string(e.what()).substr(0, 48)); } } });
             p.AddButton("Guide.ShowSignIn: an account for PlayerMatch", [this] { try { Microsoft::Xna::Framework::GamerServices::Guide::ShowSignIn(1, true); Museum::Log("online", "ShowSignIn(1, true) opened"); } catch (const std::exception& e) { status_ = std::string(e.what()).substr(0, 50); } });
             p.AddToggle("Deliver packets: a SystemLink session (visible on your network)", false, [this](bool v) { SetTransport(v); });
             p.AddSlider("SimulatedLatency (ms, on arriving packets)", 0.0f, 500.0f, 0.0f, [this](float v) { latencyMs_ = v; ApplyImpairment(); }, "%.0f", 10.0f);
@@ -237,7 +237,8 @@ private:
             // The reader gets the same bytes (what LocalNetworkGamer.ReceiveData hands it) and reads the fields back in order.
             PacketReader r;
             r.setPositionProperty(0);
-            r.getBaseStreamProperty()->Write(bytes_.data(), 0, size_);
+            // An empty packet (every field switched off) has no buffer at all: Stream.Write rejects a null buffer even for 0 bytes.
+            if (size_ > 0) r.getBaseStreamProperty()->Write(bytes_.data(), 0, size_);
             r.setPositionProperty(0);
             const int readerLength = r.getLengthProperty();
             bool ok = true;
@@ -252,6 +253,7 @@ private:
             roundTrip_ = ok ? "every field equal; writer " + std::to_string(writerLength) + " bytes at " + std::to_string(writerPosition) + ", reader " + std::to_string(readerLength) + " bytes, consumed " + std::to_string(r.getPositionProperty()) : "MISMATCH";
         } catch (const std::exception& e) {
             roundTrip_ = std::string("error: ") + std::string(e.what()).substr(0, 40);
+            ReportError(std::string("packet round trip: ") + e.what());   // in-memory PacketWriter/PacketReader: no transport can refuse it
         }
     }
 

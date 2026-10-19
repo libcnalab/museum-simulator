@@ -52,7 +52,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 ## Generated: API names claimed by rooms
 
 <!-- BEGIN COVERAGE -->
-1274 distinct API names are claimed by at least one room.
+1459 distinct API names are claimed by at least one room.
 
 | API | Rooms |
 |---|---|
@@ -71,12 +71,22 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Agent.Start | `pl-inspector` |
 | Agent.Stop | `pl-inspector` |
 | AgentConfiguration | `pl-inspector` |
+| Album.Artist | `dev-medialib` |
+| Album.Duration | `dev-medialib` |
+| Album.HasArt | `dev-medialib` |
+| Album.Name | `dev-medialib` |
+| Album.Songs | `dev-medialib` |
+| AlbumCollection | `dev-medialib` |
 | AlphaModeEXT | `model-material` |
 | AlphaTestEffect | `tex-alpha`, `rv-effects` |
 | AnimationClipEXT | `model-skinext` |
 | AnimationPlayer | `model-skinned` |
 | ApplyBindPoseBoneTransformsEXT | `model-skinned` |
 | ApplyClipToBonesEXT | `model-rigid` |
+| Artist.Albums | `dev-medialib` |
+| Artist.Name | `dev-medialib` |
+| Artist.Songs | `dev-medialib` |
+| ArtistCollection | `dev-medialib` |
 | AsciiQuantizeMode | `cx-ascii` |
 | AttitudeReading | `in-phone` |
 | Audio::AudioFormat | `ct-audiopipeline` |
@@ -168,6 +178,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | BlendState.ColorWriteChannels3 | `rt-mrt` |
 | BlendState.MultiSampleMask | `rt-msaa` |
 | BlendState.NonPremultiplied | `grounds-fountain`, `sprite-tint`, `tex-alpha`, `be-alpha`, `hist-compare`, `pf-overdraw`, `rf-garden` |
+| BoneContent | `wk-meshhelper` |
 | BoneTrackEXT | `model-skinext` |
 | BoundingBox | `col-ray-box`, `col-pick`, `an-conveyor`, `sim-balls` |
 | BoundingBox.Contains | `col-box-box` |
@@ -193,10 +204,17 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Buttons.LeftThumbstickUp | `in-pad` |
 | Buttons.RightThumbstickLeft | `in-pad` |
 | Byte4 | `vt-packed` |
+| CNA::DesktopOS | `dev-identity` |
+| CNA::Devices::Camera | `dev-camera` |
 | CNA::Devices::DisplayInfo | `cx-devices` |
+| CNA::Devices::FileDialog | `dev-dialogs` |
+| CNA::Devices::FileDialogFilter | `dev-dialogs` |
 | CNA::Devices::Locale | `cx-devices` |
+| CNA::Devices::MessageBox | `dev-dialogs` |
 | CNA::Devices::PowerInfo | `cx-devices` |
 | CNA::Devices::SystemInfo | `cx-devices` |
+| CNA::Devices::SystemTray | `dev-tray` |
+| CNA::Devices::UrlLauncher | `dev-tray` |
 | CNA::Diagnostics::CounterHandle | `pl-diagnostics` |
 | CNA::Diagnostics::EventBatch | `pl-diagnostics` |
 | CNA::Diagnostics::EventRecord | `pl-diagnostics` |
@@ -228,6 +246,8 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | CNA::Graphics::DebugDraw | `cx-debugdraw` |
 | CNA::Graphics::DepthEffect | `cx-depth` |
 | CNA::Graphics::ShaderPackageEXT | `cx-package` |
+| CNA::Graphics::VertexTypeRegistryEXT | `rv-vertextype` |
+| CNA::GraphicsRendererCategory | `dev-identity` |
 | CNA::GraphicsRendererFallbackReason | `hist-cna` |
 | CNA::GraphicsRendererSelection.GetActive | `hist-cna` |
 | CNA::GraphicsRendererSelection.GetAvailable | `hist-cna` |
@@ -242,9 +262,28 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | CNA::Platform::IPlatform | `pl-platform` |
 | CNA::Platform::NativeWindowHandle | `pl-window` |
 | CNA::ShaderDiagnosticEXT | `fx-errors` |
+| CNA::TargetPlatform | `dev-identity` |
+| CNA::Unsupported3DGraphicsCallBehavior | `dev-identity` |
+| CNA::getCurrentDesktopOS | `dev-identity` |
+| CNA::getCurrentGraphicsRendererCategory | `dev-identity` |
+| CNA::getCurrentGraphicsRendererType | `dev-identity` |
+| CNA::getCurrentPlatform | `dev-identity` |
+| CNA::getCurrentPlatformName | `dev-identity` |
+| CNA::getGraphicsRendererCategory | `dev-identity` |
 | CNA::getGraphicsRendererMaturity | `hist-cna` |
-| CNA::getGraphicsRendererName | `hist-cna` |
+| CNA::getGraphicsRendererName | `dev-identity`, `hist-cna` |
+| CNA::isApplePlatform | `dev-identity` |
+| CNA::isMobilePlatform | `dev-identity` |
 | CRTMaskType | `cx-crt` |
+| Camera.AvailableCameras | `dev-camera` |
+| Camera.FrameHeight | `dev-camera` |
+| Camera.FrameWidth | `dev-camera` |
+| Camera.IsSupported | `dev-camera` |
+| Camera.State | `dev-camera` |
+| Camera.TryAcquireFrame | `dev-camera` |
+| CameraDeviceInfo | `dev-camera` |
+| CameraPosition | `dev-camera` |
+| CameraState | `dev-camera` |
 | Capability | `pl-inspector` |
 | Client.CaptureSnapshot | `pl-inspector` |
 | Client.Connect | `pl-inspector` |
@@ -408,6 +447,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | DynamicSoundEffectInstance.SubmitBuffer | `au-synth` |
 | DynamicSoundEffectInstance.SubmitFloatBufferEXT | `au-synth` |
 | DynamicVertexBuffer | `grounds-fountain`, `particles`, `geo-dynamic`, `pt-fire`, `pt-smoke`, `pt-sparks`, `pt-snow`, `pt-rain`, `pt-fountain`, `pt-dust`, `pt-fireworks`, `pt-bubbles`, `pt-leaves`, `pt-magic`, `cx-shadow`, `rf-garden`, `rf-weather` |
+| DynamicVertexBuffer(GraphicsDevice, Type, int, BufferUsage) | `rv-vertextype` |
 | DynamicVertexBuffer.SetData | `pf-buffers` |
 | Effect | `be-model`, `fx-compiled` |
 | Effect(GraphicsDevice, byte[]) | `fx-compiled` |
@@ -445,6 +485,11 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | EvaluateMorphWeightsEXT | `model-morph` |
 | EventsResponse | `pl-inspector` |
 | FbxImporter | `ct-modelimport` |
+| FileDialog.IsSupported | `dev-dialogs` |
+| FileDialog.ResultCallback | `dev-dialogs` |
+| FileDialog.ShowOpenFile | `dev-dialogs` |
+| FileDialog.ShowOpenFolder | `dev-dialogs` |
+| FileDialog.ShowSaveFile | `dev-dialogs` |
 | FriendCollection | `on-friends` |
 | FriendCollection.IsDisposed | `on-friends` |
 | FriendGamer | `on-friends` |
@@ -540,7 +585,10 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | GameWindow.CurrentOrientation | `pl-window` |
 | GameWindow.FileDropEXT | `pl-window` |
 | GameWindow.GetNativeWindowHandleEXT | `pl-window` |
+| GameWindow.MinimizeEXT | `dev-window` |
 | GameWindow.OrientationChanged | `pl-window` |
+| GameWindow.RestoreEXT | `dev-window` |
+| GameWindow.TextDropEXT | `dev-window` |
 | GameWindow.Title | `pl-window` |
 | Gamer.GetProfile | `gs-players` |
 | Gamer.LeaderboardWriter | `gs-leaderboards` |
@@ -557,7 +605,12 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | GamerServicesDispatcher.IsInitialized | `gs-guide` |
 | GamerServicesDispatcher.WindowHandle | `gs-guide` |
 | GamerServicesNotAvailableException | `pl-exceptions` |
-| GeometryContent | `ct-modelimport` |
+| Genre.Name | `dev-medialib` |
+| Genre.Songs | `dev-medialib` |
+| GenreCollection | `dev-medialib` |
+| GeometryContent | `ct-modelimport`, `wk-meshhelper` |
+| GeometryContent.Indices | `wk-meshhelper` |
+| GeometryContent.Vertices | `wk-meshhelper` |
 | GestureSample.Delta2 | `in-touch` |
 | GestureSample.Position2 | `in-touch` |
 | GestureSample.Timestamp | `in-touch` |
@@ -592,22 +645,26 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | GraphicsCapability.WireFrame | `rs-fill` |
 | GraphicsDevice | `info`, `app-device` |
 | GraphicsDevice.Clear | `rs-stencilcount` |
-| GraphicsDevice.DeviceLost | `app-viewport` |
+| GraphicsDevice.DeviceLost | `app-viewport`, `dev-window` |
+| GraphicsDevice.DeviceReset | `dev-window` |
+| GraphicsDevice.DeviceResetting | `dev-window` |
 | GraphicsDevice.DrawIndexedPrimitives | `geo-indexed`, `geo-manybuffers`, `geo-dynindex`, `geo-terrain`, `pf-objects` |
 | GraphicsDevice.DrawInstancedPrimitives | `geo-instancing`, `pf-objects` |
 | GraphicsDevice.DrawInstancedPrimitivesBaseInstanceEXT | `geo-instancing` |
-| GraphicsDevice.DrawPrimitives | `geo-indexed` |
+| GraphicsDevice.DrawPrimitives | `geo-indexed`, `rv-vertextype` |
 | GraphicsDevice.DrawUserIndexedPrimitives | `geo-dynamic` |
 | GraphicsDevice.DrawUserPrimitives | `geo-triangle`, `geo-primitives`, `cx-points`, `pf-buffers`, `pf-particles`, `rv-geometry` |
 | GraphicsDevice.ExecutesShaderEffectSourceEXT | `fx-errors` |
 | GraphicsDevice.GetDisplayColorSpaceEXT | `pl-renderer` |
 | GraphicsDevice.GetGraphicsRendererName | `pl-renderer` |
+| GraphicsDevice.GetGraphicsRendererType | `dev-identity` |
 | GraphicsDevice.GetLogicalSizeEXT | `pl-renderer` |
 | GraphicsDevice.GetRenderTargets | `rt-mrt`, `rt-cube` |
 | GraphicsDevice.GetRendererCapabilityProfileEXT | `pl-renderer` |
 | GraphicsDevice.GetRendererCapabilityReportEXT | `pl-renderer` |
 | GraphicsDevice.GetShaderDialectEXT | `fx-grade`, `fx-blur`, `fx-pixelate`, `fx-ripple`, `fx-edge`, `fx-crt`, `fx-plasma`, `fx-swirl`, `fx-chromatic`, `fx-kernel`, `fx-halftone`, `fx-vertexwave`, `fx-colormatrix`, `fx-errors` |
 | GraphicsDevice.GetTrackedResourceCount | `pl-renderer` |
+| GraphicsDevice.GetUnsupported3DGraphicsCallBehavior | `dev-identity` |
 | GraphicsDevice.GetVertexBuffers | `geo-instancing` |
 | GraphicsDevice.GraphicsProfile | `pl-adapter` |
 | GraphicsDevice.Present | `app-viewport` |
@@ -619,6 +676,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | GraphicsDevice.SetRenderTarget | `rendertarget`, `rt-basic`, `rt-control`, `rt-cube`, `pf-targets`, `rv-targets` |
 | GraphicsDevice.SetRenderTargets | `rt-mrt` |
 | GraphicsDevice.SetStringMarkerEXT | `cx-points` |
+| GraphicsDevice.SetUnsupported3DGraphicsCallBehavior | `dev-identity` |
 | GraphicsDevice.SetVertexBuffers | `geo-instancing` |
 | GraphicsDevice.SupportsDisplayColorSpaceEXT | `pl-renderer` |
 | GraphicsDevice.SupportsImageBasedLightingEXT | `model-ibl`, `pl-renderer` |
@@ -663,13 +721,51 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | GyroscopeReading.RotationRate | `in-phone` |
 | HalfVector2 | `vt-packed` |
 | HalfVector4 | `vt-packed` |
-| Haptics.GetHapticsEXT | `in-devices` |
+| HapticCapabilitiesEXT | `dev-haptics` |
+| HapticDevice | `dev-haptics` |
+| HapticDevice.CreateEffectEXT | `dev-haptics` |
+| HapticDevice.DestroyEffectEXT | `dev-haptics` |
+| HapticDevice.Dispose | `dev-haptics` |
+| HapticDevice.GetCapabilitiesEXT | `dev-haptics` |
+| HapticDevice.GetEffectStatusEXT | `dev-haptics` |
+| HapticDevice.GetNameEXT | `dev-haptics` |
+| HapticDevice.InitRumbleEXT | `dev-haptics` |
+| HapticDevice.IsEffectSupportedEXT | `dev-haptics` |
+| HapticDevice.IsOpenEXT | `dev-haptics` |
+| HapticDevice.PauseEXT | `dev-haptics` |
+| HapticDevice.PlayRumbleEXT | `dev-haptics` |
+| HapticDevice.ResumeEXT | `dev-haptics` |
+| HapticDevice.RunEffectEXT | `dev-haptics` |
+| HapticDevice.SetAutocenterEXT | `dev-haptics` |
+| HapticDevice.SetGainEXT | `dev-haptics` |
+| HapticDevice.StopAllEffectsEXT | `dev-haptics` |
+| HapticDevice.StopEffectEXT | `dev-haptics` |
+| HapticDevice.StopRumbleEXT | `dev-haptics` |
+| HapticDevice.UpdateEffectEXT | `dev-haptics` |
+| HapticEffectEXT | `dev-haptics` |
+| HapticEffectTypeEXT | `dev-haptics` |
+| HapticInfoEXT | `dev-haptics` |
+| Haptics.GetHapticsEXT | `in-devices`, `dev-haptics` |
 | Haptics.IsJoystickHapticEXT | `in-devices` |
-| Haptics.IsMouseHapticEXT | `in-devices` |
+| Haptics.IsMouseHapticEXT | `in-devices`, `dev-haptics` |
+| Haptics.OpenEXT | `dev-haptics` |
 | HelloResponse | `pl-inspector` |
 | HostChangedEventArgs | `net-session` |
 | HostChangedEventArgs.NewHost | `net-session` |
 | HostChangedEventArgs.OldHost | `net-session` |
+| HttpNotificationChannel | `dev-notify` |
+| HttpNotificationChannel.BindToShellToast | `dev-notify` |
+| HttpNotificationChannel.ChannelUri | `dev-notify` |
+| HttpNotificationChannel.ChannelUriUpdated | `dev-notify` |
+| HttpNotificationChannel.Close | `dev-notify` |
+| HttpNotificationChannel.DispatchPendingNotificationsEXT | `dev-notify` |
+| HttpNotificationChannel.Find | `dev-notify` |
+| HttpNotificationChannel.HttpNotificationReceived | `dev-notify` |
+| HttpNotificationChannel.IsShellToastBound | `dev-notify` |
+| HttpNotificationChannel.Open | `dev-notify` |
+| HttpNotificationEventArgs | `dev-notify` |
+| HttpNotificationEventArgs.Body | `dev-notify` |
+| HttpNotificationEventArgs.BodyAsString | `dev-notify` |
 | IAvatarAnimation | `gs-avatar` |
 | IDiagnosticsProvider.ReadEvents | `pl-diagnostics` |
 | IDiagnosticsProvider.ResolveName | `pl-diagnostics` |
@@ -689,6 +785,8 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | IPlatform.IsSubsystemInitialized | `pl-platform` |
 | IShadowReceiverEXT | `cx-shadow` |
 | IUpdateable | `app-components` |
+| IVertexType | `rv-vertextype` |
+| IVertexType.VertexDeclaration | `rv-vertextype` |
 | ImageBasedLightEXT | `model-ibl` |
 | IndexBuffer | `particles`, `geo-indexed`, `geo-procedural`, `geo-index32`, `geo-dynindex`, `geo-terrain`, `model-skinfx`, `pt-fire`, `pt-smoke`, `pt-sparks`, `pt-snow`, `pt-rain`, `pt-fountain`, `pt-dust`, `pt-fireworks`, `pt-bubbles`, `pt-leaves`, `pt-magic` |
 | IndexElementSize | `geo-index32` |
@@ -775,6 +873,19 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Matrix.Translation | `mat-hierarchy` |
 | Matrix.Transpose | `mat-normals` |
 | MatrixConverter | `vt-converters` |
+| MediaLibrary | `dev-medialib` |
+| MediaLibrary.Albums | `dev-medialib` |
+| MediaLibrary.Artists | `dev-medialib` |
+| MediaLibrary.Dispose | `dev-medialib` |
+| MediaLibrary.Genres | `dev-medialib` |
+| MediaLibrary.IsDisposed | `dev-medialib` |
+| MediaLibrary.MediaSource | `dev-medialib` |
+| MediaLibrary.Pictures | `dev-medialib` |
+| MediaLibrary.Playlists | `dev-medialib` |
+| MediaLibrary.RootPictureAlbum | `dev-medialib` |
+| MediaLibrary.SavePicture | `dev-medialib` |
+| MediaLibrary.SavedPictures | `dev-medialib` |
+| MediaLibrary.Songs | `dev-medialib` |
 | MediaPlayer.ActiveSongChanged | `au-music` |
 | MediaPlayer.GameHasControl | `au-music` |
 | MediaPlayer.GetVisualizationData | `au-music` |
@@ -787,18 +898,36 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | MediaPlayer.Queue | `au-music` |
 | MediaPlayer.Volume | `au-music` |
 | MediaQueue | `au-music` |
+| MediaSource.Name | `dev-medialib` |
 | MediaState | `au-music` |
-| MeshBuilder | `ct-meshbuilder` |
-| MeshBuilder.AddTriangleVertex | `ct-meshbuilder` |
-| MeshBuilder.CreatePosition | `ct-meshbuilder` |
-| MeshBuilder.CreateVertexChannel | `ct-meshbuilder` |
-| MeshBuilder.FinishMesh | `ct-meshbuilder` |
+| MeshBuilder | `ct-meshbuilder`, `wk-meshhelper` |
+| MeshBuilder.AddTriangleVertex | `ct-meshbuilder`, `wk-meshhelper` |
+| MeshBuilder.CreatePosition | `ct-meshbuilder`, `wk-meshhelper` |
+| MeshBuilder.CreateVertexChannel | `ct-meshbuilder`, `wk-meshhelper` |
+| MeshBuilder.FinishMesh | `ct-meshbuilder`, `wk-meshhelper` |
 | MeshBuilder.MergeDuplicatePositions | `ct-meshbuilder` |
-| MeshBuilder.SetVertexChannelData | `ct-meshbuilder` |
-| MeshBuilder.StartMesh | `ct-meshbuilder` |
+| MeshBuilder.SetVertexChannelData | `ct-meshbuilder`, `wk-meshhelper` |
+| MeshBuilder.StartMesh | `ct-meshbuilder`, `wk-meshhelper` |
 | MeshBuilder.SwapWindingOrder | `ct-meshbuilder` |
-| MeshContent | `ct-meshbuilder`, `ct-modelimport` |
+| MeshContent | `ct-meshbuilder`, `ct-modelimport`, `wk-meshhelper` |
+| MeshContent.Geometry | `wk-meshhelper` |
+| MeshContent.Positions | `wk-meshhelper` |
+| MeshHelper | `wk-meshhelper` |
+| MeshHelper.CalculateNormals | `wk-meshhelper` |
+| MeshHelper.CalculateTangentFrames | `wk-meshhelper` |
+| MeshHelper.FindSkeleton | `wk-meshhelper` |
+| MeshHelper.FlattenSkeleton | `wk-meshhelper` |
+| MeshHelper.MergeDuplicatePositions | `wk-meshhelper` |
+| MeshHelper.MergeDuplicateVertices(MeshContent) | `wk-meshhelper` |
+| MeshHelper.OptimizeForCache | `wk-meshhelper` |
+| MeshHelper.SwapWindingOrder | `wk-meshhelper` |
+| MeshHelper.TransformScene | `wk-meshhelper` |
+| MessageBox.IsSupported | `dev-dialogs` |
+| MessageBox.Show | `dev-dialogs` |
+| MessageBox.ShowSimple | `dev-dialogs` |
 | MessageBoxIcon | `gs-guide` |
+| MessageBoxType | `dev-dialogs` |
+| MessageSendPriority | `dev-notify` |
 | Microphone | `au-mic` |
 | Microphone.BufferDuration | `au-mic` |
 | Microphone.GetData | `au-mic` |
@@ -920,11 +1049,14 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | NetworkSessionProperties | `net-session` |
 | NetworkSessionType.PlayerMatch | `net-session` |
 | NodeContent | `ct-modelimport` |
-| NodeContent.Children | `ct-modelimport` |
+| NodeContent.AbsoluteTransform | `wk-meshhelper` |
+| NodeContent.Children | `ct-modelimport`, `wk-meshhelper` |
 | NormalizedByte2 | `vt-packed` |
 | NormalizedByte4 | `vt-packed` |
 | NormalizedShort2 | `vt-packed` |
 | NormalizedShort4 | `vt-packed` |
+| NotificationChannelUriEventArgs | `dev-notify` |
+| NotificationChannelUriEventArgs.ChannelUri | `dev-notify` |
 | OcclusionQuery | `rs-occlusion` |
 | OcclusionQuery.IsComplete | `rs-occlusion` |
 | OcclusionQuery.PixelCount | `rs-occlusion` |
@@ -958,6 +1090,17 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | PhoneApplicationService.Deactivated | `pl-window` |
 | PhoneApplicationService.Launching | `pl-window` |
 | PhoneApplicationService.State | `pl-window` |
+| Picture.GetThumbnail | `dev-medialib` |
+| Picture.Height | `dev-medialib` |
+| Picture.Name | `dev-medialib` |
+| Picture.Width | `dev-medialib` |
+| PictureAlbum | `dev-medialib` |
+| PictureAlbum.Albums | `dev-medialib` |
+| PictureAlbum.Name | `dev-medialib` |
+| PictureAlbum.Parent | `dev-medialib` |
+| PictureAlbum.Pictures | `dev-medialib` |
+| PictureAlbumCollection | `dev-medialib` |
+| PictureCollection | `dev-medialib` |
 | PixelBitmapContent | `ct-processor` |
 | Plane | `vec-reflect`, `col-ray-plane` |
 | Plane.DotCoordinate | `col-plane-box` |
@@ -968,6 +1111,10 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | PlaneIntersectionType | `col-plane-box` |
 | PlatformCapabilities | `pl-platform` |
 | PlayerIndex | `in-players` |
+| Playlist.Duration | `dev-medialib` |
+| Playlist.Name | `dev-medialib` |
+| Playlist.Songs | `dev-medialib` |
+| PlaylistCollection | `dev-medialib` |
 | Point | `vt-rectangle` |
 | PointConverter | `vt-converters` |
 | Power.GetInfoEXT | `in-devices` |
@@ -1031,6 +1178,9 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | RasterizerState.MultiSampleAntiAlias | `rt-msaa` |
 | RasterizerState.ScissorTestEnable | `sprite-scissor`, `rs-scissor` |
 | RasterizerState.SlopeScaleDepthBias | `rs-depthbias` |
+| RawPushNotificationMessage | `dev-notify` |
+| RawPushNotificationMessage.RawData | `dev-notify` |
+| RawPushNotificationMessage.SendAsync | `dev-notify` |
 | Ray.Intersects | `col-ray-box`, `col-ray-sphere`, `col-ray-plane`, `col-pick` |
 | RayConverter | `vt-converters` |
 | Rectangle | `vt-rectangle`, `sprite-sheet`, `sprite-ui`, `sprite-anim` |
@@ -1044,7 +1194,10 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Rectangle.Union | `vt-rectangle` |
 | RectangleConverter | `vt-converters` |
 | RenderTarget2D | `rendertarget`, `cam-orbit`, `cam-fov`, `cam-split`, `cam-mirror`, `sprite-basics`, `sprite-lights`, `fx-grade`, `fx-blur`, `fx-pixelate`, `fx-ripple`, `fx-edge`, `fx-crt`, `fx-plasma`, `fx-swirl`, `fx-chromatic`, `fx-kernel`, `fx-halftone`, `fx-vertexwave`, `fx-colormatrix`, `rs-scissor`, `rt-basic`, `rt-lowres`, `rt-control`, `rt-recursive`, `rt-mirror`, `rt-bloom`, `rt-msaa`, `pf-targets`, `rv-targets`, `rf-telescope` |
+| RenderTarget2D.ContentLost | `dev-window` |
+| RenderTarget2D.IsContentLost | `dev-window` |
 | RenderTarget2D.MultiSampleCount | `rt-msaa` |
+| RenderTarget2D.NotifyContentLostEXT | `dev-window` |
 | RenderTargetBinding | `rt-mrt`, `rt-cube` |
 | RenderTargetBinding.CubeMapFace | `rt-cube` |
 | RenderTargetBinding.RenderTarget | `rt-mrt`, `rt-cube` |
@@ -1131,14 +1284,17 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | SnapshotPart | `pl-inspector` |
 | SnapshotResponse | `pl-inspector` |
 | Song | `au-music` |
-| Song.Artist | `au-music` |
-| Song.Duration | `au-music` |
+| Song.Album | `dev-medialib` |
+| Song.Artist | `au-music`, `dev-medialib` |
+| Song.Duration | `au-music`, `dev-medialib` |
+| Song.Genre | `dev-medialib` |
 | Song.IsProtected | `au-music` |
 | Song.IsRated | `au-music` |
+| Song.Name | `dev-medialib` |
 | Song.PlayCount | `au-music` |
 | Song.Rating | `au-music` |
-| Song.TrackNumber | `au-music` |
-| SongCollection | `au-music` |
+| Song.TrackNumber | `au-music`, `dev-medialib` |
+| SongCollection | `au-music`, `dev-medialib` |
 | SongContent | `ct-audiopipeline` |
 | SoundBank | `au-xact` |
 | SoundBank.GetCue | `au-xact` |
@@ -1217,13 +1373,24 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | System.ObjectDisposedException | `pl-exceptions` |
 | System.Resources.ResourceManager | `ct-resource` |
 | System.Text.StringBuilder | `text-hud` |
+| System::ArgumentException | `rv-vertextype` |
+| SystemTray.AddEntry | `dev-tray` |
+| SystemTray.GetEntryChecked | `dev-tray` |
+| SystemTray.GetEntryEnabled | `dev-tray` |
+| SystemTray.IsSupported | `dev-tray` |
+| SystemTray.SetEntryChecked | `dev-tray` |
+| SystemTray.SetEntryEnabled | `dev-tray` |
+| SystemTray.SetEntryLabel | `dev-tray` |
+| SystemTray.Tooltip | `dev-tray` |
+| TextDropEventArgsEXT | `dev-window` |
+| TextDropEventArgsEXT.Text | `dev-window` |
 | TextInputEXT.StartTextInputWithTypeEXT | `in-text` |
 | TextInputEXT.TextInput | `in-text` |
 | TextInputTypeEXT | `in-text` |
 | Texture.Format | `rt-formats` |
 | Texture2D | `materials`, `grounds-fountain`, `app-content`, `tex-mip`, `rf-garden` |
 | Texture2D.DDSFromStreamEXT | `ct-formats` |
-| Texture2D.FromStream | `tex-io` |
+| Texture2D.FromStream | `tex-io`, `dev-medialib` |
 | Texture2D.GetData | `sprite-atlas`, `sprite-hit`, `sprite-tilemap`, `geo-terrain`, `tex-dynamic`, `ct-formats`, `rv-targets`, `rv-formats` |
 | Texture2D.SaveAsJpeg | `tex-io` |
 | Texture2D.SaveAsPng | `tex-io` |
@@ -1245,6 +1412,10 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | TextureProcessorOutputFormat | `ct-processor` |
 | TextureTransformEXT | `model-material` |
 | TitleContainer.OpenStream | `ct-storage`, `pl-exceptions` |
+| ToastPushNotificationMessage | `dev-notify` |
+| ToastPushNotificationMessage.SendAsync | `dev-notify` |
+| ToastPushNotificationMessage.SubTitle | `dev-notify` |
+| ToastPushNotificationMessage.Title | `dev-notify` |
 | TouchLocation.Id | `in-touch` |
 | TouchLocation.State | `in-touch` |
 | TouchLocation.TryGetPreviousLocation | `in-touch` |
@@ -1255,6 +1426,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Trace.ReadBinary | `pl-diagnostics` |
 | Trace.WriteBinary | `pl-diagnostics` |
 | Trace.WriteChromeTrace | `pl-diagnostics` |
+| UrlLauncher.Open | `dev-tray` |
 | Vector2 | `sprite-origin` |
 | Vector2Converter | `vt-converters` |
 | Vector3 | `an-pendulum`, `sim-flock`, `sim-integrators`, `rf-deck` |
@@ -1279,14 +1451,24 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | Vector4.Transform | `mat-screen` |
 | Vector4Converter | `vt-converters` |
 | VertexBuffer | `geo-vertextypes`, `geo-indexed`, `geo-procedural`, `geo-manybuffers`, `geo-terrain`, `model-skinfx`, `pf-buffers` |
+| VertexBuffer(GraphicsDevice, Type, int, BufferUsage) | `rv-vertextype` |
 | VertexBufferBinding | `geo-instancing`, `pf-objects` |
 | VertexBufferContent | `ct-meshbuilder` |
+| VertexChannelCollection.Contains | `wk-meshhelper` |
+| VertexChannelCollection.Get | `wk-meshhelper` |
 | VertexChannelNames | `ct-meshbuilder` |
-| VertexDeclaration | `geo-vertextypes` |
-| VertexDeclaration.GetVertexElements | `geo-vertextypes` |
-| VertexDeclaration.VertexStride | `geo-vertextypes` |
+| VertexChannelNames.Binormal | `wk-meshhelper` |
+| VertexChannelNames.Normal | `wk-meshhelper` |
+| VertexChannelNames.Tangent | `wk-meshhelper` |
+| VertexChannelNames.TextureCoordinate | `wk-meshhelper` |
+| VertexContent.Channels | `wk-meshhelper` |
+| VertexContent.PositionIndices | `wk-meshhelper` |
+| VertexContent.VertexCount | `wk-meshhelper` |
+| VertexDeclaration | `geo-vertextypes`, `rv-vertextype` |
+| VertexDeclaration.GetVertexElements | `geo-vertextypes`, `rv-vertextype` |
+| VertexDeclaration.VertexStride | `geo-vertextypes`, `rv-vertextype` |
 | VertexDeclarationContent | `ct-meshbuilder` |
-| VertexElement | `geo-vertextypes` |
+| VertexElement | `geo-vertextypes`, `rv-vertextype` |
 | VertexElementFormat | `geo-vertextypes` |
 | VertexElementUsage | `geo-vertextypes` |
 | VertexPositionColor | `geo-triangle`, `geo-vertextypes`, `cx-shadow` |
@@ -1294,6 +1476,9 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | VertexPositionNormalTexture | `geo-vertextypes`, `geo-dynamic`, `geo-terrain` |
 | VertexPositionNormalTextureSkinned | `model-skinfx`, `model-skinext` |
 | VertexPositionTexture | `geo-vertextypes` |
+| VertexTypeRegistryEXT.Register | `rv-vertextype` |
+| VertexTypeRegistryEXT.Resolve | `rv-vertextype` |
+| VertexTypeRegistryEXT.TryResolve | `rv-vertextype` |
 | VibrateController | `in-phone` |
 | VibrateController.Default | `in-phone` |
 | VibrateController.IsSupported | `in-phone` |

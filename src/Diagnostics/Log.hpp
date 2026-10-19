@@ -17,4 +17,19 @@ inline void Log(const char* tag, const char* format, ...)
     std::fputc('\n', stderr);
 }
 
+// An exhibit caught an exception it did not expect (not a refusal it demonstrates on purpose) and carried on:
+// logged as an exhibit error, so tours, validators and execution evidence treat it as a failure, and counted into
+// the "exhibit errors" of the stats line next to the exceptions MuseumWorld catches from exhibit hooks.
+inline int& ReportedExhibitErrorCount()
+{
+    static int count = 0;
+    return count;
+}
+
+inline void ReportExhibitError(const char* room, const char* what)
+{
+    ++ReportedExhibitErrorCount();
+    Log("exhibit-error", "%s caught: %s", room, what);
+}
+
 }  // namespace Museum

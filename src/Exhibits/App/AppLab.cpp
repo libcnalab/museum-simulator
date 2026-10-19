@@ -529,6 +529,7 @@ private:
             lastError_ = "-";
         } catch (const std::exception& e) {
             lastError_ = e.what();
+            ReportError(std::string("loading the 12 museum textures: ") + e.what());
         }
         const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
         char buf[64];

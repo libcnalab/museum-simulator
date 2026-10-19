@@ -123,6 +123,7 @@ public:
             volume_.reset();
             effect_.reset();
             Museum::Log("volumeshader", "unavailable: %s", e.what());
+            ReportError(std::string("Texture3D or sampler3D shader: ") + e.what());
         }
     }
 

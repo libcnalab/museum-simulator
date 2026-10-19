@@ -162,6 +162,9 @@ public:
 
     void OnScreenLoaded() override
     {
+        // Marked subscribed before the first Add: if a later Add throws, RestoreGlobals still removes the handlers
+        // already added (each captures this room), instead of leaving them on the game after the room is gone.
+        subscribed_ = true;
         try {
             Game& g = *S().game;
             originalTitle_ = g.getWindowProperty().getTitleProperty();
@@ -181,8 +184,9 @@ public:
             shellTokens_[3] = shell.Closing.Add([this](System::Object*, const Microsoft::Phone::Shell::ClosingEventArgs&) { ++shell_[3]; });
             shell.AttachEXT(g);
 #endif
-            subscribed_ = true;
-        } catch (const std::exception&) {}
+        } catch (const std::exception& e) {
+            ReportError(std::string("subscribing to the window and game events: ") + e.what());
+        }
         Refresh();
     }
 

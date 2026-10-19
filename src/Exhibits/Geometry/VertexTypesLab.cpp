@@ -128,6 +128,7 @@ public:
             ok_ = true;
         } catch (const std::exception& e) {
             Museum::Log("vertextypes", "unavailable: %s", e.what());
+            ReportError(std::string("vertex buffers: ") + e.what());
         }
     }
 

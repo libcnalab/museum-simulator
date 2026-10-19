@@ -39,7 +39,7 @@ catalogue by `tools/gen_docs.sh`; the plan below (hand-written) explains the sha
 ## The rooms
 
 <!-- BEGIN MAP -->
-10 floors, 36 wings, 295 exhibit rooms (7 open to the sky), 370 walkable cells in all.
+10 floors, 38 wings, 305 exhibit rooms (7 open to the sky), 382 walkable cells in all.
 
 ### Floor 0: Lobby and Introductory Tour
 
@@ -427,6 +427,19 @@ Sound, music, keyboards, mice and game pads
 | 7.2.09 | `in-devices` | Other Input Devices | CNA extension | InputDevices.GetMiceEXT, TouchPanel.GetState, TouchPanel.MouseTouchEmulationEnabledEXT, Sensors.GetSensorsEXT, Power.GetInfoEXT, GamePad.GetConnectionStateEXT, GamePad.GetPowerInfoEXT, GamePad.GetTouchpadCountEXT, GamePad.GetFirmwareVersionEXT, GamePad.GetSerialEXT, Mouse.GetGlobalPositionEXT, Haptics.GetHapticsEXT, Haptics.IsMouseHapticEXT, Haptics.IsJoystickHapticEXT |
 | 7.2.10 | `in-phone` | Phone Sensors | XNA 4.0 | Accelerometer, Accelerometer.IsSupported, Accelerometer.Start, Accelerometer.Stop, Accelerometer.State, SensorBase.CurrentValue, SensorBase.CurrentValueChanged, Accelerometer.KeyboardEmulationEnabledEXT, AccelerometerReading.Acceleration, Gyroscope, Gyroscope.IsSupported, GyroscopeReading.RotationRate, Compass, Compass.IsSupported, CompassReading.MagneticHeading, Motion, Motion.IsSupported, MotionReading.Attitude, MotionReading.Gravity, AttitudeReading, SensorState, SensorReadingEventArgs, VibrateController, VibrateController.Default, VibrateController.Start, VibrateController.IsSupported, Microsoft.Devices.Environment.DeviceType, DeviceType |
 
+**Devices and the System** - Haptics, native dialogs, the tray, the camera, window events and which platform this is
+
+| Room | Key | Title | Origin | APIs |
+|---|---|---|---|---|
+| 7.3.01 | `dev-haptics` | Haptic Devices | CNA extension | Haptics.GetHapticsEXT, Haptics.OpenEXT, Haptics.IsMouseHapticEXT, HapticInfoEXT, HapticDevice, HapticDevice.IsOpenEXT, HapticDevice.GetNameEXT, HapticDevice.GetCapabilitiesEXT, HapticCapabilitiesEXT, HapticDevice.InitRumbleEXT, HapticDevice.PlayRumbleEXT, HapticDevice.StopRumbleEXT, HapticEffectEXT, HapticEffectTypeEXT, HapticDevice.IsEffectSupportedEXT, HapticDevice.CreateEffectEXT, HapticDevice.UpdateEffectEXT, HapticDevice.RunEffectEXT, HapticDevice.GetEffectStatusEXT, HapticDevice.StopEffectEXT, HapticDevice.DestroyEffectEXT, HapticDevice.SetGainEXT, HapticDevice.SetAutocenterEXT, HapticDevice.PauseEXT, HapticDevice.ResumeEXT, HapticDevice.StopAllEffectsEXT, HapticDevice.Dispose |
+| 7.3.02 | `dev-dialogs` | Native Dialogs | CNA extension | CNA::Devices::FileDialog, FileDialog.IsSupported, FileDialog.ShowOpenFile, FileDialog.ShowSaveFile, FileDialog.ShowOpenFolder, CNA::Devices::FileDialogFilter, FileDialog.ResultCallback, CNA::Devices::MessageBox, MessageBox.IsSupported, MessageBox.ShowSimple, MessageBox.Show, MessageBoxType |
+| 7.3.03 | `dev-tray` | Tray Icon and URLs | CNA extension | CNA::Devices::SystemTray, SystemTray.IsSupported, SystemTray.AddEntry, SystemTray.Tooltip, SystemTray.SetEntryLabel, SystemTray.SetEntryChecked, SystemTray.GetEntryChecked, SystemTray.SetEntryEnabled, SystemTray.GetEntryEnabled, CNA::Devices::UrlLauncher, UrlLauncher.Open |
+| 7.3.04 | `dev-camera` | The Camera | CNA extension | CNA::Devices::Camera, Camera.IsSupported, Camera.AvailableCameras, CameraDeviceInfo, CameraPosition, Camera.State, CameraState, Camera.FrameWidth, Camera.FrameHeight, Camera.TryAcquireFrame |
+| 7.3.05 | `dev-window` | Window Events and Device Loss | CNA extension | GameWindow.TextDropEXT, TextDropEventArgsEXT, TextDropEventArgsEXT.Text, GameWindow.MinimizeEXT, GameWindow.RestoreEXT, GraphicsDevice.DeviceLost, GraphicsDevice.DeviceResetting, GraphicsDevice.DeviceReset, RenderTarget2D.ContentLost, RenderTarget2D.IsContentLost, RenderTarget2D.NotifyContentLostEXT |
+| 7.3.06 | `dev-identity` | Platform and Renderer Family | CNA extension | CNA::getCurrentPlatform, CNA::getCurrentPlatformName, CNA::isMobilePlatform, CNA::isApplePlatform, CNA::TargetPlatform, CNA::getCurrentDesktopOS, CNA::DesktopOS, CNA::getGraphicsRendererCategory, CNA::getCurrentGraphicsRendererCategory, CNA::GraphicsRendererCategory, GraphicsDevice.GetGraphicsRendererType, CNA::getCurrentGraphicsRendererType, CNA::getGraphicsRendererName, GraphicsDevice.SetUnsupported3DGraphicsCallBehavior, GraphicsDevice.GetUnsupported3DGraphicsCallBehavior, CNA::Unsupported3DGraphicsCallBehavior |
+| 7.3.07 | `dev-notify` | Push Notifications | XNA 4.0 | HttpNotificationChannel, HttpNotificationChannel.Find, HttpNotificationChannel.Open, HttpNotificationChannel.Close, HttpNotificationChannel.ChannelUri, HttpNotificationChannel.ChannelUriUpdated, NotificationChannelUriEventArgs, NotificationChannelUriEventArgs.ChannelUri, HttpNotificationChannel.HttpNotificationReceived, HttpNotificationEventArgs, HttpNotificationEventArgs.Body, HttpNotificationEventArgs.BodyAsString, HttpNotificationChannel.DispatchPendingNotificationsEXT, HttpNotificationChannel.BindToShellToast, HttpNotificationChannel.IsShellToastBound, RawPushNotificationMessage, RawPushNotificationMessage.RawData, RawPushNotificationMessage.SendAsync, ToastPushNotificationMessage, ToastPushNotificationMessage.Title, ToastPushNotificationMessage.SubTitle, ToastPushNotificationMessage.SendAsync, MessageSendPriority |
+| 7.3.08 | `dev-medialib` | The Media Library | XNA 4.0 | MediaLibrary, MediaLibrary.Songs, MediaLibrary.Albums, MediaLibrary.Artists, MediaLibrary.Genres, MediaLibrary.Playlists, MediaLibrary.Pictures, MediaLibrary.RootPictureAlbum, MediaLibrary.SavedPictures, MediaLibrary.MediaSource, MediaLibrary.SavePicture, MediaLibrary.Dispose, MediaLibrary.IsDisposed, MediaSource.Name, SongCollection, Song.Name, Song.Album, Song.Artist, Song.Genre, Song.Duration, Song.TrackNumber, AlbumCollection, Album.Name, Album.Artist, Album.Songs, Album.Duration, Album.HasArt, ArtistCollection, Artist.Name, Artist.Albums, Artist.Songs, GenreCollection, Genre.Name, Genre.Songs, PlaylistCollection, Playlist.Name, Playlist.Songs, Playlist.Duration, PictureCollection, PictureAlbum, PictureAlbum.Name, PictureAlbum.Albums, PictureAlbum.Pictures, PictureAlbum.Parent, PictureAlbumCollection, Picture.Name, Picture.Width, Picture.Height, Picture.GetThumbnail, Texture2D.FromStream |
+
 ### Floor 8: Content, Platform and CNA
 
 How assets arrive, what the platform reports, and what CNA adds to XNA
@@ -509,6 +522,12 @@ How assets arrive, what the platform reports, and what CNA adds to XNA
 | 8.6.02 | `hist-cna` | This Build of CNA | CNA extension | CNA::GraphicsRendererSelection.GetAvailable, CNA::GraphicsRendererSelection.GetSelected, CNA::GraphicsRendererSelection.GetActive, CNA::GraphicsRendererSelection.IsFallbackEnabled, CNA::GraphicsRendererSelection.GetFallbackHistory, CNA::GraphicsRendererFallbackReason, CNA::getGraphicsRendererMaturity, CNA::getGraphicsRendererName |
 | 8.6.03 | `hist-compare` | XNA 4.0 and What CNA Adds | CNA extension | SpriteBatch.Draw, SpriteBatch.DrawString, BlendState.NonPremultiplied |
 
+**Pipeline Workshop** - Content-pipeline operations on data built in the room, each result checked exactly
+
+| Room | Key | Title | Origin | APIs |
+|---|---|---|---|---|
+| 8.7.01 | `wk-meshhelper` | MeshHelper | XNA 4.0 | MeshHelper, MeshHelper.MergeDuplicatePositions, MeshHelper.MergeDuplicateVertices(MeshContent), MeshHelper.CalculateNormals, MeshHelper.CalculateTangentFrames, MeshHelper.OptimizeForCache, MeshHelper.SwapWindingOrder, MeshHelper.TransformScene, MeshHelper.FindSkeleton, MeshHelper.FlattenSkeleton, MeshBuilder, MeshBuilder.StartMesh, MeshBuilder.CreatePosition, MeshBuilder.AddTriangleVertex, MeshBuilder.CreateVertexChannel, MeshBuilder.SetVertexChannelData, MeshBuilder.FinishMesh, MeshContent, MeshContent.Positions, MeshContent.Geometry, GeometryContent, GeometryContent.Indices, GeometryContent.Vertices, VertexContent.PositionIndices, VertexContent.VertexCount, VertexContent.Channels, VertexChannelCollection.Contains, VertexChannelCollection.Get, VertexChannelNames.Normal, VertexChannelNames.Tangent, VertexChannelNames.Binormal, VertexChannelNames.TextureCoordinate, BoneContent, NodeContent.Children, NodeContent.AbsoluteTransform |
+
 ### Floor 9: Performance and Validation
 
 Stress tests, renderer self-checks, reference scenes and the observation deck
@@ -540,6 +559,7 @@ Stress tests, renderer self-checks, reference scenes and the observation deck
 | 9.2.08 | `rv-camera` | Camera Matrices | XNA 4.0 | Matrix.CreateLookAt, Matrix.CreatePerspectiveFieldOfView, Matrix.CreateOrthographic, BasicEffect.World |
 | 9.2.09 | `rv-formats` | Surface Formats | XNA 4.0 | SurfaceFormat, Texture2D.SetData, Texture2D.GetData, PackedVector.Bgr565, PackedVector.Rgba64, PackedVector.HalfVector4 |
 | 9.2.10 | `rv-effects` | Stock Effects | XNA 4.0 | BasicEffect, AlphaTestEffect, DualTextureEffect |
+| 9.2.11 | `rv-vertextype` | A Game's Own Vertex Type | XNA 4.0 | CNA::Graphics::VertexTypeRegistryEXT, VertexTypeRegistryEXT.Register, VertexTypeRegistryEXT.TryResolve, VertexTypeRegistryEXT.Resolve, IVertexType, IVertexType.VertexDeclaration, VertexBuffer(GraphicsDevice, Type, int, BufferUsage), DynamicVertexBuffer(GraphicsDevice, Type, int, BufferUsage), VertexDeclaration, VertexElement, VertexDeclaration.VertexStride, VertexDeclaration.GetVertexElements, System::ArgumentException, GraphicsDevice.DrawPrimitives |
 
 **Observation Deck** - Open-air rooms under the museum sky: the clock, a garden, a telescope and a weather station
 

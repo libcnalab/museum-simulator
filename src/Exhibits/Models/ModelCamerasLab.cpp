@@ -61,6 +61,7 @@ public:
             for (int i = 0; i < 3; ++i) views_[static_cast<std::size_t>(i)] = std::make_unique<MiniView>(S(), 480, 270);
         } catch (const std::exception& e) {
             Museum::Log("cameras", "%s", e.what());
+            ReportError(std::string("stage cameras or views: ") + e.what());
         }
     }
 
@@ -75,7 +76,10 @@ public:
                 views_[i]->Render(ctx, view, proj, eye, [&](const DrawContext& c) { DrawStage(c, Matrix::getIdentityProperty()); });
             }
         } catch (const std::exception& e) {
-            if (!reported_) Museum::Log("cameras", "render: %s", e.what());
+            if (!reported_) {
+                Museum::Log("cameras", "render: %s", e.what());
+                ReportError(std::string("render: ") + e.what());   // per frame: reported_ keeps it to the first failure
+            }
             reported_ = true;
         }
     }

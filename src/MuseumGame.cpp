@@ -712,7 +712,7 @@ void MuseumGame::RunScript()
             const WorldStats& w = world_->Stats();
             Museum::Log("stats", "built %d loaded %d (lifetime built %d destroyed %d) triangles %d  textures %zu  frame %lld  fps %.0f  interactables %d + %d panel controls in %d loaded cells  visited %zu  floor %d  exhibit errors %d  script errors %d",
                         w.cellsBuilt, w.cellsLoaded, w.cellsBuiltTotal, w.cellsDestroyedTotal, w.triangles, textures_->Count(), frame_,
-                        static_cast<double>(stats_.fps), w.interactablesSeen, w.controlsSeen, w.roomsLoadedEver, discovered_.size(), museum_->FloorAt(camera_.Position().Y), w.exhibitErrors, scriptErrors_);
+                        static_cast<double>(stats_.fps), w.interactablesSeen, w.controlsSeen, w.roomsLoadedEver, discovered_.size(), museum_->FloorAt(camera_.Position().Y), w.exhibitErrors + Museum::ReportedExhibitErrorCount(), scriptErrors_);
         } else if (op == "directory") {
             if (arg == "close") directory_->Close();
             else OpenDirectory();

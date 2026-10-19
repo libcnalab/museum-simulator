@@ -21,6 +21,7 @@
 #include "Microsoft/Xna/Framework/Audio/Cue.hpp"
 #include "Microsoft/Xna/Framework/Audio/DynamicSoundEffectInstance.hpp"
 #include "Microsoft/Xna/Framework/Audio/Microphone.hpp"
+#include "Microsoft/Xna/Framework/Audio/NoAudioHardwareException.hpp"
 #include "Microsoft/Xna/Framework/Audio/SoundEffect.hpp"
 #include "Microsoft/Xna/Framework/Audio/SoundBank.hpp"
 #include "Microsoft/Xna/Framework/Audio/SoundEffectInstance.hpp"
@@ -143,7 +144,7 @@ public:
                 p.AddButton("Stop", [] { try { MediaPlayer::Stop(); } catch (const std::exception&) {} });
                 p.AddSlider("MediaPlayer.Volume", 0.0f, 1.0f, mediaVolume_, [this](float v) { mediaVolume_ = v; try { MediaPlayer::setVolumeProperty(v); } catch (const std::exception&) {} });
                 p.AddToggle("IsRepeating", false, [](bool v) { try { MediaPlayer::setIsRepeatingProperty(v); } catch (const std::exception&) {} });
-                p.AddReadout("State", [] { try { const MediaState s = MediaPlayer::getStateProperty(); return std::string(s == MediaState::Playing ? "Playing" : (s == MediaState::Paused ? "Paused" : "Stopped")); } catch (const std::exception&) { return std::string("unavailable"); } });
+                p.AddReadout("State", [] { try { const MediaState s = MediaPlayer::getStateProperty(); return std::string(s == MediaState::Playing ? "Playing" : (s == MediaState::Paused ? "Paused" : "Stopped")); } catch (const std::exception& e) { return std::string("unavailable: ") + std::string(e.what()).substr(0, 40); } });
                 p.AddReadout("Position", [] { try { return Fmt1(static_cast<float>(MediaPlayer::getPlayPositionProperty().getTotalSecondsProperty())) + " s"; } catch (const std::exception&) { return std::string("-"); } });
                 p.AddReadout("Song of the last button", [this] { return SongInfo(); });
                 p.AddReadout("ActiveSongChanged / MediaStateChanged events", [this] { return std::to_string(songEvents_) + " / " + std::to_string(stateEvents_); });
@@ -152,10 +153,10 @@ public:
             case Mode::Xact:
                 p.AddChoice("Cue", {"Tone", "Click", "Arpeggio", "Drums", "Chirp"}, 0, [this](int v) { xCueIndex_ = v; });
                 p.AddButton("Play: GetCue then Play", [this] { XactPlay(); });
-                p.AddButton("Pause", [this] { if (xCue_ != nullptr) try { xCue_->Pause(); } catch (const std::exception&) {} });
-                p.AddButton("Resume", [this] { if (xCue_ != nullptr) try { xCue_->Resume(); } catch (const std::exception&) {} });
-                p.AddButton("Stop (as authored)", [this] { if (xCue_ != nullptr) try { xCue_->Stop(AudioStopOptions::AsAuthored); } catch (const std::exception&) {} });
-                p.AddButton("Stop (immediate)", [this] { if (xCue_ != nullptr) try { xCue_->Stop(AudioStopOptions::Immediate); } catch (const std::exception&) {} });
+                p.AddButton("Pause", [this] { if (xCue_ != nullptr) try { xCue_->Pause(); } catch (const std::exception& e) { ReportAudioError("Cue.Pause", e); } });
+                p.AddButton("Resume", [this] { if (xCue_ != nullptr) try { xCue_->Resume(); } catch (const std::exception& e) { ReportAudioError("Cue.Resume", e); } });
+                p.AddButton("Stop (as authored)", [this] { if (xCue_ != nullptr) try { xCue_->Stop(AudioStopOptions::AsAuthored); } catch (const std::exception& e) { ReportAudioError("Cue.Stop(AsAuthored)", e); } });
+                p.AddButton("Stop (immediate)", [this] { if (xCue_ != nullptr) try { xCue_->Stop(AudioStopOptions::Immediate); } catch (const std::exception& e) { ReportAudioError("Cue.Stop(Immediate)", e); } });
                 p.AddButton("PlayCue: fire and forget", [this] { XactFire(); });
                 for (int i = 0; i < 3; ++i) p.AddSlider(std::string(kXactCategories[i]) + " category volume", 0.0f, 1.0f, catVolume_[static_cast<std::size_t>(i)], [this, i](float v) { XactCategoryVolume(i, v); });
                 p.AddToggle("Pause the Music category", false, [this](bool v) { XactPauseMusic(v); });
@@ -210,6 +211,7 @@ public:
             }
         } catch (const std::exception& e) {
             Museum::Log("audio", "%s: %s", Title().c_str(), e.what());
+            ReportAudioError("loading the room's sounds", e);
         }
         if (mode_ == Mode::Generate && samples_.empty()) Generate();
     }
@@ -231,12 +233,18 @@ public:
             AudioListener listener;
             listener.setPositionProperty(ctx.playerPosition);
             listener.setForwardProperty(Vector3::Normalize(ctx.playerForward + Vector3(1e-5f, 0, 0)));
-            try { spatial_->Apply3D(listener, emitter); } catch (const std::exception&) {}
+            try { spatial_->Apply3D(listener, emitter); } catch (const std::exception& e) {
+                static bool reported = false;   // per-frame path: report the first failure only
+                if (!reported) { reported = true; ReportAudioError("Apply3D", e); }
+            }
             distance_ = Vector3::Distance(ctx.playerPosition, pos);
         }
         if (mode_ == Mode::Microphone && mic_ != nullptr && micRunning_) PollMic();
         if (mode_ == Mode::Xact && xEngine_) {
-            try { xEngine_->Update(); } catch (const std::exception&) {}
+            try { xEngine_->Update(); } catch (const std::exception& e) {
+                static bool reported = false;   // per-frame path: report the first failure only
+                if (!reported) { reported = true; ReportAudioError("AudioEngine.Update", e); }
+            }
         }
         for (float& f : flash_) f = std::max(0.0f, f - ctx.dt * 2.0f);
     }
@@ -366,6 +374,7 @@ private:
             cache_[name]->Play(volume_, pitch_, pan_);
         } catch (const std::exception& e) {
             Museum::Log("audio", "%s", e.what());
+            ReportAudioError("SoundEffect.Play", e);
         }
     }
     void SetLayer(int i, float v)
@@ -418,6 +427,7 @@ private:
             synth_->Stop();
         } catch (const std::exception& e) {
             Museum::Log("audio", "synth stop: %s", e.what());
+            ReportAudioError("synth stop", e);
         }
     }
     void PlayNote(int i)
@@ -433,6 +443,7 @@ private:
             if (synth_->getStateProperty() != SoundState::Playing) synth_->Play();
         } catch (const std::exception& e) {
             Museum::Log("audio", "synth: %s", e.what());
+            ReportAudioError("synth submit", e);
         }
     }
     void Generate()
@@ -457,7 +468,7 @@ private:
     void PlayGenerated()
     {
         flash_[0] = 1.0f;
-        if (generated_ && S().audio != nullptr && S().audio->Enabled()) try { generated_->Play(); } catch (const std::exception&) {}
+        if (generated_ && S().audio != nullptr && S().audio->Enabled()) try { generated_->Play(); } catch (const std::exception& e) { ReportAudioError("generated SoundEffect.Play", e); }
     }
     void DrawScope(SpriteBatch& sb)
     {
@@ -600,8 +611,8 @@ private:
             if (m == nullptr) return "none: the queries below need one";
             return std::to_string(m->getSampleRateProperty()) + " Hz, " + std::to_string(static_cast<int>(m->getBufferDurationProperty().getTotalMillisecondsProperty())) + " ms buffer, " +
                    std::to_string(m->GetSampleSizeInBytes(System::TimeSpan::FromMilliseconds(100.0))) + " bytes per 100 ms" + (m->getIsHeadsetProperty() ? ", headset" : "");
-        } catch (const std::exception&) {
-            return "unavailable";
+        } catch (const std::exception& e) {
+            return std::string("unavailable: ") + std::string(e.what()).substr(0, 40);
         }
     }
     void PollMic()
@@ -613,7 +624,9 @@ private:
             double sum = 0;
             for (int i = 0; i + 1 < got; i += 2) { const std::int16_t v = static_cast<std::int16_t>(buf[static_cast<std::size_t>(i)] | (buf[static_cast<std::size_t>(i) + 1] << 8)); sum += static_cast<double>(v) * v; }
             micLevel_ = static_cast<float>(std::sqrt(sum / (got / 2)) / 32768.0);
-        } catch (const std::exception&) {}
+        } catch (const std::exception& e) {
+            micState_ = std::string("capture failed: ") + std::string(e.what()).substr(0, 36);
+        }
     }
 
     static constexpr const char* kXactCategories[3] = {"Default", "Music", "Effects"};
@@ -646,13 +659,14 @@ private:
             XactReadVariables();
         } catch (const std::exception& e) {
             xStatus_ = std::string("Play failed: ") + std::string(e.what()).substr(0, 50);
+            ReportAudioError("Cue.Play", e);
         }
     }
     void XactFire()
     {
         if (!xBank_) return;
         static const char* names[5] = {"Tone", "Click", "Arpeggio", "Drums", "Chirp"};
-        try { xBank_->PlayCue(names[xCueIndex_]); } catch (const std::exception&) {}
+        try { xBank_->PlayCue(names[xCueIndex_]); } catch (const std::exception& e) { ReportAudioError("SoundBank.PlayCue", e); }
     }
     // Variables the .xgs declares; RPC curves in the file turn them into volume. The value is clamped to the declared range and read back.
     void XactDistance(float v)
@@ -702,14 +716,16 @@ private:
             std::string renderer = "no renderer";
             if (!xEngine_->getRendererDetailsProperty().empty()) renderer = xEngine_->getRendererDetailsProperty()[0].getFriendlyNameProperty();
             return std::string("sound bank ") + (xBank_->getIsInUseProperty() ? "in use" : "idle") + ", wave bank " + (xWaves_->getIsInUseProperty() ? "in use" : "idle") + ", content version " + std::to_string(AudioEngine::ContentVersion) + ", " + renderer;
-        } catch (const std::exception&) {
+        } catch (const std::exception& e) {
+            static bool reported = false;   // per-frame path: report the first failure only
+            if (!reported) { reported = true; ReportAudioError("XACT engine readout", e); }
             return "?";
         }
     }
     void XactCategoryVolume(int i, float v)
     {
         catVolume_[static_cast<std::size_t>(i)] = v;
-        if (xEngine_) try { xEngine_->GetCategory(kXactCategories[i]).SetVolume(v); } catch (const std::exception&) {}
+        if (xEngine_) try { xEngine_->GetCategory(kXactCategories[i]).SetVolume(v); } catch (const std::exception& e) { ReportAudioError("AudioCategory.SetVolume", e); }
     }
     void XactPauseMusic(bool pause)
     {
@@ -717,7 +733,9 @@ private:
         try {
             AudioCategory music = xEngine_->GetCategory("Music");
             if (pause) music.Pause(); else music.Resume();
-        } catch (const std::exception&) {}
+        } catch (const std::exception& e) {
+            ReportAudioError("AudioCategory pause/resume", e);
+        }
     }
     [[nodiscard]] bool XactPlaying() const
     {
@@ -732,6 +750,14 @@ private:
         } catch (const std::exception&) {
             return "?";
         }
+    }
+
+    // For the paths this room reaches only with audio on (and, for XACT, after the banks loaded): a failure there is a
+    // museum or CNA defect and is reported. A missing device is CNA's documented refusal (NoAudioHardwareException), not one.
+    void ReportAudioError(const char* context, const std::exception& e) const
+    {
+        if (dynamic_cast<const NoAudioHardwareException*>(&e) != nullptr) return;
+        ReportError(std::string(context) + ": " + e.what());
     }
 
     void RestoreGlobals()

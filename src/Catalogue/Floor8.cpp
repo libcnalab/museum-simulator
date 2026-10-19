@@ -380,6 +380,42 @@ WingSpec OnlineWing()
     return w;
 }
 
+// Added after the other floor-8 wings so that no existing room moves: pipeline operations checked exactly.
+WingSpec WorkshopWing()
+{
+    WingSpec w;
+    w.name = "Pipeline Workshop";
+    w.tagline = "Content-pipeline operations on data built in the room, each result checked exactly";
+    w.theme = "workshop";
+    w.accent = {0.85f, 0.65f, 0.35f};
+    w.spineSide = Wall::West;
+    const auto wk = [](const char* key, const char* title, const char* subtitle, const char* mode, std::vector<std::string> apis, ApiOrigin origin = ApiOrigin::Xna) {
+        RoomSpec r;
+        r.key = key;
+        r.title = title;
+        r.subtitle = subtitle;
+        r.exhibit = "pipeline-checks";
+        r.params = {{"mode", mode}};
+        r.width = 13;
+        r.depth = 13;
+        r.height = 5.0f;
+        r.theme = "workshop";
+        r.apis = std::move(apis);
+        r.origin = origin;
+        return r;
+    };
+    w.rooms = {
+        wk("wk-meshhelper", "MeshHelper", "Merging positions and vertices, normals, tangent frames, cache order, winding, TransformScene and skeletons", "meshhelper",
+           {"MeshHelper", "MeshHelper.MergeDuplicatePositions", "MeshHelper.MergeDuplicateVertices(MeshContent)", "MeshHelper.CalculateNormals", "MeshHelper.CalculateTangentFrames", "MeshHelper.OptimizeForCache",
+            "MeshHelper.SwapWindingOrder", "MeshHelper.TransformScene", "MeshHelper.FindSkeleton", "MeshHelper.FlattenSkeleton", "MeshBuilder", "MeshBuilder.StartMesh", "MeshBuilder.CreatePosition",
+            "MeshBuilder.AddTriangleVertex", "MeshBuilder.CreateVertexChannel", "MeshBuilder.SetVertexChannelData", "MeshBuilder.FinishMesh", "MeshContent", "MeshContent.Positions", "MeshContent.Geometry",
+            "GeometryContent", "GeometryContent.Indices", "GeometryContent.Vertices", "VertexContent.PositionIndices", "VertexContent.VertexCount", "VertexContent.Channels", "VertexChannelCollection.Contains",
+            "VertexChannelCollection.Get", "VertexChannelNames.Normal", "VertexChannelNames.Tangent", "VertexChannelNames.Binormal", "VertexChannelNames.TextureCoordinate", "BoneContent", "NodeContent.Children",
+            "NodeContent.AbsoluteTransform"}),
+    };
+    return w;
+}
+
 FloorSpec MakeFloor8()
 {
     FloorSpec f;
@@ -394,5 +430,6 @@ FloorSpec MakeFloor8()
     f.wings.push_back(PlayersWing());
     f.wings.push_back(OnlineWing());
     f.wings.push_back(HistoryWing());
+    f.wings.push_back(WorkshopWing());
     return f;
 }

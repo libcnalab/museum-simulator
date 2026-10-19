@@ -11787,7 +11787,7 @@
       "room": "net-packets",
       "kind": "direct-call",
       "symbols": ["CPP-AECCE18E5256"],
-      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "r.setPositionProperty(0);\n            r.getBaseStreamProperty()"}],
+      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "r.setPositionProperty(0);\n            // An empty packet"}],
       "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:net-packets-room-nearby", "runtime:packet-dirty"],
       "note": "The reader's Position is reset to 0 before and after the bytes are written into it."
     },
@@ -18640,6 +18640,1736 @@
       "path": [{"source": "src/Exhibits/Targets/TargetLab.cpp", "anchor": "d.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);   // the reflection flips triangle winding"}],
       "conditions": ["runtime:rt-mirror-room-rendered-offscreen"],
       "note": "The mirrored pass swaps to the stock CullCounterClockwise state because the reflection flips triangle winding."
+    },
+    {
+      "id": "dev-camera-camera-availablecameras",
+      "claim": "Camera.AvailableCameras",
+      "room": "dev-camera",
+      "kind": "direct-call",
+      "symbols": ["CPP-A02FEA33BDB9"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const auto cams = CNA::Devices::Camera::getAvailableCamerasProperty();"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=camera", "runtime:room-screen-loaded or button-pressed(Camera.AvailableCameras (list))"],
+      "note": "ListCameras enumerates the cameras at screen load and on the list button."
+    },
+    {
+      "id": "dev-camera-camera-frameheight",
+      "claim": "Camera.FrameHeight",
+      "room": "dev-camera",
+      "kind": "direct-read",
+      "symbols": ["CPP-E798F3837658"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "camera_->getFrameHeightProperty()"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=camera", "runtime:manual-button-pressed(Open the default camera)"],
+      "note": "The opened camera's frame height sizes the Texture2D the frames are copied into."
+    },
+    {
+      "id": "dev-camera-camera-framewidth",
+      "claim": "Camera.FrameWidth",
+      "room": "dev-camera",
+      "kind": "direct-read",
+      "symbols": ["CPP-2E568DAA928C"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "camera_->getFrameWidthProperty()"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=camera", "runtime:manual-button-pressed(Open the default camera)"],
+      "note": "The opened camera's frame width sizes the Texture2D the frames are copied into."
+    },
+    {
+      "id": "dev-camera-camera-issupported",
+      "claim": "Camera.IsSupported",
+      "room": "dev-camera",
+      "kind": "direct-read",
+      "symbols": ["CPP-6434B59856E7"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "cameraList_ = std::string(\"supported \") + YesNo(CNA::Devices::Camera::getIsSupportedProperty())"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=camera", "runtime:room-screen-loaded or button-pressed(Camera.AvailableCameras (list))"],
+      "note": "ListCameras prints whether the host supports cameras."
+    },
+    {
+      "id": "dev-camera-camera-state",
+      "claim": "Camera.State",
+      "room": "dev-camera",
+      "kind": "direct-read",
+      "symbols": ["CPP-BD50B3A95E1E"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "static_cast<int>(camera_->getStateProperty())"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=camera", "runtime:manual-button-pressed(Open the default camera)", "runtime:control-panel-readouts-evaluated"],
+      "note": "The State readout reads the opened camera's state; with no camera object it prints 'closed' without calling CNA."
+    },
+    {
+      "id": "dev-camera-camera-tryacquireframe",
+      "claim": "Camera.TryAcquireFrame",
+      "room": "dev-camera",
+      "kind": "direct-call",
+      "symbols": ["CPP-DA0A28B78D0A"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "if (camera_->TryAcquireFrame(*cameraTexture_)) ++frames_;"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=camera", "runtime:manual-button-pressed(Open the default camera)", "runtime:player-in-or-near-room (Update)"],
+      "note": "Update copies each new frame into the room's Texture2D while the camera is open."
+    },
+    {
+      "id": "dev-camera-cameradeviceinfo",
+      "claim": "CameraDeviceInfo",
+      "room": "dev-camera",
+      "kind": "direct-use",
+      "symbols": ["CPP-A262F60130BF"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "for (const auto& c : cams) cameraList_ += \", \" + c.Name"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=camera", "runtime:room-screen-loaded or button-pressed(Camera.AvailableCameras (list))", "runtime:camera-present"],
+      "note": "Each CameraDeviceInfo's Name and Position fields are read; the loop body runs only when a camera is listed."
+    },
+    {
+      "id": "dev-camera-cameraposition",
+      "claim": "CameraPosition",
+      "room": "dev-camera",
+      "kind": "direct-use",
+      "symbols": ["CPP-577EEFDE49F2"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "static_cast<int>(c.Position)"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=camera", "runtime:room-screen-loaded or button-pressed(Camera.AvailableCameras (list))", "runtime:camera-present"],
+      "note": "The CameraPosition value is cast to int to index a local name table; no enumerator is named."
+    },
+    {
+      "id": "dev-camera-camerastate",
+      "claim": "CameraState",
+      "room": "dev-camera",
+      "kind": "direct-use",
+      "symbols": ["CPP-5574C91AF791"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "static_cast<int>(camera_->getStateProperty())"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=camera", "runtime:manual-button-pressed(Open the default camera)", "runtime:control-panel-readouts-evaluated"],
+      "note": "The CameraState value is cast to int to index a local name table; no enumerator is named."
+    },
+    {
+      "id": "dev-camera-cna-devices-camera",
+      "claim": "CNA::Devices::Camera",
+      "room": "dev-camera",
+      "kind": "direct-call",
+      "symbols": ["CPP-C870213DE52A"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "camera_ = std::make_unique<CNA::Devices::Camera>();"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=camera", "runtime:manual-button-pressed(Open the default camera)"],
+      "note": "Only the manual open button constructs a Camera; the static calls in ListCameras run at screen load."
+    },
+    {
+      "id": "dev-dialogs-cna-devices-filedialog",
+      "claim": "CNA::Devices::FileDialog",
+      "room": "dev-dialogs",
+      "kind": "direct-call",
+      "symbols": ["CPP-4D71C1180060"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Devices::FileDialog::getIsSupportedProperty()"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:control-panel-readouts-evaluated"],
+      "note": "The Supported readout calls the static FileDialog::IsSupported; the Show* calls need manual buttons."
+    },
+    {
+      "id": "dev-dialogs-cna-devices-filedialogfilter",
+      "claim": "CNA::Devices::FileDialogFilter",
+      "room": "dev-dialogs",
+      "kind": "direct-use",
+      "symbols": ["CPP-0FFAFD5DB342"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "{{\"Images\", \"png;jpg\"}, {\"All files\", \"*\"}}"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:manual-button-pressed(FileDialog.ShowOpenFile (images))"],
+      "note": "ShowOpenFile receives two brace-initialised FileDialogFilter values (ShowSaveFile one more)."
+    },
+    {
+      "id": "dev-dialogs-cna-devices-messagebox",
+      "claim": "CNA::Devices::MessageBox",
+      "room": "dev-dialogs",
+      "kind": "direct-call",
+      "symbols": ["CPP-3B59505B83D3"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Devices::MessageBox::getIsSupportedProperty()"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:control-panel-readouts-evaluated"],
+      "note": "The Supported readout calls the static MessageBox::IsSupported; showing a box needs manual buttons."
+    },
+    {
+      "id": "dev-dialogs-filedialog-issupported",
+      "claim": "FileDialog.IsSupported",
+      "room": "dev-dialogs",
+      "kind": "direct-read",
+      "symbols": ["CPP-4E1EFDFD3D28"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Devices::FileDialog::getIsSupportedProperty()"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:control-panel-readouts-evaluated"],
+      "note": "The Supported readout prints FileDialog::IsSupported."
+    },
+    {
+      "id": "dev-dialogs-filedialog-resultcallback",
+      "claim": "FileDialog.ResultCallback",
+      "room": "dev-dialogs",
+      "kind": "direct-use",
+      "symbols": ["CPP-4D5051062268"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "[[nodiscard]] CNA::Devices::FileDialog::ResultCallback Report(const std::string& what)"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:manual-button-pressed(any FileDialog.Show* button)"],
+      "note": "Report builds the ResultCallback lambda each Show* call receives; it stores the chosen files under a mutex."
+    },
+    {
+      "id": "dev-dialogs-filedialog-showopenfile",
+      "claim": "FileDialog.ShowOpenFile",
+      "room": "dev-dialogs",
+      "kind": "direct-call",
+      "symbols": ["CPP-8FC6AD0D6491"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Devices::FileDialog::ShowOpenFile(Report("}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:manual-button-pressed(FileDialog.ShowOpenFile (images))"],
+      "note": "The manual button opens the system file picker with two filters."
+    },
+    {
+      "id": "dev-dialogs-filedialog-showopenfolder",
+      "claim": "FileDialog.ShowOpenFolder",
+      "room": "dev-dialogs",
+      "kind": "direct-call",
+      "symbols": ["CPP-20C57266185D"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Devices::FileDialog::ShowOpenFolder(Report("}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:manual-button-pressed(FileDialog.ShowOpenFolder)"],
+      "note": "The manual button opens the system folder picker."
+    },
+    {
+      "id": "dev-dialogs-filedialog-showsavefile",
+      "claim": "FileDialog.ShowSaveFile",
+      "room": "dev-dialogs",
+      "kind": "direct-call",
+      "symbols": ["CPP-7EA2BBD1B8D4"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Devices::FileDialog::ShowSaveFile(Report("}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:manual-button-pressed(FileDialog.ShowSaveFile)"],
+      "note": "The manual button opens the system save picker with a text filter."
+    },
+    {
+      "id": "dev-dialogs-messagebox-issupported",
+      "claim": "MessageBox.IsSupported",
+      "room": "dev-dialogs",
+      "kind": "direct-read",
+      "symbols": ["CPP-652FBB6F639A"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Devices::MessageBox::getIsSupportedProperty()"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:control-panel-readouts-evaluated"],
+      "note": "The Supported readout prints MessageBox::IsSupported."
+    },
+    {
+      "id": "dev-dialogs-messagebox-show",
+      "claim": "MessageBox.Show",
+      "room": "dev-dialogs",
+      "kind": "direct-call",
+      "symbols": ["CPP-DB7C597F98BC"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const int pressed = CNA::Devices::MessageBox::Show("}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:manual-button-pressed(MessageBox.Show (Yes / No / Cancel))"],
+      "note": "The manual button shows a Yes/No/Cancel box and records the button index."
+    },
+    {
+      "id": "dev-dialogs-messagebox-showsimple",
+      "claim": "MessageBox.ShowSimple",
+      "room": "dev-dialogs",
+      "kind": "direct-call",
+      "symbols": ["CPP-883A3927DD0D"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Devices::MessageBox::ShowSimple("}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:manual-button-pressed(MessageBox.ShowSimple (information))"],
+      "note": "The manual button shows an information box."
+    },
+    {
+      "id": "dev-dialogs-messageboxtype",
+      "claim": "MessageBoxType",
+      "room": "dev-dialogs",
+      "kind": "direct-use",
+      "symbols": ["CPP-0FA7846A45A8"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Devices::MessageBoxType::Information"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=dialogs", "runtime:manual-button-pressed(MessageBox.ShowSimple (information))"],
+      "note": "ShowSimple passes Information and Show passes Warning."
+    },
+    {
+      "id": "dev-haptics-hapticcapabilitiesext",
+      "claim": "HapticCapabilitiesEXT",
+      "room": "dev-haptics",
+      "kind": "direct-use",
+      "symbols": ["CPP-01256788F5FC"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "std::to_string(caps.axisCount)"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present"],
+      "note": "OpenHaptic reads axisCount, maxEffects and rumbleSupported from the returned capabilities."
+    },
+    {
+      "id": "dev-haptics-hapticdevice",
+      "claim": "HapticDevice",
+      "room": "dev-haptics",
+      "kind": "direct-use",
+      "symbols": ["CPP-B18D9C96B10A"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "std::optional<CNA::Input::HapticDevice> haptic_;"}],
+      "conditions": ["runtime:room-param-mode=haptics"],
+      "note": "The lab holds a HapticDevice in an optional member; it is only filled by the manual OpenEXT button."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-createeffectext",
+      "claim": "HapticDevice.CreateEffectEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-F09C935E068D"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const int id = haptic_->CreateEffectEXT(effect);"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
+      "note": "Creates a constant effect on an open device that supports it."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-destroyeffectext",
+      "claim": "HapticDevice.DestroyEffectEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-1B7DB6A1D3B3"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->DestroyEffectEXT(id);"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
+      "note": "Destroys the created effect."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-dispose",
+      "claim": "HapticDevice.Dispose",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-FA55D9F95E29"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "if (haptic_) haptic_->Dispose();"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:button-pressed(Close the device (Dispose)) or room-left"],
+      "note": "CloseHaptic disposes the device once OpenEXT filled the optional, even when it came back closed."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-getcapabilitiesext",
+      "claim": "HapticDevice.GetCapabilitiesEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-9331D131F861"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const auto caps = haptic_->GetCapabilitiesEXT();"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present"],
+      "note": "Reads the capabilities of the first listed device after opening it."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-geteffectstatusext",
+      "claim": "HapticDevice.GetEffectStatusEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-4306DA7DE412"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->GetEffectStatusEXT(id)"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
+      "note": "Asks whether the effect is playing."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-getnameext",
+      "claim": "HapticDevice.GetNameEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-2593721AEC48"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "hapticState_ = Open() ? haptic_->GetNameEXT() : \"none\";"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present"],
+      "note": "Reads the name of the opened device."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-initrumbleext",
+      "claim": "HapticDevice.InitRumbleEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-0BC3C654BFD2"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const bool init = haptic_->InitRumbleEXT();"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Rumble 50 % for 300 ms)"],
+      "note": "Initialises rumble on the open device."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-iseffectsupportedext",
+      "claim": "HapticDevice.IsEffectSupportedEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-36AC58F1540C"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "if (!haptic_->IsEffectSupportedEXT(effect)) {"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)"],
+      "note": "Checks the constant effect before creating it."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-isopenext",
+      "claim": "HapticDevice.IsOpenEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-0D6F1C8645F6"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "return haptic_.has_value() && haptic_->IsOpenEXT();"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))"],
+      "note": "Open() asks IsOpenEXT on the filled optional; OpenHaptic also logs it for the refused unknown-id open."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-pauseext",
+      "claim": "HapticDevice.PauseEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-09E2F0F92B3F"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_->PauseEXT())"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Gain 50, autocenter 0, pause, resume)"],
+      "note": "Pauses the device."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-playrumbleext",
+      "claim": "HapticDevice.PlayRumbleEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-FD5B1DFB4800"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->PlayRumbleEXT(0.5f, 300)"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Rumble 50 % for 300 ms)"],
+      "note": "Plays a 50 % rumble for 300 ms when InitRumbleEXT succeeded."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-resumeext",
+      "claim": "HapticDevice.ResumeEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-39408A112AF6"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_->ResumeEXT())"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Gain 50, autocenter 0, pause, resume)"],
+      "note": "Resumes the device."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-runeffectext",
+      "claim": "HapticDevice.RunEffectEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-0031AD339666"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->RunEffectEXT(id, 1)"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
+      "note": "Runs the created effect once."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-setautocenterext",
+      "claim": "HapticDevice.SetAutocenterEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-2C754BDABF31"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_->SetAutocenterEXT(0))"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Gain 50, autocenter 0, pause, resume)"],
+      "note": "Sets autocenter to 0."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-setgainext",
+      "claim": "HapticDevice.SetGainEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-626AD085B1DE"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_->SetGainEXT(50))"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Gain 50, autocenter 0, pause, resume)"],
+      "note": "Sets gain to 50."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-stopalleffectsext",
+      "claim": "HapticDevice.StopAllEffectsEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-920CA63D04A2"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "if (Open()) haptic_->StopAllEffectsEXT();"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:button-pressed(Close the device (Dispose)) or room-left"],
+      "note": "CloseHaptic stops all effects on an open device; the gain button calls it too."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-stopeffectext",
+      "claim": "HapticDevice.StopEffectEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-0640C5640D17"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->StopEffectEXT(id)"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
+      "note": "Stops the created effect."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-stoprumbleext",
+      "claim": "HapticDevice.StopRumbleEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-CA2E35A1303A"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->StopRumbleEXT()"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Rumble 50 % for 300 ms)"],
+      "note": "Stops the rumble when it was playing."
+    },
+    {
+      "id": "dev-haptics-hapticdevice-updateeffectext",
+      "claim": "HapticDevice.UpdateEffectEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-C6E00AFF4FFC"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->UpdateEffectEXT(id, effect)"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
+      "note": "Updates the effect level before running it."
+    },
+    {
+      "id": "dev-haptics-hapticeffectext",
+      "claim": "HapticEffectEXT",
+      "room": "dev-haptics",
+      "kind": "direct-use",
+      "symbols": ["CPP-1804C9C14E62"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Input::HapticEffectEXT effect;"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)"],
+      "note": "Builds a constant effect value with length and level."
+    },
+    {
+      "id": "dev-haptics-hapticeffecttypeext",
+      "claim": "HapticEffectTypeEXT",
+      "room": "dev-haptics",
+      "kind": "direct-use",
+      "symbols": ["CPP-67A78B4BD0B2"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "effect.type = CNA::Input::HapticEffectTypeEXT::Constant;"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)"],
+      "note": "Sets the effect type to Constant."
+    },
+    {
+      "id": "dev-haptics-hapticinfoext",
+      "claim": "HapticInfoEXT",
+      "room": "dev-haptics",
+      "kind": "direct-use",
+      "symbols": ["CPP-3727C2FAC119"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "for (const auto& info : devices) hapticList_ +="}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:room-screen-loaded or button-pressed(Haptics.GetHapticsEXT (list devices))", "runtime:haptic-device-present"],
+      "note": "The list loop reads each HapticInfoEXT's id and name; its body runs only when a device is listed (front().id is read too)."
+    },
+    {
+      "id": "dev-haptics-haptics-gethapticsext",
+      "claim": "Haptics.GetHapticsEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-3E955D813137"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const auto devices = CNA::Input::Haptics::GetHapticsEXT();"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:room-screen-loaded or button-pressed(Haptics.GetHapticsEXT (list devices))"],
+      "note": "ListHaptics enumerates haptic devices at screen load and on the list button."
+    },
+    {
+      "id": "dev-haptics-haptics-ismousehapticext",
+      "claim": "Haptics.IsMouseHapticEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-C57EB6622F6D"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(CNA::Input::Haptics::IsMouseHapticEXT())"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:room-screen-loaded or button-pressed(Haptics.GetHapticsEXT (list devices))"],
+      "note": "ListHaptics prints whether the mouse has haptics."
+    },
+    {
+      "id": "dev-haptics-haptics-openext",
+      "claim": "Haptics.OpenEXT",
+      "room": "dev-haptics",
+      "kind": "direct-call",
+      "symbols": ["CPP-FA7AE5630FE9"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_.emplace(CNA::Input::Haptics::OpenEXT(0xFFFFFFFFu));"}],
+      "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:no-haptic-device (refusal path; with a device the listed id is opened instead)"],
+      "note": "The manual button opens the first listed device, or with none an unknown id to show the refused, closed device."
+    },
+    {
+      "id": "dev-identity-cna-desktopos",
+      "claim": "CNA::DesktopOS",
+      "room": "dev-identity",
+      "kind": "direct-use",
+      "symbols": ["CPP-AD1441A205CE"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "case CNA::DesktopOS::Windows: return \"Windows\";"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "DesktopText switches on the DesktopOS value and names Windows, Linux and MacOSX enumerators."
+    },
+    {
+      "id": "dev-identity-cna-getcurrentdesktopos",
+      "claim": "CNA::getCurrentDesktopOS",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-36DE11111220"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "switch (CNA::getCurrentDesktopOS()) {"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "DesktopText switches on the run-time desktop OS."
+    },
+    {
+      "id": "dev-identity-cna-getcurrentgraphicsrenderercategory",
+      "claim": "CNA::getCurrentGraphicsRendererCategory",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-ADEAA6BAEC8A"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::toStringView(CNA::getCurrentGraphicsRendererCategory())"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "RendererFamily prints the category of the build's default renderer."
+    },
+    {
+      "id": "dev-identity-cna-getcurrentgraphicsrenderertype",
+      "claim": "CNA::getCurrentGraphicsRendererType",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-8D55548A3718"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const CNA::GraphicsRendererType built = CNA::getCurrentGraphicsRendererType();"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "RendererFamily reads the build's default renderer type."
+    },
+    {
+      "id": "dev-identity-cna-getcurrentplatform",
+      "claim": "CNA::getCurrentPlatform",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-9157C8ABCAED"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::getCurrentPlatform() == CNA::TargetPlatform::Desktop"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "PlatformText compares the compile-time platform with Desktop."
+    },
+    {
+      "id": "dev-identity-cna-getcurrentplatformname",
+      "claim": "CNA::getCurrentPlatformName",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-C7880C692347"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "std::string(CNA::getCurrentPlatformName())"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "PlatformText prints the platform name."
+    },
+    {
+      "id": "dev-identity-cna-getgraphicsrenderercategory",
+      "claim": "CNA::getGraphicsRendererCategory",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-D6BC7C325540"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::getGraphicsRendererCategory(running)"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "RendererFamily asks the category of the running device's renderer type."
+    },
+    {
+      "id": "dev-identity-cna-getgraphicsrenderername",
+      "claim": "CNA::getGraphicsRendererName",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-A7E34290291C"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "std::string(CNA::getGraphicsRendererName(running))"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "RendererFamily names the running and the built renderer types."
+    },
+    {
+      "id": "dev-identity-cna-graphicsrenderercategory",
+      "claim": "CNA::GraphicsRendererCategory",
+      "room": "dev-identity",
+      "kind": "direct-use",
+      "symbols": ["CPP-E44D10621A12"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::toStringView(CNA::getGraphicsRendererCategory(running))"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "A GraphicsRendererCategory value is produced and converted to text with toStringView; no enumerator is named."
+    },
+    {
+      "id": "dev-identity-cna-isappleplatform",
+      "claim": "CNA::isApplePlatform",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-15F73F42E178"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(CNA::isApplePlatform())"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "PlatformText prints whether the build targets an Apple platform."
+    },
+    {
+      "id": "dev-identity-cna-ismobileplatform",
+      "claim": "CNA::isMobilePlatform",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-1BFB72216FB8"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(CNA::isMobilePlatform())"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "PlatformText prints whether the build targets a mobile platform."
+    },
+    {
+      "id": "dev-identity-cna-targetplatform",
+      "claim": "CNA::TargetPlatform",
+      "room": "dev-identity",
+      "kind": "direct-use",
+      "symbols": ["CPP-B25AC831F612"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::getCurrentPlatform() == CNA::TargetPlatform::Desktop"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "The compile-time platform is compared with TargetPlatform::Desktop."
+    },
+    {
+      "id": "dev-identity-cna-unsupported3dgraphicscallbehavior",
+      "claim": "CNA::Unsupported3DGraphicsCallBehavior",
+      "room": "dev-identity",
+      "kind": "direct-use",
+      "symbols": ["CPP-7F9318537561"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "stub ? CNA::Unsupported3DGraphicsCallBehavior::WarnAndStub : CNA::Unsupported3DGraphicsCallBehavior::Throw"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:choice-changed(SetUnsupported3DGraphicsCallBehavior) or room-left"],
+      "note": "SetUnsupported3D picks the WarnAndStub or Throw enumerator to pass to the device."
+    },
+    {
+      "id": "dev-identity-graphicsdevice-getgraphicsrenderertype",
+      "claim": "GraphicsDevice.GetGraphicsRendererType",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-30F353F7B59A"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const CNA::GraphicsRendererType running = S().device->GetGraphicsRendererType();"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:control-panel-readouts-evaluated or room-screen-loaded"],
+      "note": "RendererFamily reads the running device's renderer type."
+    },
+    {
+      "id": "dev-identity-graphicsdevice-getunsupported3dgraphicscallbehavior",
+      "claim": "GraphicsDevice.GetUnsupported3DGraphicsCallBehavior",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-F922BA5C4ECB"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "originalUnsupported3D_ = S().device->GetUnsupported3DGraphicsCallBehavior();"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:room-screen-loaded"],
+      "note": "OnScreenLoaded remembers the device's behaviour so OnLeave can restore it; the readout reads it again."
+    },
+    {
+      "id": "dev-identity-graphicsdevice-setunsupported3dgraphicscallbehavior",
+      "claim": "GraphicsDevice.SetUnsupported3DGraphicsCallBehavior",
+      "room": "dev-identity",
+      "kind": "direct-call",
+      "symbols": ["CPP-19C9441AAE0A"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "S().device->SetUnsupported3DGraphicsCallBehavior(stub ?"}],
+      "conditions": ["runtime:room-param-mode=identity", "runtime:choice-changed(SetUnsupported3DGraphicsCallBehavior) or room-left"],
+      "note": "The panel choice sets the behaviour and OnLeave restores the value read at screen load."
+    },
+    {
+      "id": "dev-medialib-album-artist",
+      "claim": "Album.Artist",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-33A8F978BA62"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "a->getArtistProperty() ? a->getArtistProperty()->getNameProperty().c_str()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-albums"],
+      "note": "Each album's artist name is logged."
+    },
+    {
+      "id": "dev-medialib-album-duration",
+      "claim": "Album.Duration",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-8ABF61039ADC"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "Seconds(a->getDurationProperty())"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-albums"],
+      "note": "Each album's duration is logged in seconds."
+    },
+    {
+      "id": "dev-medialib-album-hasart",
+      "claim": "Album.HasArt",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-CBEF5725C9CE"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "a->getHasArtProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-albums"],
+      "note": "Each album's HasArt flag is logged."
+    },
+    {
+      "id": "dev-medialib-album-name",
+      "claim": "Album.Name",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-BEF925C8541F"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "a->getNameProperty().c_str(), a->getArtistProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-albums"],
+      "note": "Each album's name is logged."
+    },
+    {
+      "id": "dev-medialib-album-songs",
+      "claim": "Album.Songs",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-332A52562EBE"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "a->getSongsProperty()->getCountProperty()), Seconds("}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-albums"],
+      "note": "Each album's song count is logged."
+    },
+    {
+      "id": "dev-medialib-albumcollection",
+      "claim": "AlbumCollection",
+      "room": "dev-medialib",
+      "kind": "direct-use",
+      "symbols": ["CPP-C8523576EFDC"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "AlbumCollection* albums = library_->getAlbumsProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "The album collection is counted and indexed."
+    },
+    {
+      "id": "dev-medialib-artist-albums",
+      "claim": "Artist.Albums",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-B3C4F93CDDC8"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "a->getAlbumsProperty()->getCountProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-artists"],
+      "note": "Each artist's album count is logged."
+    },
+    {
+      "id": "dev-medialib-artist-name",
+      "claim": "Artist.Name",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-FF6620F1F5CE"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "a->getNameProperty().c_str(), static_cast<int>(a->getAlbumsProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-artists"],
+      "note": "Each artist's name is logged (also read through Song.Artist and Album.Artist)."
+    },
+    {
+      "id": "dev-medialib-artist-songs",
+      "claim": "Artist.Songs",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-1DA5AE61CA0F"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "a->getSongsProperty()->getCountProperty()));"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-artists"],
+      "note": "Each artist's song count is logged."
+    },
+    {
+      "id": "dev-medialib-artistcollection",
+      "claim": "ArtistCollection",
+      "room": "dev-medialib",
+      "kind": "direct-use",
+      "symbols": ["CPP-7D99B9C33AAF"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "ArtistCollection* artists = library_->getArtistsProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "The artist collection is counted and indexed."
+    },
+    {
+      "id": "dev-medialib-genre-name",
+      "claim": "Genre.Name",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-DE338612C537"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "g->getNameProperty().c_str()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-genres"],
+      "note": "Each genre's name is logged."
+    },
+    {
+      "id": "dev-medialib-genre-songs",
+      "claim": "Genre.Songs",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-97EC086FB9BB"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "g->getSongsProperty()->getCountProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-genres"],
+      "note": "Each genre's song count is logged."
+    },
+    {
+      "id": "dev-medialib-genrecollection",
+      "claim": "GenreCollection",
+      "room": "dev-medialib",
+      "kind": "direct-use",
+      "symbols": ["CPP-C7AAB75D7DA7"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "GenreCollection* genres = library_->getGenresProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "The genre collection is counted and indexed."
+    },
+    {
+      "id": "dev-medialib-medialibrary",
+      "claim": "MediaLibrary",
+      "room": "dev-medialib",
+      "kind": "direct-call",
+      "symbols": ["CPP-1DAD0CAB6511"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "library_ = std::make_unique<MediaLibrary>();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)"],
+      "note": "The manual Read button constructs a MediaLibrary over the visitor's Music and Pictures folders."
+    },
+    {
+      "id": "dev-medialib-medialibrary-albums",
+      "claim": "MediaLibrary.Albums",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-9D59018428F4"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "AlbumCollection* albums = library_->getAlbumsProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "Read takes the album collection."
+    },
+    {
+      "id": "dev-medialib-medialibrary-artists",
+      "claim": "MediaLibrary.Artists",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-04EDC23EFB3E"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "ArtistCollection* artists = library_->getArtistsProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "Read takes the artist collection."
+    },
+    {
+      "id": "dev-medialib-medialibrary-dispose",
+      "claim": "MediaLibrary.Dispose",
+      "room": "dev-medialib",
+      "kind": "direct-call",
+      "symbols": ["CPP-BCFC9FB24DB2"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "library_->Dispose();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:button-pressed(Dispose the library) or room-left"],
+      "note": "DisposeLibrary disposes an opened library; it returns early when no manual read happened."
+    },
+    {
+      "id": "dev-medialib-medialibrary-genres",
+      "claim": "MediaLibrary.Genres",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-2B90A0B4BDE7"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "GenreCollection* genres = library_->getGenresProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "Read takes the genre collection."
+    },
+    {
+      "id": "dev-medialib-medialibrary-isdisposed",
+      "claim": "MediaLibrary.IsDisposed",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-7F9C5F78FD01"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "library_->getIsDisposedProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:button-pressed(Dispose the library) or room-left"],
+      "note": "After Dispose the IsDisposed flag is logged."
+    },
+    {
+      "id": "dev-medialib-medialibrary-mediasource",
+      "claim": "MediaLibrary.MediaSource",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-0D6A5AA08539"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "library_->getMediaSourceProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "Read prints the library's media source."
+    },
+    {
+      "id": "dev-medialib-medialibrary-pictures",
+      "claim": "MediaLibrary.Pictures",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-3039AECC5798"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "PictureCollection* all = library_->getPicturesProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "ReadPictures counts all pictures."
+    },
+    {
+      "id": "dev-medialib-medialibrary-playlists",
+      "claim": "MediaLibrary.Playlists",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-AC88F9F49309"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "PlaylistCollection* lists = library_->getPlaylistsProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "Read takes the playlist collection."
+    },
+    {
+      "id": "dev-medialib-medialibrary-rootpicturealbum",
+      "claim": "MediaLibrary.RootPictureAlbum",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-7842B82D559A"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "PictureAlbum* root = library_->getRootPictureAlbumProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "ReadPictures walks the root picture album's children."
+    },
+    {
+      "id": "dev-medialib-medialibrary-savedpictures",
+      "claim": "MediaLibrary.SavedPictures",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-DEB25C813166"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "library_->getSavedPicturesProperty()->getCountProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "After saving, the SavedPictures count is read."
+    },
+    {
+      "id": "dev-medialib-medialibrary-savepicture",
+      "claim": "MediaLibrary.SavePicture",
+      "room": "dev-medialib",
+      "kind": "direct-call",
+      "symbols": ["CPP-3866F9DA8C2F"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "Picture* saved = library_->SavePicture(\"museum-swatch\", bmp);"}],
+      "conditions": ["runtime:manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "The manual Save button saves a 2 x 2 BMP from a byte vector; the Stream overload is never called."
+    },
+    {
+      "id": "dev-medialib-medialibrary-songs",
+      "claim": "MediaLibrary.Songs",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-3E0F0B218D83"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "SongCollection* songs = library_->getSongsProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "Read takes the song collection."
+    },
+    {
+      "id": "dev-medialib-mediasource-name",
+      "claim": "MediaSource.Name",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-F5A6190F3D58"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "getMediaSourceProperty()->getNameProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "Read prints the media source's name."
+    },
+    {
+      "id": "dev-medialib-picture-getthumbnail",
+      "claim": "Picture.GetThumbnail",
+      "room": "dev-medialib",
+      "kind": "direct-call",
+      "symbols": ["CPP-4F8A285A7932"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "(*all)[0]->GetThumbnail()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-pictures"],
+      "note": "The first picture's thumbnail stream is taken over and decoded."
+    },
+    {
+      "id": "dev-medialib-picture-height",
+      "claim": "Picture.Height",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-21CD7EE4CEB1"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "pic->getHeightProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:root-picture-album-non-null", "runtime:picture-album-present", "runtime:picture-album-has-pictures"],
+      "note": "Each picture in a child album prints its height (the saved picture too)."
+    },
+    {
+      "id": "dev-medialib-picture-name",
+      "claim": "Picture.Name",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-5A28444EEECD"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "pic->getNameProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:root-picture-album-non-null", "runtime:picture-album-present", "runtime:picture-album-has-pictures"],
+      "note": "Each picture in a child album prints its name (the saved picture too)."
+    },
+    {
+      "id": "dev-medialib-picture-width",
+      "claim": "Picture.Width",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-109C9D7BB276"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "pic->getWidthProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:root-picture-album-non-null", "runtime:picture-album-present", "runtime:picture-album-has-pictures"],
+      "note": "Each picture in a child album prints its width (the saved picture too)."
+    },
+    {
+      "id": "dev-medialib-picturealbum",
+      "claim": "PictureAlbum",
+      "room": "dev-medialib",
+      "kind": "direct-use",
+      "symbols": ["CPP-A25C2D5803E8"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "PictureAlbum* root = library_->getRootPictureAlbumProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "The root picture album pointer is held and walked."
+    },
+    {
+      "id": "dev-medialib-picturealbum-albums",
+      "claim": "PictureAlbum.Albums",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-66ADA644A24C"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "PictureAlbumCollection* children = root->getAlbumsProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:root-picture-album-non-null"],
+      "note": "The root album's child albums are enumerated."
+    },
+    {
+      "id": "dev-medialib-picturealbum-name",
+      "claim": "PictureAlbum.Name",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-755CB7878E28"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "\"picture album \" + album->getNameProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:root-picture-album-non-null", "runtime:picture-album-present"],
+      "note": "Each child album's name is printed."
+    },
+    {
+      "id": "dev-medialib-picturealbum-parent",
+      "claim": "PictureAlbum.Parent",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-9358620387AC"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "(album->getParentProperty() ?"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:root-picture-album-non-null", "runtime:picture-album-present"],
+      "note": "Each child album's parent name is printed."
+    },
+    {
+      "id": "dev-medialib-picturealbum-pictures",
+      "claim": "PictureAlbum.Pictures",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-8AC240B4CC35"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "k < album->getPicturesProperty()->getCountProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:root-picture-album-non-null", "runtime:picture-album-present"],
+      "note": "Each child album's pictures are enumerated."
+    },
+    {
+      "id": "dev-medialib-picturealbumcollection",
+      "claim": "PictureAlbumCollection",
+      "room": "dev-medialib",
+      "kind": "direct-use",
+      "symbols": ["CPP-C2823EDD3922"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "PictureAlbumCollection* children = root->getAlbumsProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:root-picture-album-non-null"],
+      "note": "The child album collection is counted and indexed."
+    },
+    {
+      "id": "dev-medialib-picturecollection",
+      "claim": "PictureCollection",
+      "room": "dev-medialib",
+      "kind": "direct-use",
+      "symbols": ["CPP-95BE785245B4"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "PictureCollection* all = library_->getPicturesProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "The picture collection is counted and its first item read."
+    },
+    {
+      "id": "dev-medialib-playlist-duration",
+      "claim": "Playlist.Duration",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-4F57B27B9F43"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "Seconds(pl->getDurationProperty())"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-playlists"],
+      "note": "Each playlist's duration is printed."
+    },
+    {
+      "id": "dev-medialib-playlist-name",
+      "claim": "Playlist.Name",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-1AD29F51A9D1"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "\"playlist \" + pl->getNameProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-playlists"],
+      "note": "Each playlist's name is printed."
+    },
+    {
+      "id": "dev-medialib-playlist-songs",
+      "claim": "Playlist.Songs",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-A04A2762879E"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "k < pl->getSongsProperty()->getCountProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-playlists"],
+      "note": "Each playlist's songs are enumerated by name."
+    },
+    {
+      "id": "dev-medialib-playlistcollection",
+      "claim": "PlaylistCollection",
+      "room": "dev-medialib",
+      "kind": "direct-use",
+      "symbols": ["CPP-E17A66CD50D9"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "PlaylistCollection* lists = library_->getPlaylistsProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "The playlist collection is counted and indexed."
+    },
+    {
+      "id": "dev-medialib-song-album",
+      "claim": "Song.Album",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-3E2F6C554A8C"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "(s->getAlbumProperty() ?"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-songs"],
+      "note": "Each song's album name is printed."
+    },
+    {
+      "id": "dev-medialib-song-artist",
+      "claim": "Song.Artist",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-B1911EFB2F75"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "(s->getArtistProperty() ?"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-songs"],
+      "note": "Each song's artist name is printed."
+    },
+    {
+      "id": "dev-medialib-song-duration",
+      "claim": "Song.Duration",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-7972D9AF34B6"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "Seconds(s->getDurationProperty())"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-songs"],
+      "note": "Each song's duration is read; the setter is never called."
+    },
+    {
+      "id": "dev-medialib-song-genre",
+      "claim": "Song.Genre",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-95F23E92287E"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "(s->getGenreProperty() ?"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-songs"],
+      "note": "Each song's genre name is printed."
+    },
+    {
+      "id": "dev-medialib-song-name",
+      "claim": "Song.Name",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-FA9D39B69FBD"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "s->getTrackNumberProperty()) + \" \" + s->getNameProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-songs"],
+      "note": "Each song's name is printed (playlist songs too)."
+    },
+    {
+      "id": "dev-medialib-song-tracknumber",
+      "claim": "Song.TrackNumber",
+      "room": "dev-medialib",
+      "kind": "direct-read",
+      "symbols": ["CPP-1D91662BD542"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "s->getTrackNumberProperty()"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-songs"],
+      "note": "Each song's track number is printed."
+    },
+    {
+      "id": "dev-medialib-songcollection",
+      "claim": "SongCollection",
+      "room": "dev-medialib",
+      "kind": "direct-use",
+      "symbols": ["CPP-C02460FB385B"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "SongCollection* songs = library_->getSongsProperty();"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened"],
+      "note": "The song collection is counted and indexed."
+    },
+    {
+      "id": "dev-medialib-texture2d-fromstream",
+      "claim": "Texture2D.FromStream",
+      "room": "dev-medialib",
+      "kind": "direct-call",
+      "symbols": ["CPP-99CDA7354F3F"],
+      "path": [{"source": "src/Exhibits/Devices/MediaLibraryLab.cpp", "anchor": "Texture2D::FromStream(*S().device, *stream)"}],
+      "conditions": ["runtime:manual-button-pressed(Read my media library (Music and Pictures)) or manual-button-pressed(SavePicture: save this room's swatch)", "runtime:media-library-opened", "runtime:library-has-pictures", "runtime:thumbnail-stream-non-null"],
+      "note": "The thumbnail stream is decoded with the two-argument FromStream; the sized overload is never called."
+    },
+    {
+      "id": "dev-notify-httpnotificationchannel",
+      "claim": "HttpNotificationChannel",
+      "room": "dev-notify",
+      "kind": "direct-call",
+      "symbols": ["CPP-34B32398B1F7"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "channel_ = std::make_unique<Notify::HttpNotificationChannel>(kChannel, \"museum\");"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Open the channel) or any send/bind button (each opens the channel first)"],
+      "note": "Open constructs the named channel once."
+    },
+    {
+      "id": "dev-notify-httpnotificationchannel-bindtoshelltoast",
+      "claim": "HttpNotificationChannel.BindToShellToast",
+      "room": "dev-notify",
+      "kind": "direct-call",
+      "symbols": ["CPP-A493EB2F71FB"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "channel_->BindToShellToast();"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(BindToShellToast)"],
+      "note": "The bind button binds the channel to shell toasts."
+    },
+    {
+      "id": "dev-notify-httpnotificationchannel-channeluri",
+      "claim": "HttpNotificationChannel.ChannelUri",
+      "room": "dev-notify",
+      "kind": "direct-read",
+      "symbols": ["CPP-8731CE5443F2"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "const System::Uri* uri = channel_->getChannelUriProperty();"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Open the channel) or any send/bind button (each opens the channel first)"],
+      "note": "Open reads the channel URI after opening and logs it."
+    },
+    {
+      "id": "dev-notify-httpnotificationchannel-channeluriupdated",
+      "claim": "HttpNotificationChannel.ChannelUriUpdated",
+      "room": "dev-notify",
+      "kind": "direct-use",
+      "symbols": ["CPP-6148B1BED040"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "uriToken_ = channel_->ChannelUriUpdated.Add("}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Open the channel) or any send/bind button (each opens the channel first)"],
+      "note": "Open subscribes a handler that stores the new URI; Close removes it."
+    },
+    {
+      "id": "dev-notify-httpnotificationchannel-close",
+      "claim": "HttpNotificationChannel.Close",
+      "room": "dev-notify",
+      "kind": "direct-call",
+      "symbols": ["CPP-150B9C4A77EB"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "channel_->Close();\n            channel_->ChannelUriUpdated.Remove(uriToken_);"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:channel-opened", "runtime:room-left or exhibit-destroyed"],
+      "note": "Close() closes the channel on leave; the close-and-send-late button also calls Close before a late send."
+    },
+    {
+      "id": "dev-notify-httpnotificationchannel-dispatchpendingnotificationsext",
+      "claim": "HttpNotificationChannel.DispatchPendingNotificationsEXT",
+      "room": "dev-notify",
+      "kind": "direct-call",
+      "symbols": ["CPP-5457BC0CA019"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "channel_->DispatchPendingNotificationsEXT();\n            } catch"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:channel-opened", "runtime:player-in-or-near-room (Update)"],
+      "note": "Update raises queued notifications on the game thread while the channel exists; CloseAndSendLate dispatches once more after Close."
+    },
+    {
+      "id": "dev-notify-httpnotificationchannel-find",
+      "claim": "HttpNotificationChannel.Find",
+      "room": "dev-notify",
+      "kind": "direct-call",
+      "symbols": ["CPP-3068034E42AA"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "Notify::HttpNotificationChannel::Find(kChannel)"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:control-panel-readouts-evaluated or room-screen-drawn"],
+      "note": "FindText looks the channel up by name for the readout and the screen."
+    },
+    {
+      "id": "dev-notify-httpnotificationchannel-httpnotificationreceived",
+      "claim": "HttpNotificationChannel.HttpNotificationReceived",
+      "room": "dev-notify",
+      "kind": "direct-use",
+      "symbols": ["CPP-294CFFAAFE44"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "receivedToken_ = channel_->HttpNotificationReceived.Add("}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Open the channel) or any send/bind button (each opens the channel first)"],
+      "note": "Open subscribes a handler that counts raw and toast bodies; Close removes it."
+    },
+    {
+      "id": "dev-notify-httpnotificationchannel-isshelltoastbound",
+      "claim": "HttpNotificationChannel.IsShellToastBound",
+      "room": "dev-notify",
+      "kind": "direct-read",
+      "symbols": ["CPP-D5FC068F22A1"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "channel_->getIsShellToastBoundProperty()"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(BindToShellToast)"],
+      "note": "After binding the flag is read and shown."
+    },
+    {
+      "id": "dev-notify-httpnotificationchannel-open",
+      "claim": "HttpNotificationChannel.Open",
+      "room": "dev-notify",
+      "kind": "direct-call",
+      "symbols": ["CPP-3A450D948834"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "channel_->Open();"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Open the channel) or any send/bind button (each opens the channel first)"],
+      "note": "Open opens the channel's loopback listener."
+    },
+    {
+      "id": "dev-notify-httpnotificationeventargs",
+      "claim": "HttpNotificationEventArgs",
+      "room": "dev-notify",
+      "kind": "direct-use",
+      "symbols": ["CPP-7A6AE09A3ECE"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "const Notify::HttpNotificationEventArgs& e) {"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Open the channel) or any send/bind button (each opens the channel first)", "runtime:notification-received", "runtime:player-in-or-near-room (Update dispatch)"],
+      "note": "The received handler takes the event arguments; it runs only after a send is dispatched."
+    },
+    {
+      "id": "dev-notify-httpnotificationeventargs-body",
+      "claim": "HttpNotificationEventArgs.Body",
+      "room": "dev-notify",
+      "kind": "direct-read",
+      "symbols": ["CPP-51F3883D60D7"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "e.getBodyProperty().size()"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Open the channel) or any send/bind button (each opens the channel first)", "runtime:notification-received", "runtime:player-in-or-near-room (Update dispatch)"],
+      "note": "The handler logs the body's byte count."
+    },
+    {
+      "id": "dev-notify-httpnotificationeventargs-bodyasstring",
+      "claim": "HttpNotificationEventArgs.BodyAsString",
+      "room": "dev-notify",
+      "kind": "direct-read",
+      "symbols": ["CPP-AE1538FF9D99"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "const std::string body = e.getBodyAsStringProperty();"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Open the channel) or any send/bind button (each opens the channel first)", "runtime:notification-received", "runtime:player-in-or-near-room (Update dispatch)"],
+      "note": "The handler reads the body as text and classifies toast against raw."
+    },
+    {
+      "id": "dev-notify-messagesendpriority",
+      "claim": "MessageSendPriority",
+      "room": "dev-notify",
+      "kind": "direct-use",
+      "symbols": ["CPP-7ED893C12A17"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "Notify::MessageSendPriority::High"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Send a raw notification)"],
+      "note": "The raw message is constructed with High priority."
+    },
+    {
+      "id": "dev-notify-notificationchannelurieventargs",
+      "claim": "NotificationChannelUriEventArgs",
+      "room": "dev-notify",
+      "kind": "direct-use",
+      "symbols": ["CPP-1E20873B4471"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "const Notify::NotificationChannelUriEventArgs& e) {"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Open the channel) or any send/bind button (each opens the channel first)", "runtime:ChannelUriUpdated-raised"],
+      "note": "The URI handler takes the event arguments."
+    },
+    {
+      "id": "dev-notify-notificationchannelurieventargs-channeluri",
+      "claim": "NotificationChannelUriEventArgs.ChannelUri",
+      "room": "dev-notify",
+      "kind": "direct-read",
+      "symbols": ["CPP-1282504E773C"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "uri_ = e.getChannelUriProperty().ToString();"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Open the channel) or any send/bind button (each opens the channel first)", "runtime:ChannelUriUpdated-raised"],
+      "note": "The URI handler stores the new channel URI."
+    },
+    {
+      "id": "dev-notify-rawpushnotificationmessage",
+      "claim": "RawPushNotificationMessage",
+      "room": "dev-notify",
+      "kind": "direct-use",
+      "symbols": ["CPP-1917E29B7068"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "Notify::RawPushNotificationMessage message(Notify::MessageSendPriority::High);"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Send a raw notification)"],
+      "note": "SendRaw builds a raw message; CloseAndSendLate and SendNowhere build more."
+    },
+    {
+      "id": "dev-notify-rawpushnotificationmessage-rawdata",
+      "claim": "RawPushNotificationMessage.RawData",
+      "room": "dev-notify",
+      "kind": "direct-use",
+      "symbols": ["CPP-44B32EF87AB5"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "message.RawData.assign(body.begin(), body.end());"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Send a raw notification)"],
+      "note": "The raw body bytes are assigned to the public RawData field."
+    },
+    {
+      "id": "dev-notify-rawpushnotificationmessage-sendasync",
+      "claim": "RawPushNotificationMessage.SendAsync",
+      "room": "dev-notify",
+      "kind": "direct-call",
+      "symbols": ["CPP-FC7BCF2FB60E"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "message.SendAsync(System::Uri(\"http://127.0.0.1:9/notify\"))"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Send to an address nobody listens on)"],
+      "note": "SendNowhere posts a raw message to a loopback port nobody listens on; SendRaw and CloseAndSendLate post to the channel URI."
+    },
+    {
+      "id": "dev-notify-toastpushnotificationmessage",
+      "claim": "ToastPushNotificationMessage",
+      "room": "dev-notify",
+      "kind": "direct-use",
+      "symbols": ["CPP-6DE294624C54"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "Notify::ToastPushNotificationMessage message;"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Send a toast notification)"],
+      "note": "SendToast builds a toast message."
+    },
+    {
+      "id": "dev-notify-toastpushnotificationmessage-sendasync",
+      "claim": "ToastPushNotificationMessage.SendAsync",
+      "room": "dev-notify",
+      "kind": "direct-call",
+      "symbols": ["CPP-E536FC571ECC"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "message.SubTitle = \"toast #\" + std::to_string(++sent_);\n        const bool accepted = message.SendAsync(*uri);"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Send a toast notification)", "runtime:channel-uri-non-null"],
+      "note": "SendToast posts the toast to the channel URI."
+    },
+    {
+      "id": "dev-notify-toastpushnotificationmessage-subtitle",
+      "claim": "ToastPushNotificationMessage.SubTitle",
+      "room": "dev-notify",
+      "kind": "direct-use",
+      "symbols": ["CPP-CCB18936D52A"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "message.SubTitle = \"toast #\""}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Send a toast notification)", "runtime:channel-uri-non-null"],
+      "note": "The toast subtitle field is set and read back for the result text."
+    },
+    {
+      "id": "dev-notify-toastpushnotificationmessage-title",
+      "claim": "ToastPushNotificationMessage.Title",
+      "room": "dev-notify",
+      "kind": "direct-use",
+      "symbols": ["CPP-4F88ED5D41E7"],
+      "path": [{"source": "src/Exhibits/Devices/NotificationLab.cpp", "anchor": "message.Title = \"CNA 3D Museum\";"}],
+      "conditions": ["build:MUSEUM_PHONE=1 (cna_phone target present)", "runtime:button-pressed(Send a toast notification)", "runtime:channel-uri-non-null"],
+      "note": "The toast title field is set."
+    },
+    {
+      "id": "dev-tray-cna-devices-systemtray",
+      "claim": "CNA::Devices::SystemTray",
+      "room": "dev-tray",
+      "kind": "direct-call",
+      "symbols": ["CPP-3F1938FBF22D"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "tray_ = std::make_unique<CNA::Devices::SystemTray>(\"CNA 3D Museum\");"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(Create a tray icon with two entries)", "runtime:system-tray-supported"],
+      "note": "The manual create button constructs a SystemTray when the host has one."
+    },
+    {
+      "id": "dev-tray-cna-devices-urllauncher",
+      "claim": "CNA::Devices::UrlLauncher",
+      "room": "dev-tray",
+      "kind": "direct-call",
+      "symbols": ["CPP-E8E0CEB16364"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const bool ok = CNA::Devices::UrlLauncher::Open(url);"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(UrlLauncher.Open (the museum's local page))"],
+      "note": "The manual button calls the static UrlLauncher::Open with a local file:// URL."
+    },
+    {
+      "id": "dev-tray-systemtray-addentry",
+      "claim": "SystemTray.AddEntry",
+      "room": "dev-tray",
+      "kind": "direct-call",
+      "symbols": ["CPP-B7A987DCECB7"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "tray_->AddEntry(\"Say hello\", false, false, true,"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(Create a tray icon with two entries)", "runtime:system-tray-supported"],
+      "note": "Two entries are added, one plain and one checkable, each with a click callback."
+    },
+    {
+      "id": "dev-tray-systemtray-getentrychecked",
+      "claim": "SystemTray.GetEntryChecked",
+      "room": "dev-tray",
+      "kind": "direct-call",
+      "symbols": ["CPP-F84618F552E5"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "!tray_->GetEntryChecked(1)"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(Create a tray icon with two entries)", "runtime:system-tray-supported", "runtime:button-pressed(Toggle the checkable entry)"],
+      "note": "The toggle button reads the checkable entry's state; it returns early when no tray was created."
+    },
+    {
+      "id": "dev-tray-systemtray-getentryenabled",
+      "claim": "SystemTray.GetEntryEnabled",
+      "room": "dev-tray",
+      "kind": "direct-call",
+      "symbols": ["CPP-5A0E365598A0"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "!tray_->GetEntryEnabled(0)"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(Create a tray icon with two entries)", "runtime:system-tray-supported", "runtime:button-pressed(Enable / disable the first entry)"],
+      "note": "The enable button reads the first entry's enabled state; it returns early when no tray was created."
+    },
+    {
+      "id": "dev-tray-systemtray-issupported",
+      "claim": "SystemTray.IsSupported",
+      "room": "dev-tray",
+      "kind": "direct-read",
+      "symbols": ["CPP-0832EC6C79A0"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "if (!CNA::Devices::SystemTray::getIsSupportedProperty()) {"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(Create a tray icon with two entries)"],
+      "note": "CreateTray checks IsSupported before constructing the tray; in this room only the manual button reaches it (the Supported readout belongs to dev-dialogs)."
+    },
+    {
+      "id": "dev-tray-systemtray-setentrychecked",
+      "claim": "SystemTray.SetEntryChecked",
+      "room": "dev-tray",
+      "kind": "direct-call",
+      "symbols": ["CPP-3E979E450758"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "tray_->SetEntryChecked(1, "}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(Create a tray icon with two entries)", "runtime:system-tray-supported", "runtime:button-pressed(Toggle the checkable entry)"],
+      "note": "The toggle button flips the checkable entry."
+    },
+    {
+      "id": "dev-tray-systemtray-setentryenabled",
+      "claim": "SystemTray.SetEntryEnabled",
+      "room": "dev-tray",
+      "kind": "direct-call",
+      "symbols": ["CPP-BB25B8E9F256"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "tray_->SetEntryEnabled(0, "}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(Create a tray icon with two entries)", "runtime:system-tray-supported", "runtime:button-pressed(Enable / disable the first entry)"],
+      "note": "The enable button flips the first entry's enabled state."
+    },
+    {
+      "id": "dev-tray-systemtray-setentrylabel",
+      "claim": "SystemTray.SetEntryLabel",
+      "room": "dev-tray",
+      "kind": "direct-call",
+      "symbols": ["CPP-562B145EF443"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "tray_->SetEntryLabel(1, "}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(Create a tray icon with two entries)", "runtime:system-tray-supported", "runtime:button-pressed(Toggle the checkable entry)"],
+      "note": "The toggle button relabels the checkable entry."
+    },
+    {
+      "id": "dev-tray-systemtray-tooltip",
+      "claim": "SystemTray.Tooltip",
+      "room": "dev-tray",
+      "kind": "direct-call",
+      "symbols": ["CPP-852AA37D4651"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "tray_->setTooltipProperty(\"CNA 3D Museum: Devices and the System\");"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(Create a tray icon with two entries)", "runtime:system-tray-supported"],
+      "note": "CreateTray sets the tray icon tooltip."
+    },
+    {
+      "id": "dev-tray-urllauncher-open",
+      "claim": "UrlLauncher.Open",
+      "room": "dev-tray",
+      "kind": "direct-call",
+      "symbols": ["CPP-A5AAFCDACC92"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const bool ok = CNA::Devices::UrlLauncher::Open(url);"}],
+      "conditions": ["build:CNA_DEVICES=ON", "runtime:room-param-mode=tray", "runtime:manual-button-pressed(UrlLauncher.Open (the museum's local page))"],
+      "note": "The manual button hands a local file:// URL to the desktop and records the boolean result."
+    },
+    {
+      "id": "dev-window-gamewindow-minimizeext",
+      "claim": "GameWindow.MinimizeEXT",
+      "room": "dev-window",
+      "kind": "direct-call",
+      "symbols": ["CPP-F4A4AA6B5EC7"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "w.MinimizeEXT();"}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:manual-button-pressed(GameWindow.MinimizeEXT, then RestoreEXT)"],
+      "note": "The manual button minimises the game window."
+    },
+    {
+      "id": "dev-window-gamewindow-restoreext",
+      "claim": "GameWindow.RestoreEXT",
+      "room": "dev-window",
+      "kind": "direct-call",
+      "symbols": ["CPP-793293B2C246"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "w.RestoreEXT();"}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:manual-button-pressed(GameWindow.MinimizeEXT, then RestoreEXT)"],
+      "note": "The manual button restores the window right after minimising it."
+    },
+    {
+      "id": "dev-window-gamewindow-textdropext",
+      "claim": "GameWindow.TextDropEXT",
+      "room": "dev-window",
+      "kind": "direct-use",
+      "symbols": ["CPP-63EA6833F7BF"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "textToken_ = w.TextDropEXT.Add("}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:room-screen-loaded"],
+      "note": "OnScreenLoaded subscribes to TextDropEXT (and Unsubscribe removes the handler); the handler runs only when text is dropped."
+    },
+    {
+      "id": "dev-window-graphicsdevice-devicelost",
+      "claim": "GraphicsDevice.DeviceLost",
+      "room": "dev-window",
+      "kind": "direct-use",
+      "symbols": ["CPP-EDE1FF7A9449"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "lostToken_ = d.DeviceLost.Add("}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:room-screen-loaded"],
+      "note": "The room subscribes a counter to DeviceLost; it fires only on a real device loss, which a normal run never produces."
+    },
+    {
+      "id": "dev-window-graphicsdevice-devicereset",
+      "claim": "GraphicsDevice.DeviceReset",
+      "room": "dev-window",
+      "kind": "direct-use",
+      "symbols": ["CPP-E7C172AEA3A4"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "resetToken_ = d.DeviceReset.Add("}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:room-screen-loaded"],
+      "note": "The room subscribes a counter to DeviceReset; it fires only after a real device loss."
+    },
+    {
+      "id": "dev-window-graphicsdevice-deviceresetting",
+      "claim": "GraphicsDevice.DeviceResetting",
+      "room": "dev-window",
+      "kind": "direct-use",
+      "symbols": ["CPP-51C2BE275019"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "resettingToken_ = d.DeviceResetting.Add("}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:room-screen-loaded"],
+      "note": "The room subscribes a counter to DeviceResetting; it fires only after a real device loss."
+    },
+    {
+      "id": "dev-window-rendertarget2d-contentlost",
+      "claim": "RenderTarget2D.ContentLost",
+      "room": "dev-window",
+      "kind": "direct-use",
+      "symbols": ["CPP-782543E02156"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "contentToken_ = target_->ContentLost.Add("}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:room-screen-loaded"],
+      "note": "The room subscribes a counter to its own render target's ContentLost; the emulate button makes it fire."
+    },
+    {
+      "id": "dev-window-rendertarget2d-iscontentlost",
+      "claim": "RenderTarget2D.IsContentLost",
+      "room": "dev-window",
+      "kind": "direct-read",
+      "symbols": ["CPP-1D27BF1C904A"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(target_->getIsContentLostProperty()) : \"-\""}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:room-screen-loaded", "runtime:control-panel-readouts-evaluated"],
+      "note": "The readout prints the room's render target IsContentLost flag."
+    },
+    {
+      "id": "dev-window-rendertarget2d-notifycontentlostext",
+      "claim": "RenderTarget2D.NotifyContentLostEXT",
+      "room": "dev-window",
+      "kind": "direct-call",
+      "symbols": ["CPP-F49E29E72F0F"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "target_->NotifyContentLostEXT();"}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:room-screen-loaded", "runtime:button-pressed(Emulate: RenderTarget2D.NotifyContentLostEXT)"],
+      "note": "The emulate button (a normal button the sweep presses) marks the room's own target as lost."
+    },
+    {
+      "id": "dev-window-textdropeventargsext",
+      "claim": "TextDropEventArgsEXT",
+      "room": "dev-window",
+      "kind": "direct-use",
+      "symbols": ["CPP-F8A240F1CF70"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const TextDropEventArgsEXT& e) {"}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:room-screen-loaded", "runtime:text-dropped-onto-window"],
+      "note": "The TextDropEXT handler receives the event arguments; it runs only when text is dropped on the window."
+    },
+    {
+      "id": "dev-window-textdropeventargsext-text",
+      "claim": "TextDropEventArgsEXT.Text",
+      "room": "dev-window",
+      "kind": "direct-read",
+      "symbols": ["CPP-411ABDCA2A64"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "e.getTextProperty()"}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:room-screen-loaded", "runtime:text-dropped-onto-window"],
+      "note": "The handler copies the first 48 characters of the dropped text."
+    },
+    {
+      "id": "rv-vertextype-cna-graphics-vertextyperegistryext",
+      "claim": "CNA::Graphics::VertexTypeRegistryEXT",
+      "room": "rv-vertextype",
+      "kind": "direct-call",
+      "symbols": ["CPP-57914540677E"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "CNA::Graphics::VertexTypeRegistryEXT::Register<GlowVertex>();"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "VertexTypes registers, resolves and refuses vertex types through the static registry."
+    },
+    {
+      "id": "rv-vertextype-dynamicvertexbuffer-graphicsdevice-type-int-bufferusage",
+      "claim": "DynamicVertexBuffer(GraphicsDevice, Type, int, BufferUsage)",
+      "room": "rv-vertextype",
+      "kind": "direct-call",
+      "symbols": ["CPP-651E15F3420B"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "DynamicVertexBuffer dynamicFromType(d, glowType, 6, BufferUsage::WriteOnly);"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "A DynamicVertexBuffer is made from the registered System::Type and its stride checked."
+    },
+    {
+      "id": "rv-vertextype-graphicsdevice-drawprimitives",
+      "claim": "GraphicsDevice.DrawPrimitives",
+      "room": "rv-vertextype",
+      "kind": "direct-call",
+      "symbols": ["CPP-ADD6504A96D5"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "d.DrawPrimitives(PrimitiveType::TriangleList, 0, 2);"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "The Type-made vertex buffer is drawn as two triangles into the check target."
+    },
+    {
+      "id": "rv-vertextype-ivertextype",
+      "claim": "IVertexType",
+      "room": "rv-vertextype",
+      "kind": "direct-use",
+      "symbols": ["CPP-6BA9B3F72FE1"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "struct GlowVertex : public IVertexType {"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "GlowVertex implements IVertexType and is registered and constructed by the registry."
+    },
+    {
+      "id": "rv-vertextype-ivertextype-vertexdeclaration",
+      "claim": "IVertexType.VertexDeclaration",
+      "room": "rv-vertextype",
+      "kind": "indirect-framework",
+      "symbols": ["CPP-E7A2473F538F"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "CNA::Graphics::VertexTypeRegistryEXT::Register<GlowVertex>();"}, {"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "[[nodiscard]] const VertexDeclaration& getVertexDeclarationProperty() const override\n    {"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "Register<GlowVertex>() (inline CNA header code) default-constructs a GlowVertex and calls this override to read its declaration."
+    },
+    {
+      "id": "rv-vertextype-vertexbuffer-graphicsdevice-type-int-bufferusage",
+      "claim": "VertexBuffer(GraphicsDevice, Type, int, BufferUsage)",
+      "room": "rv-vertextype",
+      "kind": "direct-call",
+      "symbols": ["CPP-C4B082503D27"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "VertexBuffer fromType(d, glowType, 6, BufferUsage::WriteOnly);"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "A VertexBuffer is made from the registered System::Type, filled and drawn."
+    },
+    {
+      "id": "rv-vertextype-vertexdeclaration",
+      "claim": "VertexDeclaration",
+      "room": "rv-vertextype",
+      "kind": "direct-use",
+      "symbols": ["CPP-CF23B7B0FF17"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "static const VertexDeclaration declaration{VertexElement(0,"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "GlowVertex builds its three-element VertexDeclaration."
+    },
+    {
+      "id": "rv-vertextype-vertexdeclaration-getvertexelements",
+      "claim": "VertexDeclaration.GetVertexElements",
+      "room": "rv-vertextype",
+      "kind": "direct-call",
+      "symbols": ["CPP-E30F08407F2A"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "resolved->GetVertexElements().size() == 3"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD", "runtime:TryResolve-non-null"],
+      "note": "The resolved declaration's element count is checked."
+    },
+    {
+      "id": "rv-vertextype-vertexdeclaration-vertexstride",
+      "claim": "VertexDeclaration.VertexStride",
+      "room": "rv-vertextype",
+      "kind": "direct-read",
+      "symbols": ["CPP-5ECE7A5A0AE8"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "resolved->getVertexStrideProperty() == 20"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD", "runtime:TryResolve-non-null"],
+      "note": "The resolved declaration's stride is checked (and the buffers' strides)."
+    },
+    {
+      "id": "rv-vertextype-vertexelement",
+      "claim": "VertexElement",
+      "room": "rv-vertextype",
+      "kind": "direct-use",
+      "symbols": ["CPP-C5C248947E6B"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "VertexElement(12, VertexElementFormat::Color, VertexElementUsage::Color, 0)"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "GlowVertex's declaration is built from three VertexElement values."
+    },
+    {
+      "id": "rv-vertextype-vertextyperegistryext-register",
+      "claim": "VertexTypeRegistryEXT.Register",
+      "room": "rv-vertextype",
+      "kind": "direct-call",
+      "symbols": ["CPP-307C69F8B6BD"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "CNA::Graphics::VertexTypeRegistryEXT::Register<GlowVertex>();"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "GlowVertex is registered on every run of the check."
+    },
+    {
+      "id": "rv-vertextype-vertextyperegistryext-resolve",
+      "claim": "VertexTypeRegistryEXT.Resolve",
+      "room": "rv-vertextype",
+      "kind": "direct-call",
+      "symbols": ["CPP-0ED86780E545"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "(void)CNA::Graphics::VertexTypeRegistryEXT::Resolve(System::Type::From<UnregisteredVertex>());"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "Resolve is called only on an unregistered type, to check that it throws ArgumentException; the success path is not exercised here."
+    },
+    {
+      "id": "rv-vertextype-vertextyperegistryext-tryresolve",
+      "claim": "VertexTypeRegistryEXT.TryResolve",
+      "room": "rv-vertextype",
+      "kind": "direct-call",
+      "symbols": ["CPP-16D29DF8C40D"],
+      "path": [{"source": "src/Exhibits/Validation/ValidationLab.cpp", "anchor": "CNA::Graphics::VertexTypeRegistryEXT::TryResolve(glowType);"}],
+      "conditions": ["runtime:room-param-mode=vertextype", "runtime:room-screen-loaded", "runtime:renderer-supports-ThreeD"],
+      "note": "TryResolve returns the registered GlowVertex declaration."
     }
   ]
 }

@@ -582,6 +582,8 @@ private:
             device.DrawUserPrimitives(PrimitiveType::PointListEXT, pv_.data(), 0, count);
         } catch (const std::exception& e) {
             Museum::Log("perf", "points: %s", e.what());
+            static bool reported = false;   // per-frame path: report the first failure only
+            if (!reported) { reported = true; ReportError(std::string("PointListEXT draw: ") + e.what()); }
         }
         cpuMs_ = cpuMs_ * 0.9 + MillisSince(t0) * 0.1;
     }

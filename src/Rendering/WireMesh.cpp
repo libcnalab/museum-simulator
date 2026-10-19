@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <exception>
 #include <set>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -59,6 +60,7 @@ std::unique_ptr<WireMesh> WireMesh::FromModel(GraphicsDevice& device, Model& mod
         return wire;
     } catch (const std::exception& e) {
         Museum::Log("wire", "cannot build a wireframe from the model: %s", e.what());
+        Museum::ReportExhibitError("wire", (std::string("cannot build a wireframe from the model: ") + e.what()).c_str());
         return nullptr;
     }
 }

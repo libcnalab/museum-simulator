@@ -46,6 +46,7 @@ Texture2D* TextureLibrary::Get(const std::string& name)
         result = ImageUtil::CreateMipmapped(device_, pixels, w, h);
     } catch (const std::exception& e) {
         Museum::Log("textures", "missing or unreadable texture '%s': %s", name.c_str(), e.what());
+        Museum::ReportExhibitError("textures", ("missing or unreadable texture '" + name + "': " + e.what()).c_str());
         ++missing_;
     }
     Texture2D* ptr = result ? result.get() : missingTexture_.get();

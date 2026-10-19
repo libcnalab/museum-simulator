@@ -76,6 +76,13 @@ int ControlPanel::AddButton(const std::string& label, std::function<void()> onPr
     return static_cast<int>(rows_.size()) - 1;
 }
 
+int ControlPanel::AddManualButton(const std::string& label, std::function<void()> onPress)
+{
+    const int row = AddButton(label, std::move(onPress));
+    rows_[static_cast<std::size_t>(row)].manual = true;
+    return row;
+}
+
 int ControlPanel::AddReadout(const std::string& label, std::function<std::string()> text)
 {
     Row r;
@@ -263,7 +270,7 @@ bool ControlPanel::Press(const std::string& label, const float* value)
                     fire(0.0f);
                     break;
                 case Kind::Button:
-                    if (r.onPress) r.onPress();
+                    if (r.onPress && !r.manual) r.onPress();
                     break;
                 default: break;
             }
@@ -281,7 +288,7 @@ bool ControlPanel::Press(const std::string& label, const float* value)
         }
         std::vector<Row*> live;
         for (Row& r : rows_)
-            if (r.kind == Kind::Slider || r.kind == Kind::Toggle || r.kind == Kind::Choice || r.kind == Kind::Button) live.push_back(&r);
+            if (r.kind == Kind::Slider || r.kind == Kind::Toggle || r.kind == Kind::Choice || (r.kind == Kind::Button && !r.manual)) live.push_back(&r);
         if (live.empty()) return false;
         const auto next = [this] {
             fuzzState_ ^= fuzzState_ << 13;

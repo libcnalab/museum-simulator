@@ -507,6 +507,9 @@ private:
         other_.reset();
     }
 
+    // SoundEffect loads refuse with NoAudioHardwareException on a machine without an audio device: a refusal, not a failure.
+    static bool NoAudioDevice(const std::exception& e) { return std::string(typeid(e).name()).find("NoAudioHardwareException") != std::string::npos; }
+
     template <typename F>
     void Attempt(const std::string& name, F&& load, bool expectFailure = false)
     {
@@ -522,6 +525,8 @@ private:
             row.status = expectFailure ? 1 : 2;
             row.detail = std::string(typeid(e).name()).find("ContentLoadException") != std::string::npos ? std::string("ContentLoadException: ") + e.what() : std::string("exception: ") + e.what();
             Museum::Log("content", "%s: %s", name.c_str(), e.what());
+            // A load the room expects to work failed: an error, not a demonstration (a missing audio device is a refusal).
+            if (!expectFailure && !NoAudioDevice(e)) ReportError(name + ": " + e.what());
         }
         rows_.push_back(std::move(row));
     }
@@ -579,6 +584,7 @@ private:
         } catch (const std::exception& e) {
             row.detail = e.what();
             row.status = 2;
+            ReportError(std::string("cache load Textures/brick: ") + e.what());
         }
         rows_.push_back(std::move(row));
         if (rows_.size() > 24) rows_.erase(rows_.begin());
@@ -705,6 +711,7 @@ private:
                         ++done;
                     } catch (const std::exception& e) {
                         error = e.what();
+                        if (!NoAudioDevice(e)) ReportError(row.name + ": " + e.what());
                         break;
                     }
                 }
@@ -724,6 +731,7 @@ private:
             rows_.push_back(std::move(row));
         } catch (const std::exception& e) {
             Museum::Log("content", "manifest: %s", e.what());
+            ReportError(std::string("GetContentManifest: ") + e.what());
         }
     }
 
@@ -895,6 +903,7 @@ private:
         } catch (const std::exception& e) {
             row.detail = e.what();
             row.status = 2;
+            ReportError(std::string("TitleContainer.OpenStream: ") + e.what());
         }
         rows_.push_back(std::move(row));
         if (rows_.size() > 8) rows_.erase(rows_.begin());
@@ -993,6 +1002,7 @@ private:
             lifetimeNote_ = std::string("Load then Unload(): IsDisposed was ") + (before ? "true" : "false") + " before and " + (t.getIsDisposedProperty() ? "true" : "false") + " after: the copy you hold survives the manager's cache";
         } catch (const std::exception& e) {
             lifetimeNote_ = std::string("failed: ") + e.what();
+            ReportError(std::string("Unload demo: ") + e.what());
         }
     }
 

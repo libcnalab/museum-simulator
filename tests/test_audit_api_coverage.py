@@ -469,6 +469,26 @@ class AuditApiCoverageTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "backlog"):
             MODULE.classify_areas(inventory, evidence, manifest([rule("m/include/*", "gap", "")]))
 
+    def test_line_coverage_executes_only_paths_that_ran_in_their_own_room(self):
+        records = [
+            {"id": "direct", "room": "a", "path": [{"source": "src/X.cpp", "line": 10, "anchor": "call();"}]},
+            {"id": "multi", "room": "a", "path": [{"source": "src/X.cpp", "line": 20, "anchor": "f(\n  x);"}]},
+            {"id": "indirect", "room": "a", "path": [
+                {"source": "src/Helper.cpp", "line": 5, "anchor": "helper();"},
+                {"source": "src/X.cpp", "line": 10, "anchor": "call();"},
+            ]},
+            {"id": "helper-not-run", "room": "a", "path": [
+                {"source": "src/Helper.cpp", "line": 9, "anchor": "other();"},
+                {"source": "src/X.cpp", "line": 10, "anchor": "call();"},
+            ]},
+            {"id": "other-room", "room": "b", "path": [{"source": "src/X.cpp", "line": 10, "anchor": "call();"}]},
+            {"id": "unvisited", "room": "c", "path": [{"source": "src/X.cpp", "line": 10, "anchor": "call();"}]},
+        ]
+        coverage = {"a": {"src/X.cpp": "10,21", "src/Helper.cpp": "4-6"}, "b": {"src/X.cpp": "11-30"}}
+        self.assertEqual(
+            MODULE.executed_by_line_coverage(records, coverage), ["direct", "indirect", "multi"]
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 
+#include "Diagnostics/Log.hpp"
 #include "Exhibits/Services.hpp"
 #include "Interaction/ControlPanel.hpp"
 #include "World/Catalogue.hpp"
@@ -60,6 +62,8 @@ public:
     void DoDrawOpaque(const DrawContext& ctx);
 
 protected:
+    /** Report an exception the exhibit caught but did not expect (see Museum::ReportExhibitError); the room carries on. */
+    void ReportError(const std::string& what) const { Museum::ReportExhibitError(room_.key.c_str(), what.c_str()); }
     /** A looping positional voice that is released when the exhibit is destroyed. Null when audio is off. */
     Voice3D* CreateLoop(const std::string& sound, const Microsoft::Xna::Framework::Vector3& position, float volume, float radius);
     /** The wall the room's door is in, and the wall facing it (where wide screens go): walls of the room's local frame. */

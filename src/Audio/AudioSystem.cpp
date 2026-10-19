@@ -4,10 +4,23 @@
 #include <exception>
 
 #include "Diagnostics/Log.hpp"
+#include "Microsoft/Xna/Framework/Audio/NoAudioHardwareException.hpp"
 #include "Microsoft/Xna/Framework/Audio/SoundState.hpp"
 
 using namespace Microsoft::Xna::Framework;
 using namespace Microsoft::Xna::Framework::Audio;
+
+namespace {
+
+// Once audio is on, the museum's own sounds should load and play: a failure is reported as an exhibit error. A missing
+// device is CNA's documented refusal (NoAudioHardwareException), so it stays a log line.
+void ReportAudioFailure(const std::string& context, const std::exception& e)
+{
+    if (dynamic_cast<const NoAudioHardwareException*>(&e) != nullptr) return;
+    Museum::ReportExhibitError("audio", (context + ": " + e.what()).c_str());
+}
+
+}  // namespace
 
 AudioSystem::AudioSystem(Content::ContentManager& content, bool enabled, float masterVolume)
     : content_(content), enabled_(enabled), master_(std::clamp(masterVolume, 0.0f, 1.0f))
@@ -49,6 +62,7 @@ SoundEffect* AudioSystem::Effect(const std::string& name)
         effect = std::make_unique<SoundEffect>(content_.Load<SoundEffect>("Audio/" + name));
     } catch (const std::exception& e) {
         Museum::Log("audio", "missing or unreadable sound '%s': %s", name.c_str(), e.what());
+        ReportAudioFailure("loading sound '" + name + "'", e);
     }
     SoundEffect* raw = effect.get();
     effects_[name] = std::move(effect);
@@ -70,6 +84,8 @@ void AudioSystem::PlayUi(const std::string& name, float volume, float pitch)
         effect->Play(std::clamp(volume, 0.0f, 1.0f), pitch, 0.0f);
     } catch (const std::exception& e) {
         Museum::Log("audio", "cannot play '%s': %s", name.c_str(), e.what());
+        static bool reported = false;   // footsteps and UI clicks repeat: report the first failure only
+        if (!reported) { reported = true; ReportAudioFailure("playing '" + name + "'", e); }
     }
 }
 
@@ -90,6 +106,8 @@ void AudioSystem::PlayAt(const std::string& name, const Vector3& position, float
         oneShots_.push_back(std::move(voice));
     } catch (const std::exception& e) {
         Museum::Log("audio", "cannot play '%s': %s", name.c_str(), e.what());
+        static bool reported = false;   // footsteps and UI clicks repeat: report the first failure only
+        if (!reported) { reported = true; ReportAudioFailure("playing '" + name + "'", e); }
     }
 }
 
@@ -109,6 +127,7 @@ Voice3D* AudioSystem::CreateLoop(const std::string& name, const Vector3& positio
         return loops_.back().get();
     } catch (const std::exception& e) {
         Museum::Log("audio", "cannot create loop '%s': %s", name.c_str(), e.what());
+        ReportAudioFailure("creating loop '" + name + "'", e);
         return nullptr;
     }
 }
@@ -126,6 +145,8 @@ void AudioSystem::SetPlaying(Voice3D* voice, bool playing)
         }
     } catch (const std::exception& e) {
         Museum::Log("audio", "cannot change voice: %s", e.what());
+        static bool reported = false;   // exhibits may call this every frame: report the first failure only
+        if (!reported) { reported = true; ReportAudioFailure("changing a voice", e); }
     }
 }
 
@@ -158,6 +179,8 @@ void AudioSystem::Update()
         }
     } catch (const std::exception& e) {
         Museum::Log("audio", "update failed: %s", e.what());
+        static bool reported = false;   // per-frame path: report the first failure only
+        if (!reported) { reported = true; ReportAudioFailure("update", e); }
     }
 }
 

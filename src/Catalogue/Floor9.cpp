@@ -74,6 +74,10 @@ WingSpec ValidationWing()
         rv("rv-camera", "Camera Matrices", "LookAt, perspective and orthographic projection, world translation", "camera", {"Matrix.CreateLookAt", "Matrix.CreatePerspectiveFieldOfView", "Matrix.CreateOrthographic", "BasicEffect.World"}),
         rv("rv-formats", "Surface Formats", "Every uncompressed texture format returns exactly the bits it was given", "formats", {"SurfaceFormat", "Texture2D.SetData", "Texture2D.GetData", "PackedVector.Bgr565", "PackedVector.Rgba64", "PackedVector.HalfVector4"}),
         rv("rv-effects", "Stock Effects", "BasicEffect, AlphaTestEffect and DualTextureEffect produce the expected pixels", "effects", {"BasicEffect", "AlphaTestEffect", "DualTextureEffect"}),
+        rv("rv-vertextype", "A Game's Own Vertex Type", "An IVertexType registered with VertexTypeRegistryEXT, a buffer made from its Type, drawn; an unknown type refused", "vertextype",
+           {"CNA::Graphics::VertexTypeRegistryEXT", "VertexTypeRegistryEXT.Register", "VertexTypeRegistryEXT.TryResolve", "VertexTypeRegistryEXT.Resolve", "IVertexType", "IVertexType.VertexDeclaration",
+            "VertexBuffer(GraphicsDevice, Type, int, BufferUsage)", "DynamicVertexBuffer(GraphicsDevice, Type, int, BufferUsage)", "VertexDeclaration", "VertexElement", "VertexDeclaration.VertexStride",
+            "VertexDeclaration.GetVertexElements", "System::ArgumentException", "GraphicsDevice.DrawPrimitives"}),
     };
     return w;
 }

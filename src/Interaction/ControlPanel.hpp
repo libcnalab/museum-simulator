@@ -39,6 +39,12 @@ public:
     int AddToggle(const std::string& label, bool value, std::function<void(bool)> onChange);
     int AddChoice(const std::string& label, std::vector<std::string> options, int index, std::function<void(int)> onChange);
     int AddButton(const std::string& label, std::function<void()> onPress);
+    /**
+     * A button that opens something outside the museum (a system dialog, a tray icon, a browser, a camera): the visitor
+     * or a test script naming it (press:LABEL) operates it, but the smoke sweep ("*") and fuzzing ("#") skip it, so an
+     * automatic tour never opens a window on somebody's desktop or blocks on a modal dialog.
+     */
+    int AddManualButton(const std::string& label, std::function<void()> onPress);
     /** A row of live text; `text` is polled a few times a second. */
     int AddReadout(const std::string& label, std::function<std::string()> text);
     void AddHeading(const std::string& text);
@@ -74,6 +80,7 @@ private:
         std::function<void()> onPress;           // button
         std::function<std::string()> text;       // readout
         std::string shown;                       // last text drawn for a readout
+        bool manual = false;                     // a button the sweep and fuzzing skip (AddManualButton)
     };
 
     [[nodiscard]] int RowAt(const Microsoft::Xna::Framework::Vector3& hit, float& xFraction) const;

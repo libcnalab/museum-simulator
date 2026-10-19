@@ -1026,8 +1026,8 @@ private:
             int seconds = -1, percent = -1;
             const auto state = CNA::Input::Power::GetInfoEXT(seconds, percent);
             powerNote_ = "state " + std::to_string(static_cast<int>(state)) + ", " + (percent >= 0 ? std::to_string(percent) + " %" : std::string("no battery percentage"));
-        } catch (const std::exception&) {
-            powerNote_ = "unavailable";
+        } catch (const std::exception& e) {
+            powerNote_ = std::string("unavailable: ") + std::string(e.what()).substr(0, 50);
         }
     }
 

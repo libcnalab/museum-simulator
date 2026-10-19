@@ -15,6 +15,7 @@ Model* ModelLibrary::Get(const std::string& name)
         model = std::make_unique<Model>(content_.Load<Model>("Models/" + name));
     } catch (const std::exception& e) {
         Museum::Log("models", "missing or unreadable model '%s': %s", name.c_str(), e.what());
+        Museum::ReportExhibitError("models", ("missing or unreadable model '" + name + "': " + e.what()).c_str());
         ++failed_;
     }
     Model* raw = model.get();

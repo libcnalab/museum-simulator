@@ -339,7 +339,10 @@ private:
         if (useDefault_) {
             try {
                 Str(sb, "Omega: Ω   Czech: Příliš žluťoučký", 24, 380, Color::White, 0.9f);
-            } catch (const std::exception&) {
+            } catch (const std::exception& e) {
+                // With DefaultCharacter set, unknown glyphs are substituted: a throw here is a defect, not the demonstration.
+                static bool reported = false;   // per-frame path: report the first failure only
+                if (!reported) { reported = true; ReportError(std::string("DrawString with DefaultCharacter: ") + e.what()); }
             }
         } else {
             Str(sb, "(the line is not drawn: drawing it would throw)", 24, 380, Color(255, 150, 140, 255), 0.8f);

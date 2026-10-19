@@ -215,6 +215,8 @@ private:
                 format_ = floatTarget ? "Single (32-bit float)" : "Color (8 bits: use a larger bias)";
             } catch (const std::exception& e) {
                 Museum::Log("shadow", "shadow map target: %s", e.what());
+                static bool reported = false;   // retried every frame while it fails: report the first failure only
+                if (!reported) { reported = true; ReportError(std::string("shadow map target: ") + e.what()); }
                 map_.reset();
                 return;
             }

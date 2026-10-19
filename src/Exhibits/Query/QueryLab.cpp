@@ -71,7 +71,8 @@ public:
         if (mode_ == Mode::Occlusion) {
             supported_ = d.SupportsCapability(CNA::GraphicsCapability::OcclusionQuery);
             if (supported_) {
-                try { query_ = std::make_unique<OcclusionQuery>(d); } catch (const std::exception& e) { supported_ = false; Museum::Log("query", "OcclusionQuery: %s", e.what()); }
+                // The capability says yes, so a refusal here contradicts it: report it, and show "not supported" as before.
+                try { query_ = std::make_unique<OcclusionQuery>(d); } catch (const std::exception& e) { supported_ = false; Museum::Log("query", "OcclusionQuery: %s", e.what()); ReportError(std::string("OcclusionQuery despite the capability: ") + e.what()); }
             }
         } else {
             msaa_ = d.SupportsCapability(CNA::GraphicsCapability::MultiSampleAntiAliasing);
@@ -81,6 +82,8 @@ public:
                     Museum::Log("query", "render target asked for %d samples, got %d", kCounts[i], targets_[static_cast<std::size_t>(i)]->getMultiSampleCountProperty());
                 } catch (const std::exception& e) {
                     Museum::Log("query", "render target with %d samples: %s", kCounts[i], e.what());
+                    // The sample count is a preference (XNA clamps it to what the device has), so the constructor should not refuse it.
+                    ReportError("RenderTarget2D with " + std::to_string(kCounts[i]) + " samples: " + e.what());
                 }
             }
         }

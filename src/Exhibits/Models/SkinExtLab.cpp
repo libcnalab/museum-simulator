@@ -77,6 +77,7 @@ public:
         } catch (const std::exception& e) {
             ok_ = false;
             Museum::Log("skinext", "unavailable: %s", e.what());
+            ReportError(std::string("SkinnedEffect or tentacle model: ") + e.what());
         }
     }
 
@@ -124,7 +125,10 @@ public:
             if (skeleton_) DrawSkeleton(skin, stand);
             gizmos_.Flush(ctx, true);
         } catch (const std::exception& e) {
-            if (!reported_) Museum::Log("skinext", "draw: %s", e.what());
+            if (!reported_) {
+                Museum::Log("skinext", "draw: %s", e.what());
+                ReportError(std::string("draw: ") + e.what());   // per frame: reported_ keeps it to the first failure
+            }
             reported_ = true;
         }
     }
@@ -279,6 +283,7 @@ private:
             model_->AttachPartEXT(std::move(cap));
         } catch (const std::exception& e) {
             Museum::Log("skinext", "AttachPartEXT: %s", e.what());
+            ReportError(std::string("AttachPartEXT: ") + e.what());
         }
     }
     void TakeOff()
@@ -288,6 +293,7 @@ private:
             model_->RemovePartEXT("cap");
         } catch (const std::exception& e) {
             Museum::Log("skinext", "RemovePartEXT: %s", e.what());
+            ReportError(std::string("RemovePartEXT: ") + e.what());
         }
     }
 

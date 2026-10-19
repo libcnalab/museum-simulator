@@ -197,7 +197,11 @@ public:
                 morphDirty_ = true;
             }
             if (morphDirty_) {
-                try { SetMorphWeightsEXT(*morphPart_, morphWeights_); } catch (const std::exception& e) { Museum::Log("models", "morph: %s", e.what()); }
+                try { SetMorphWeightsEXT(*morphPart_, morphWeights_); } catch (const std::exception& e) {
+                    Museum::Log("models", "morph: %s", e.what());
+                    static bool reported = false;   // per-frame path while the animation plays: report the first failure only
+                    if (!reported) { reported = true; ReportError(std::string("SetMorphWeightsEXT: ") + e.what()); }
+                }
                 morphDirty_ = false;
             }
         }
@@ -213,6 +217,7 @@ public:
                         }
             } catch (const std::exception& e) {
                 Museum::Log("models", "variant: %s", e.what());
+                ReportError(std::string("material variant: ") + e.what());
             }
             variantDirty_ = false;
         }
@@ -300,6 +305,7 @@ private:
             model_ = std::make_unique<Model>(content_->Load<Model>("Models/" + name_));
         } catch (const std::exception& e) {
             Museum::Log("models", "cannot load %s: %s", name_.c_str(), e.what());
+            ReportError("cannot load Models/" + name_ + ": " + e.what());
             return;
         }
         if (auto* anim = dynamic_cast<ModelAnimationsEXT*>(model_->getTagProperty())) {

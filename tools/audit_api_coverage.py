@@ -12,6 +12,7 @@ import argparse
 import collections
 import dataclasses
 import fnmatch
+import gzip
 import hashlib
 import json
 import pathlib
@@ -25,6 +26,7 @@ SCHEMA = "museum-cna-coverage-evidence/1"
 IMPLEMENTATION_SCHEMA = "museum-cna-implementation-evidence/1"
 EXECUTION_SCHEMA = "museum-cna-execution-evidence/1"
 AREA_SCHEMA = "museum-cna-area-classification/1"
+LINE_COVERAGE_SCHEMA = "museum-line-coverage/1"
 NON_DECLARATION_CLAIMS = {
     "ApiOrigin": "museum catalogue type, not CNA API",
     "CNAEXT": "compile-time API family label, not a declaration",
@@ -43,17 +45,6 @@ class ExhibitSource:
 
 def repository_root() -> pathlib.Path:
     return pathlib.Path(__file__).resolve().parents[1]
-
-
-def git_text(root: pathlib.Path, *arguments: str) -> str:
-    completed = subprocess.run(
-        ["git", "-C", str(root), *arguments],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        check=False,
-    )
-    return completed.stdout.strip() if completed.returncode == 0 else "unknown"
 
 
 def load_claims(binary: pathlib.Path) -> tuple[dict[str, Any], str]:
@@ -163,6 +154,44 @@ def _repository_file(root: pathlib.Path, relative: str, description: str) -> pat
     return path
 
 
+def _optional_sha256(path: pathlib.Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else "missing"
+
+
+def _parse_line_ranges(text: str) -> set[int]:
+    lines: set[int] = set()
+    for part in filter(None, text.split(",")):
+        first, _, last = part.partition("-")
+        lines.update(range(int(first), int(last or first) + 1))
+    return lines
+
+
+def executed_by_line_coverage(
+    implementation_records: list[dict[str, Any]], rooms_coverage: dict[str, dict[str, str]]
+) -> list[str]:
+    """Reviewed records whose every path step ran, judged in the process of the record's own room.
+
+    A step ran when at least one line its anchor spans has a nonzero gcov count. Anchors on lines
+    without executable code (a member declaration, an include) can therefore never count as
+    executed through this route.
+    """
+    executed = []
+    for record in implementation_records:
+        coverage = rooms_coverage.get(record["room"])
+        if coverage is None:
+            continue
+        ran = True
+        for step in record["path"]:
+            hit = _parse_line_ranges(coverage.get(step["source"], ""))
+            span = range(step["line"], step["line"] + step["anchor"].count("\n") + 1)
+            if not any(line in hit for line in span):
+                ran = False
+                break
+        if ran:
+            executed.append(record["id"])
+    return sorted(executed)
+
+
 def resolve_execution_evidence(
     root: pathlib.Path,
     manifest: dict[str, Any],
@@ -171,6 +200,7 @@ def resolve_execution_evidence(
     current_cna_binary_sha256: str,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], str]:
     implementation_by_id = {record["id"]: record for record in implementation_records}
+    coverage_by_run: dict[str, dict[str, dict[str, str]]] = {}
     seen_runs: set[str] = set()
     resolved_runs = []
     digest = hashlib.sha256()
@@ -206,7 +236,7 @@ def resolve_execution_evidence(
         if scripted_rooms != rooms:
             raise RuntimeError(f"execution run {run_id} script rooms do not match metadata")
         interaction = raw.get("interaction", "pressall")
-        if interaction == "pressall":
+        if interaction in ("pressall", "per-room-coverage"):
             if script_tokens.count("pressall") != len(rooms):
                 raise RuntimeError(f"execution run {run_id} does not press all controls in every room")
         elif interaction == "scripted-controls":
@@ -223,7 +253,7 @@ def resolve_execution_evidence(
         logged_rooms = re.findall(r"^\[museum\]\[script\] goto (\S+)$", log, re.MULTILINE)
         if logged_rooms != rooms:
             raise RuntimeError(f"execution run {run_id} log rooms do not match metadata")
-        if interaction == "pressall":
+        if interaction in ("pressall", "per-room-coverage"):
             pressed = re.findall(
                 r"^\[museum\]\[script\] pressall: ([1-9][0-9]*) panel\(s\) exercised$",
                 log,
@@ -238,11 +268,14 @@ def resolve_execution_evidence(
             if logged_controls != scripted_controls:
                 raise RuntimeError(f"execution run {run_id} lacks its scripted control actions")
         stats = re.findall(r"^\[museum\]\[stats\].*$", log, re.MULTILINE)
-        if len(stats) != 1 or not re.search(r"\bexhibit errors 0\b", stats[0]):
+        # A per-room-coverage run is one process per room, so it has one stats line per room.
+        expected_stats = len(rooms) if interaction == "per-room-coverage" else 1
+        if len(stats) != expected_stats or not all(re.search(r"\bexhibit errors 0\b", line) for line in stats):
             raise RuntimeError(f"execution run {run_id} lacks clean final stats")
-        script_errors = re.search(r"\bscript errors (\d+)\b", stats[0])
-        if script_errors and script_errors.group(1) != "0":
-            raise RuntimeError(f"execution run {run_id} reports script errors")
+        for line in stats:
+            script_errors = re.search(r"\bscript errors (\d+)\b", line)
+            if script_errors and script_errors.group(1) != "0":
+                raise RuntimeError(f"execution run {run_id} reports script errors")
         forbidden = (
             "[museum][exhibit-error]",
             "[museum][draw-error]",
@@ -255,6 +288,30 @@ def resolve_execution_evidence(
         cna_sha = raw.get("cnaBinarySha256")
         if not isinstance(museum_sha, str) or not isinstance(cna_sha, str):
             raise RuntimeError(f"execution run {run_id} lacks binary fingerprints")
+        build_dir = raw.get("buildDir")
+        current_museum, current_cna = current_museum_binary_sha256, current_cna_binary_sha256
+        if isinstance(build_dir, str) and build_dir not in ("", "build"):
+            current_museum = _optional_sha256(root / build_dir / "bin" / "cna-3d-museum")
+            current_cna = _optional_sha256(root / build_dir / "cna" / "libcna.so")
+        line_coverage = None
+        sources_current = True
+        if interaction == "per-room-coverage":
+            entry = raw.get("lineCoverage")
+            if not isinstance(entry, dict) or not isinstance(entry.get("path"), str):
+                raise RuntimeError(f"execution run {run_id} has no line-coverage artifact")
+            path = _repository_file(root, entry["path"], f"execution run {run_id} line coverage")
+            body = path.read_bytes()
+            if hashlib.sha256(body).hexdigest() != entry.get("sha256"):
+                raise RuntimeError(f"execution run {run_id} line coverage SHA-256 mismatch")
+            digest.update(b"lines\0" + entry["path"].encode("utf-8") + b"\0" + body)
+            line_coverage = json.loads(gzip.decompress(body).decode("utf-8"))
+            if line_coverage.get("schema") != LINE_COVERAGE_SCHEMA or sorted(line_coverage.get("rooms", {})) != sorted(rooms):
+                raise RuntimeError(f"execution run {run_id} line coverage does not match its rooms")
+            # Line numbers only mean something against the sources the binary was built from.
+            for source, expected in line_coverage.get("sources", {}).items():
+                if _optional_sha256(root / source) != expected:
+                    sources_current = False
+                    break
         resolved_runs.append(
             {
                 "id": run_id,
@@ -270,15 +327,20 @@ def resolve_execution_evidence(
                 "museumBinarySha256": museum_sha,
                 "cnaBinarySha256": cna_sha,
                 "currentBuild": (
-                    museum_sha == current_museum_binary_sha256
-                    and cna_sha == current_cna_binary_sha256
+                    museum_sha == current_museum
+                    and cna_sha == current_cna
+                    and sources_current
                 ),
+                "buildDir": build_dir or "build",
                 "rooms": rooms,
+                "failedRooms": raw.get("failedRooms", {}),
                 "script": artifacts["script"],
                 "log": artifacts["log"],
-                "finalStats": stats[0],
+                "finalStats": stats[-1],
             }
         )
+        if line_coverage is not None:
+            coverage_by_run[run_id] = line_coverage["rooms"]
     runs_by_id = {run["id"]: run for run in resolved_runs}
     seen_records: set[str] = set()
     resolved_records = []
@@ -325,6 +387,20 @@ def resolve_execution_evidence(
                 "note": note,
             }
         )
+    for run_id, rooms_coverage in coverage_by_run.items():
+        executed = executed_by_line_coverage(implementation_records, rooms_coverage)
+        if executed:
+            run = runs_by_id[run_id]
+            resolved_records.append(
+                {
+                    "id": f"{run_id}-line-coverage",
+                    "run": run_id,
+                    "currentBuild": run["currentBuild"],
+                    "implementationRecords": executed,
+                    "note": "Derived from gcov line counters: every step of each listed path has an executed "
+                    "line inside its anchor, in the process that visited the record's own room.",
+                }
+            )
     executed_implementation_ids = {
         implementation_id
         for record in resolved_records
@@ -994,8 +1070,6 @@ def build_evidence(
     return {
         "schema": SCHEMA,
         "source": {
-            "museumRevision": git_text(root, "rev-parse", "HEAD"),
-            "museumDescription": git_text(root, "describe", "--always", "--dirty"),
             "museumClaimsSha256": claims_sha256,
             "museumImplementationSourcesSha256": implementation_sha256,
             "implementationEvidenceManifestSha256": implementation_manifest_sha256,
@@ -1217,8 +1291,9 @@ def render_summary(evidence: dict[str, Any]) -> str:
         "The complete per-claim and per-declaration matrix",
         "is generated in `build/api-audit/coverage-evidence.json`.",
         "",
-        f"Museum revision: `{evidence['source']['museumRevision']}` "
-        f"(`{evidence['source']['museumDescription']}`)",
+        # Content hashes, not the git revision: committing the generated summary must not make it stale.
+        f"Museum catalogue SHA-256: `{evidence['source']['museumClaimsSha256']}`; exhibit sources SHA-256: "
+        f"`{evidence['source']['museumImplementationSourcesSha256']}`",
         "",
         f"CNA revision: `{evidence['source']['cna']['revision']}` "
         f"(`{evidence['source']['cna']['description']}`)",

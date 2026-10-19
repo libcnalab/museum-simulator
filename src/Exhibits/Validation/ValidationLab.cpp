@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 
+#include "CNA/Graphics/VertexTypeRegistryEXT.hpp"
 #include "CNA/GraphicsCapability.hpp"
 #include "Diagnostics/Log.hpp"
 #include "Exhibits/ExhibitFactories.hpp"
@@ -40,9 +41,11 @@
 #include "Microsoft/Xna/Framework/Graphics/CompareFunction.hpp"
 #include "Microsoft/Xna/Framework/Graphics/CubeMapFace.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DualTextureEffect.hpp"
+#include "Microsoft/Xna/Framework/Graphics/DynamicVertexBuffer.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EnvironmentMapEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/IndexBuffer.hpp"
 #include "Microsoft/Xna/Framework/Graphics/IndexElementSize.hpp"
+#include "Microsoft/Xna/Framework/Graphics/IVertexType.hpp"
 #include "Microsoft/Xna/Framework/Graphics/PrimitiveType.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RenderTarget2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RenderTargetCube.hpp"
@@ -59,24 +62,53 @@
 #include "Rendering/LitMesh.hpp"
 #include "Rendering/Probes.hpp"
 #include "Rendering/RenderStates.hpp"
+#include "System/ArgumentException.hpp"
+#include "System/Type.hpp"
 
 using namespace Microsoft::Xna::Framework;
 using namespace Microsoft::Xna::Framework::Graphics;
 
 namespace {
 
-enum class Mode { Geometry, Sprites, Blend, Depth, Shading, Sampling, Targets, Effects, Camera, Formats };
+enum class Mode { Geometry, Sprites, Blend, Depth, Shading, Sampling, Targets, Effects, Camera, Formats, VertexTypes };
 
 Mode ParseMode(const std::string& s)
 {
     static const std::pair<const char*, Mode> table[] = {{"sprites", Mode::Sprites}, {"blend", Mode::Blend},       {"depth", Mode::Depth},     {"shading", Mode::Shading},
-                                                         {"sampling", Mode::Sampling}, {"targets", Mode::Targets}, {"effects", Mode::Effects}, {"camera", Mode::Camera}, {"formats", Mode::Formats}};
+                                                         {"sampling", Mode::Sampling}, {"targets", Mode::Targets}, {"effects", Mode::Effects}, {"camera", Mode::Camera}, {"formats", Mode::Formats}, {"vertextype", Mode::VertexTypes}};
     for (const auto& [name, mode] : table)
         if (s == name) return mode;
     return Mode::Geometry;
 }
 
 constexpr int kSize = 64;
+
+// A game's own vertex structure, the XNA way: an IVertexType whose declaration has a position, a colour and a third
+// element the stock effects never read. CNA's registry stands in for XNA's reflection (VertexTypeRegistryEXT).
+struct GlowVertex : public IVertexType {
+    [[nodiscard]] const VertexDeclaration& getVertexDeclarationProperty() const override
+    {
+        static const VertexDeclaration declaration{VertexElement(0, VertexElementFormat::Vector3, VertexElementUsage::Position, 0),
+                                                   VertexElement(12, VertexElementFormat::Color, VertexElementUsage::Color, 0),
+                                                   VertexElement(16, VertexElementFormat::Single, VertexElementUsage::TextureCoordinate, 1)};
+        return declaration;
+    }
+};
+
+// The bytes that go to the GPU. GlowVertex itself cannot: an IVertexType is polymorphic (it carries a vtable), so it is
+// not trivially copyable and VertexBuffer::SetData<T> rejects it at compile time. The data is a plain struct laid out
+// exactly as the declaration says, with the colour as its packed 32-bit value (Color is polymorphic too).
+struct GlowData {
+    float x, y, z;
+    std::uint32_t packedColor;
+    float glow;
+};
+static_assert(sizeof(GlowData) == 20, "GlowData must match the 20-byte GlowVertex declaration");
+
+// Never registered: resolving it must be refused.
+struct UnregisteredVertex : public IVertexType {
+    [[nodiscard]] const VertexDeclaration& getVertexDeclarationProperty() const override { return GlowVertex().getVertexDeclarationProperty(); }
+};
 
 /** A captured test image. */
 struct Image {
@@ -187,6 +219,7 @@ private:
             case Mode::Sampling: return {"A 2 x 2 texture is sampled outside 0..1 with Wrap, Clamp and Mirror, and with point and linear filtering. Each", "result is the texel the address mode must select, or the average the filter must produce."};
             case Mode::Targets: return {"A render target keeps what was drawn into it: top-left stays top-left when read back and when drawn again, and a", "render target used as a texture reproduces the picture. Half-float targets must hold values above 1."};
             case Mode::Camera: return {"A quad in front of, above and beside a camera built with Matrix.CreateLookAt and CreatePerspectiveFieldOfView must", "land where the maths says: ahead in the centre, above in the top half, nearer objects larger, orthographic constant."};
+            case Mode::VertexTypes: return {"A game's own IVertexType registered with VertexTypeRegistryEXT: a VertexBuffer made from its System::Type, filled with plain", "data of the same layout and drawn. An unregistered type is refused. A C++ IVertexType has a vtable, so its sizeof is not the stride."};
             case Mode::Formats: return {"For every uncompressed SurfaceFormat a 4 x 4 texture is filled with known values through the matching packed type,", "read back, and compared bit for bit: what SetData stores, GetData must return. A format the renderer cannot make is skipped."};
             default: return {"Every stock effect (BasicEffect, AlphaTestEffect, DualTextureEffect) draws a quad that must show up with", "roughly the colour its settings imply. A black or missing result is a renderer bug, not a museum choice."};
         }
@@ -316,6 +349,7 @@ private:
                 case Mode::Effects: Effects(d); break;
                 case Mode::Camera: CameraChecks(d); break;
                 case Mode::Formats: Formats(d); break;
+                case Mode::VertexTypes: VertexTypes(d); break;
             }
         } catch (const std::exception& e) {
             d.SetRenderTarget(nullptr);
@@ -1073,6 +1107,60 @@ private:
         Sampled(d, SurfaceFormat::HalfSingle, "HalfSingle", HalfSingle(0.8f), 2);
         Sampled(d, SurfaceFormat::HalfVector2, "HalfVector2", HalfVector2(0.8f, 0.4f), 1);
         Sampled(d, SurfaceFormat::HalfVector4, "HalfVector4", HalfVector4(0.8f, 0.4f, 0.2f, 1.0f));
+    }
+
+    // --- a game's own vertex type -----------------------------------------------------------------
+    void VertexTypes(GraphicsDevice& d)
+    {
+        CNA::Graphics::VertexTypeRegistryEXT::Register<GlowVertex>();
+        const System::Type glowType = System::Type::From<GlowVertex>();
+        const VertexDeclaration* resolved = CNA::Graphics::VertexTypeRegistryEXT::TryResolve(glowType);
+        Add("Register then TryResolve", "the 20-byte, 3-element declaration", resolved == nullptr ? "null" : std::to_string(resolved->getVertexStrideProperty()) + " bytes, " + std::to_string(resolved->GetVertexElements().size()) + " elements",
+            resolved != nullptr && resolved->getVertexStrideProperty() == 20 && resolved->GetVertexElements().size() == 3, std::nullopt);
+        std::string refusal = "no exception";
+        bool refused = false;
+        try {
+            (void)CNA::Graphics::VertexTypeRegistryEXT::Resolve(System::Type::From<UnregisteredVertex>());
+        } catch (const System::ArgumentException& e) {
+            refused = true;
+            refusal = std::string("ArgumentException: ") + e.what();
+        } catch (const std::exception& e) {
+            refusal = std::string("another exception: ") + e.what();
+        }
+        Add("Resolve(unregistered type)", "ArgumentException", refusal.substr(0, 90), refused, std::nullopt);
+        Add("sizeof(GlowVertex) against its stride", "different (the vtable)", std::to_string(sizeof(GlowVertex)) + " vs 20 bytes", true, std::nullopt, true);
+
+        // A buffer made from the type, filled with plain data, drawn as a centred quad in one colour.
+        VertexBuffer fromType(d, glowType, 6, BufferUsage::WriteOnly);
+        Add("VertexBuffer(device, Type, 6, WriteOnly)", "stride 20, 6 vertices", "stride " + std::to_string(fromType.getVertexDeclarationProperty().getVertexStrideProperty()) + ", " + std::to_string(fromType.getVertexCountProperty()) + " vertices",
+            fromType.getVertexDeclarationProperty().getVertexStrideProperty() == 20 && fromType.getVertexCountProperty() == 6, std::nullopt);
+        const std::uint32_t teal = Color(40, 200, 120, 255).getPackedValueProperty();
+        const float x0 = Cx(16), x1 = Cx(48), y0 = Cy(16), y1 = Cy(48);
+        const GlowData quad[6] = {{x0, y0, 0.5f, teal, 1.0f}, {x1, y0, 0.5f, teal, 1.0f}, {x1, y1, 0.5f, teal, 1.0f}, {x0, y0, 0.5f, teal, 1.0f}, {x1, y1, 0.5f, teal, 1.0f}, {x0, y1, 0.5f, teal, 1.0f}};
+        fromType.SetData(quad, 6);
+        RenderTarget2D& rt = Target(d, false);
+        Begin(d, rt, Color(0, 0, 0, 255));
+        fx_->setWorldProperty(Matrix::getIdentityProperty());
+        fx_->setViewProperty(Matrix::getIdentityProperty());
+        fx_->setProjectionProperty(Matrix::getIdentityProperty());
+        fx_->setVertexColorEnabledProperty(true);
+        fx_->setTextureEnabledProperty(false);
+        fx_->setLightingEnabledProperty(false);
+        fx_->setFogEnabledProperty(false);
+        d.SetVertexBuffer(&fromType);
+        for (auto& pass : fx_->getCurrentTechniqueProperty()->getPassesProperty()) {
+            pass.Apply();
+            d.DrawPrimitives(PrimitiveType::TriangleList, 0, 2);
+        }
+        d.SetVertexBuffer(nullptr);
+        const std::optional<Image> img = End(d, rt);
+        if (img) {
+            const Color inside = img->At(32, 32), outside = img->At(4, 4);
+            Add("Draw from the Type-made buffer", "teal 40,200,120 inside, black outside", Rgb(inside) + " / " + Rgb(outside), Dist(inside, 40, 200, 120) < 3 && Dist(outside, 0, 0, 0) < 3, img);
+        }
+        DynamicVertexBuffer dynamicFromType(d, glowType, 6, BufferUsage::WriteOnly);
+        Add("DynamicVertexBuffer(device, Type, 6, WriteOnly)", "stride 20", "stride " + std::to_string(dynamicFromType.getVertexDeclarationProperty().getVertexStrideProperty()),
+            dynamicFromType.getVertexDeclarationProperty().getVertexStrideProperty() == 20, std::nullopt);
     }
 
     // --- camera matrices --------------------------------------------------------------------------

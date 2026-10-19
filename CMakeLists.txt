@@ -169,6 +169,18 @@ endif()
 
 add_executable(cna-3d-museum src/Main.cpp)
 target_link_libraries(cna-3d-museum PRIVATE museum_core)
+
+# Execution evidence: gcov line counters in the museum's own code only (CNA stays as built), unoptimised so every
+# source line keeps its own count. tools/execution_coverage.py runs one process per room and records which lines ran.
+option(MUSEUM_COVERAGE "Instrument the museum's own sources with gcov line counters (execution evidence)" OFF)
+if(MUSEUM_COVERAGE)
+    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        message(FATAL_ERROR "MUSEUM_COVERAGE needs GCC (gcov line counters)")
+    endif()
+    target_compile_options(museum_core PRIVATE -O0 -g --coverage)
+    target_compile_options(cna-3d-museum PRIVATE -O0 -g --coverage)
+    target_link_options(museum_core PUBLIC --coverage)
+endif()
 if(EMSCRIPTEN)
     target_link_libraries(cna-3d-museum PRIVATE SDL3::SDL3-static CNA::EmscriptenAsyncify)
     set_target_properties(cna-3d-museum PROPERTIES
