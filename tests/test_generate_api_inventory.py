@@ -137,6 +137,33 @@ class GenerateApiInventoryTests(unittest.TestCase):
         self.assertEqual([symbol["id"] for symbol in added], ["new"])
         self.assertEqual([symbol["id"] for symbol in removed], ["old"])
 
+    def test_internal_type_classification_must_match_leaking_declarations(self):
+        payload = {"publicDeclarationsReferencingInternalTypes": [{"id": "a"}, {"id": "b"}]}
+        categories = {"plumbing": "backend hook"}
+
+        def write(entries):
+            path = pathlib.Path(self.temporary.name) / "classification.json"
+            path.write_text(MODULE.json.dumps({
+                "schema": MODULE.INTERNAL_CLASSIFICATION_SCHEMA,
+                "categories": categories,
+                "entries": entries,
+            }))
+            return path
+
+        entry = lambda key: {"id": key, "category": "plumbing", "museumUse": "not used by the museum"}
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        data = MODULE.load_internal_classification(write([entry("a"), entry("b")]), payload)
+        self.assertEqual(len(data["entries"]), 2)
+        with self.assertRaisesRegex(RuntimeError, "unclassified b"):
+            MODULE.load_internal_classification(write([entry("a")]), payload)
+        with self.assertRaisesRegex(RuntimeError, "no longer leaking c"):
+            MODULE.load_internal_classification(write([entry("a"), entry("b"), entry("c")]), payload)
+        with self.assertRaisesRegex(RuntimeError, "unknown category"):
+            MODULE.load_internal_classification(
+                write([entry("a"), {"id": "b", "category": "other", "museumUse": "x"}]), payload
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

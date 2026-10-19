@@ -409,6 +409,29 @@ class AuditApiCoverageTests(unittest.TestCase):
                     root, manifest, implementation, "museum", "cna"
                 )
 
+            for bad_log, message in (
+                (
+                    "[museum][script] goto room\n"
+                    "[museum][script] pressall: 1 panel(s) exercised\n"
+                    "[museum][stats] visited 1 exhibit errors 0  script errors 1\n",
+                    "script errors",
+                ),
+                (
+                    "[museum][script] goto room\n"
+                    "[museum][script] pressall: 1 panel(s) exercised\n"
+                    "[museum][script-error] press: no control matches 'Gone'\n"
+                    "[museum][stats] visited 1 exhibit errors 0\n",
+                    "execution error",
+                ),
+            ):
+                with self.subTest(message=message):
+                    log_path.write_text(bad_log, encoding="utf-8")
+                    manifest["runs"][0]["log"]["sha256"] = MODULE.sha256_file(log_path)
+                    with self.assertRaisesRegex(RuntimeError, message):
+                        MODULE.resolve_execution_evidence(
+                            root, manifest, implementation, "museum", "cna"
+                        )
+
 
 if __name__ == "__main__":
     unittest.main()

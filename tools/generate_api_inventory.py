@@ -454,7 +454,44 @@ def build_payload(
     }
 
 
-def render_summary(payload: dict[str, Any]) -> str:
+INTERNAL_CLASSIFICATION_SCHEMA = "museum-cna-internal-type-classification/1"
+
+
+def load_internal_classification(path: pathlib.Path, payload: dict[str, Any]) -> dict[str, Any]:
+    """Every public declaration whose signature names an internal type needs exactly one reviewed category."""
+    if not path.is_file():
+        raise RuntimeError(f"internal-type classification is missing: {path}")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if data.get("schema") != INTERNAL_CLASSIFICATION_SCHEMA:
+        raise RuntimeError("unsupported internal-type classification schema")
+    categories = data.get("categories")
+    entries = data.get("entries")
+    if not isinstance(categories, dict) or not categories or not isinstance(entries, list):
+        raise RuntimeError("internal-type classification needs categories and entries")
+    seen: set[str] = set()
+    for entry in entries:
+        entry_id = entry.get("id") if isinstance(entry, dict) else None
+        if not isinstance(entry_id, str) or entry_id in seen:
+            raise RuntimeError(f"invalid or duplicate internal-type classification entry: {entry_id!r}")
+        seen.add(entry_id)
+        if entry.get("category") not in categories:
+            raise RuntimeError(f"internal-type classification {entry_id} has unknown category")
+        if not isinstance(entry.get("museumUse"), str) or not entry["museumUse"].strip():
+            raise RuntimeError(f"internal-type classification {entry_id} needs a museumUse statement")
+    expected = {row["id"] for row in payload["publicDeclarationsReferencingInternalTypes"]}
+    unclassified = sorted(expected - seen)
+    stale = sorted(seen - expected)
+    if unclassified or stale:
+        raise RuntimeError(
+            "internal-type classification is out of date: "
+            + (f"unclassified {', '.join(unclassified)}" if unclassified else "")
+            + ("; " if unclassified and stale else "")
+            + (f"no longer leaking {', '.join(stale)}" if stale else "")
+        )
+    return data
+
+
+def render_summary(payload: dict[str, Any], classification: dict[str, Any]) -> str:
     source = payload["source"]
     counts = payload["counts"]
     languages = counts["languages"]
@@ -497,6 +534,31 @@ def render_summary(payload: dict[str, Any]) -> str:
             f"| `{module['name']}` | {module['headers']} | {module['excludedHeaders']} | "
             f"{module['symbols']} |"
         )
+    counts_by_category: dict[str, int] = {}
+    used = []
+    for entry in classification["entries"]:
+        counts_by_category[entry["category"]] = counts_by_category.get(entry["category"], 0) + 1
+        if not entry["museumUse"].startswith("not used"):
+            used.append(entry)
+    lines.extend(
+        (
+            "",
+            "## Public declarations that reference internal types",
+            "",
+            "Each one is classified in the reviewed `audit/internal_type_classification.json`; the check",
+            "fails when a new leaking declaration appears or a classified one stops leaking.",
+            "",
+            "| Category | Declarations | Meaning |",
+            "|---|---:|---|",
+        )
+    )
+    for name, meaning in classification["categories"].items():
+        lines.append(f"| `{name}` | {counts_by_category.get(name, 0)} | {meaning} |")
+    lines.extend(("", "Museum use of these declarations:", ""))
+    for entry in used:
+        lines.append(f"- `{entry['declaration']}` ({entry['category']}): {entry['museumUse']}")
+    if not used:
+        lines.append("- none")
     lines.extend(
         (
             "",
@@ -555,6 +617,11 @@ def parse_arguments() -> argparse.Namespace:
         type=pathlib.Path,
         default=root / "docs" / "CNA_API_INVENTORY.md",
     )
+    parser.add_argument(
+        "--internal-classification",
+        type=pathlib.Path,
+        default=root / "audit" / "internal_type_classification.json",
+    )
     return parser.parse_args()
 
 
@@ -591,7 +658,8 @@ def main() -> int:
         header_sha256,
         namespace_excluded,
     )
-    summary = render_summary(payload)
+    classification = load_internal_classification(arguments.internal_classification, payload)
+    summary = render_summary(payload, classification)
     rendered_json = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
 
     if arguments.write:

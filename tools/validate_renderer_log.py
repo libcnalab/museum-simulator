@@ -20,6 +20,7 @@ ERROR_MARKERS = (
     "[museum][exhibit-error]",
     "[museum][draw-error]",
     "[museum][script] goto: unknown room",
+    "[museum][script-error]",
     "[museum][script] pressall: exception",
 )
 

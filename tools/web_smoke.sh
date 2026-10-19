@@ -27,6 +27,9 @@ for _ in $(seq 1 50); do
   sleep 0.1
 done
 
+# A server that could not bind (the port is taken) must not let the browser load somebody else's page.
+kill -0 "$server_pid" 2>/dev/null || { echo "error: the HTTP server did not start on port $port (MUSEUM_WEB_PORT)" >&2; exit 2; }
+
 timeout 45 "$chrome" --headless=new --no-sandbox --disable-gpu-sandbox \
   --enable-webgl --enable-unsafe-swiftshader --use-angle=swiftshader \
   --user-data-dir="$profile" --enable-logging=stderr --v=1 \
@@ -38,7 +41,7 @@ grep -aE 'CONSOLE.*MUSEUM_(OUT|ERR|ABORT|EXIT|PAGE_ERROR)' "$log" | \
 if grep -aq 'MUSEUM_EXIT 0' "$log" &&
    grep -aq '\[museum\]\[stats\].*exhibit errors 0' "$log" &&
    grep -aq '\[museum\]\[progress\] autosaved .* after 5\.[01] idle seconds' "$log" &&
-   ! grep -aqE 'MUSEUM_(ABORT|PAGE_ERROR)|MUSEUM_EXIT [1-9]|WebGL context.*lost' "$log"; then
+   ! grep -aqE 'MUSEUM_(ABORT|PAGE_ERROR)|MUSEUM_EXIT [1-9]|WebGL context.*lost|\[museum\]\[(exhibit|draw|script)-error\]' "$log"; then
   echo "WEBGL2 BROWSER SMOKE: PASS"
 else
   echo "WEBGL2 BROWSER SMOKE: FAIL" >&2

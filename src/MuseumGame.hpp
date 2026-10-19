@@ -61,6 +61,7 @@ private:
     void UpdateRide(float dt);
     void SaveScreenshot(const std::string& path);
     void ReportInteractionFailure(const std::string& what);
+    void ScriptError(const std::string& what);
 
     MuseumOptions options_;
     Microsoft::Xna::Framework::GraphicsDeviceManager graphics_;
@@ -137,4 +138,5 @@ private:
     std::string pendingShot_;
     std::vector<std::string> scriptSteps_;
     std::size_t scriptIndex_ = 0;
+    int scriptErrors_ = 0;   // unknown rooms or commands and malformed arguments in --script (counted in the stats line)
 };

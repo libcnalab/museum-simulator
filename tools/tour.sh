@@ -36,6 +36,18 @@ if [ "$completed" -eq 0 ]; then
   echo "tour ended before its final stats step"
   [ $status -eq 0 ] && status=4
 fi
+# Every requested room must have been entered, in order: a room that disappeared from the catalogue is a failure, not a skip.
+visited=$(grep -c "^\[museum\]\[script\] goto " "${BUILD_DIR:-build}/tour.log")
+if [ "$visited" -ne "${#keys[@]}" ]; then
+  echo "only $visited of ${#keys[@]} requested rooms were entered"
+  [ $status -eq 0 ] && status=3
+fi
+scripterr=$(grep -c "\[museum\]\[script-error\]" "${BUILD_DIR:-build}/tour.log")
+if [ "$scripterr" -gt 0 ]; then
+  echo "$scripterr script error(s) (unknown room or command, a control that does not exist):"
+  grep "\[museum\]\[script-error\]" "${BUILD_DIR:-build}/tour.log" | cut -c1-200 | sort -u | head -10
+  [ $status -eq 0 ] && status=3
+fi
 caught=$(grep -c "\[museum\]\[exhibit-error\]" "${BUILD_DIR:-build}/tour.log")
 if [ "$caught" -gt 0 ]; then
   echo "$caught exhibit exception(s) were caught (the museum carried on, but a room is broken on this renderer):"

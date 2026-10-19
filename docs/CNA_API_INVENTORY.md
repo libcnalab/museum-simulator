@@ -9,7 +9,7 @@ and build-time content pipeline APIs, plus the native C ABI. Paths containing `I
 `Detail` (case-insensitive) are excluded unless a reviewed public facade exports declarations
 physically defined there.
 
-CNA revision: `df92342022eb7d80e2a041a1dad8cde43dc5e560` (`v0.1.0-465-gdf9234202-dirty`)
+CNA revision: `705ea232439135654ce93279dfe87c1ab047ef5c` (`v0.1.0-467-g705ea2324-dirty`)
 
 Public-header SHA-256: `16f94e940a7d898f302fbdd293f75b904cb4741549fce2f14c8f8ca99849ea69`
 
@@ -54,6 +54,23 @@ The complete deterministic JSON is generated in
 | `renderers/webgpu` | 0 | 8 | 0 |
 | `runtime` | 23 | 2 | 322 |
 | `storage` | 3 | 0 | 44 |
+
+## Public declarations that reference internal types
+
+Each one is classified in the reviewed `audit/internal_type_classification.json`; the check
+fails when a new leaking declaration appears or a classified one stops leaking.
+
+| Category | Declarations | Meaning |
+|---|---:|---|
+| `constraint-concept` | 24 | A template whose parameter is constrained by an internal concept. Callers pass ordinary public element types (Color, float, byte, Vector4...) and never name the concept, so the member is ordinary public API and stays in the demonstration denominator. |
+| `defaulted-internal-parameter` | 1 | A public constructor whose trailing parameter has an internal type with a default value. Callers that rely on the default never name the internal type; only the defaulted parameter is upstream leakage. |
+| `public-alias-or-proxy` | 2 | A public alias or a returned proxy implemented in a detail namespace. Applications use it through the public name (or the proxy's implicit conversion) without naming the detail type, so it counts as ordinary public API. |
+| `renderer-plumbing` | 25 | A backend hook (renderer objects, GPU draw parameters, renderer-thread leases) that is public or protected only so CNA's own renderers and effects can reach it. It is not application API: the museum must not call it, it is not demonstrated, and it is not counted as missing museum coverage. Upstream fix: make it private with friend access or move it behind an internal accessor. |
+| `pipeline-internal-type` | 18 | Public content-pipeline API whose signature returns, takes or exposes an internal XNB codec type. An application can only use the result by touching CNA::Internal::Xnb fields, so every use is upstream leakage. Upstream fix: a public result/options type (for ContentCompiler::Compile, e.g. a public CompiledXnb { bytes, rootReaderName }) or a public alias in the pipeline namespace. |
+
+Museum use of these declarations:
+
+- `Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentCompiler::Compile` (pipeline-internal-type): used: AudioPipelineLab, VideoLab, CompiledFxLab, FontBuildLab and CompilerLab read the returned bytes; CompilerLab also reads rootReaderName. Recorded upstream blocker: no public result type exists, so these reads necessarily touch CNA::Internal::Xnb::XnbAssetWriteResult fields (the museum never spells the internal name; it uses auto).
 
 Regenerate or verify with:
 

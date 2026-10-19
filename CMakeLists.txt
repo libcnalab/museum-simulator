@@ -246,6 +246,8 @@ if(Python3_Interpreter_FOUND)
         COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_audit_api_coverage.py")
     add_test(NAME museum_generated_docs_unit
         COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_gen_docs_check.py")
+    add_test(NAME museum_check_steps_unit
+        COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_check_steps.py")
     add_test(NAME museum_coverage_json
         COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_coverage_json.py"
             --bin "$<TARGET_FILE:cna-3d-museum>")

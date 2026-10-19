@@ -8,6 +8,10 @@
 #   tools/online_stack.sh stop | status
 #   eval "$(tools/online_stack.sh env)"      then run the museum: its Guide signs in the accounts below
 #
+# Exit status of start: 0 running, 3 the service is not built (nothing was attempted), 1 it is built but failed to provision or
+# to open its port (a real failure, see the server log). MUSEUM_ONLINE_DIR (default build/online) and MUSEUM_ONLINE_PORT keep a
+# second stack (tools/online_check.sh uses its own) from sharing the database, pid file or port of an interactive one.
+#
 # Accounts (a local test fixture, loopback only): visitor / museum-visitor-pass, curator / museum-curator-pass,
 # archivist / museum-archivist-pass. The server must be built once:
 #   (cd ../cna-gamer-services-server && cmake --preset dev && cmake --build --preset dev)
@@ -15,7 +19,8 @@ set -u
 cd "$(dirname "$0")/.." || exit 2
 server_dir=${MUSEUM_SERVICE_DIR:-../cna-gamer-services-server}
 bin=${MUSEUM_SERVICE_BUILD:-$server_dir/build-agent}
-dir=${BUILD_DIR:-build}/online
+dir=${MUSEUM_ONLINE_DIR:-${BUILD_DIR:-build}/online}
+case $dir in /*) ;; *) dir=$PWD/$dir ;; esac
 port=${MUSEUM_ONLINE_PORT:-47831}
 title=cna-3d-museum
 db=$dir/service.sqlite3
@@ -64,7 +69,7 @@ PY
 
 case ${1:-status} in
   start)
-    [ -x "$bin/cna-gamer-services-server" ] || { echo "the service is not built: $bin/cna-gamer-services-server is missing (see the header of this script)" >&2; exit 1; }
+    [ -x "$bin/cna-gamer-services-server" ] || { echo "the service is not built: $bin/cna-gamer-services-server is missing (see the header of this script)" >&2; exit 3; }
     mkdir -p "$dir"
     if running; then echo "already running (pid $(cat "$pidfile"))"; exit 0; fi
     if [ "${2:-}" = "--fresh" ] || [ ! -f "$db" ]; then provision || { echo "provisioning failed" >&2; exit 1; }; fi
@@ -81,7 +86,7 @@ case ${1:-status} in
     # The sign-in is remembered (CNA keeps a refresh credential), so the credentials and profiles stay in the build tree, not in
     # the desktop keyring or the user's own CNA folders.
     echo "export CNA_GAMER_SERVICES_ENDPOINT=http://127.0.0.1:$port/cna/v1 CNA_GAME_ID=$title CNA_GAMER_SERVICES_INSECURE_LOOPBACK=1" \
-         "CNA_GAMER_SERVICES_CREDENTIALS_DIR=$PWD/$dir/credentials CNA_GAMER_SERVICES_PROFILES_DIR=$PWD/$dir/profiles" ;;
+         "CNA_GAMER_SERVICES_CREDENTIALS_DIR=$dir/credentials CNA_GAMER_SERVICES_PROFILES_DIR=$dir/profiles" ;;
   status)
     if running; then echo "running (pid $(cat "$pidfile")) on 127.0.0.1:$port"; else echo "not running"; fi ;;
   *) echo "usage: $0 start [--fresh] | stop | status | env" >&2; exit 2 ;;

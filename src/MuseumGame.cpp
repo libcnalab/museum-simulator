@@ -702,16 +702,17 @@ void MuseumGame::RunScript()
                 Museum::Log("script", "goto %s", arg.c_str());   // so a crash in a long tour can be placed in a room
                 TeleportToCell(r->index);
             } else {
-                Museum::Log("script", "goto: unknown room '%s'", arg.c_str());
+                ScriptError("goto: unknown room '" + arg + "'");
             }
         } else if (op == "floor") {
             const int f = std::atoi(arg.c_str());
             if (f >= 0 && f < static_cast<int>(museum_->floors.size())) TeleportToCell(museum_->floors[static_cast<std::size_t>(f)].hub);
+            else ScriptError("floor: no floor '" + arg + "'");
         } else if (op == "stats") {
             const WorldStats& w = world_->Stats();
-            Museum::Log("stats", "built %d loaded %d (lifetime built %d destroyed %d) triangles %d  textures %zu  frame %lld  fps %.0f  interactables %d + %d panel controls in %d loaded cells  visited %zu  floor %d  exhibit errors %d",
+            Museum::Log("stats", "built %d loaded %d (lifetime built %d destroyed %d) triangles %d  textures %zu  frame %lld  fps %.0f  interactables %d + %d panel controls in %d loaded cells  visited %zu  floor %d  exhibit errors %d  script errors %d",
                         w.cellsBuilt, w.cellsLoaded, w.cellsBuiltTotal, w.cellsDestroyedTotal, w.triangles, textures_->Count(), frame_,
-                        static_cast<double>(stats_.fps), w.interactablesSeen, w.controlsSeen, w.roomsLoadedEver, discovered_.size(), museum_->FloorAt(camera_.Position().Y), w.exhibitErrors);
+                        static_cast<double>(stats_.fps), w.interactablesSeen, w.controlsSeen, w.roomsLoadedEver, discovered_.size(), museum_->FloorAt(camera_.Position().Y), w.exhibitErrors, scriptErrors_);
         } else if (op == "directory") {
             if (arg == "close") directory_->Close();
             else OpenDirectory();
@@ -724,6 +725,8 @@ void MuseumGame::RunScript()
                 camera_.SetPosition(Vector3(x, y, z));
                 const int cell = museum_->CellAt(Vector3(x, y, z));
                 if (cell >= 0) world_->Arrive(cell);
+            } else {
+                ScriptError("pos: expected x,y,z, got '" + arg + "'");
             }
         } else if (op == "at") {
             // at:x,z,yaw,pitch : stand at local (x, z) metres in the current cell, looking as given (degrees).
@@ -731,6 +734,8 @@ void MuseumGame::RunScript()
             if (std::sscanf(arg.c_str(), "%f,%f,%f,%f", &x, &z, &yaw, &pitch) >= 3 && shownCell_ >= 0) {
                 const RoomDef& r = museum_->Room(shownCell_);
                 camera_.SetPose(r.ToWorld(x, 1.65f, z), MathHelper::ToRadians(yaw) + r.frameYaw, MathHelper::ToRadians(pitch));
+            } else {
+                ScriptError("at: expected x,z,yaw[,pitch] inside a room, got '" + arg + "'");
             }
         } else if (op == "time") {
             timeOfDay_.SetHours(static_cast<float>(std::atof(arg.c_str())));
@@ -738,10 +743,13 @@ void MuseumGame::RunScript()
             float yaw = 0, pitch = 0;
             if (std::sscanf(arg.c_str(), "%f,%f", &yaw, &pitch) == 2)
                 camera_.SetPose(camera_.Position(), MathHelper::ToRadians(yaw), MathHelper::ToRadians(pitch));
+            else
+                ScriptError("look: expected yaw,pitch, got '" + arg + "'");
         } else if (op == "walk") {
             float f = 0, s = 0;
             int n = 0;
             if (std::sscanf(arg.c_str(), "%f,%f,%d", &f, &s, &n) == 3) player_->ScriptWalk(f, s, n);
+            else ScriptError("walk: expected forward,strafe,frames, got '" + arg + "'");
             scriptWait_ = n;
             return;
         } else if (op == "e") {
@@ -781,6 +789,7 @@ void MuseumGame::RunScript()
                 done = true;
             }
             Museum::Log("script", "press '%s': %s", label.c_str(), done ? "done" : "no such control");
+            if (!done) ScriptError("press: no control matches '" + label + "'");
         } else if (op == "pressall") {
             // pressall: operate every control of the current room's panels through its whole range (smoke test)
             int panels = 0;
@@ -791,6 +800,7 @@ void MuseumGame::RunScript()
                             if (item.command("*", nullptr)) ++panels;
                         } catch (const std::exception& e) {
                             Museum::Log("script", "pressall: exception in room %s: %s", shownCell_ >= 0 ? museum_->Room(shownCell_).key.c_str() : "?", e.what());
+                            ReportInteractionFailure(std::string("pressall: ") + e.what());
                         }
                     }
             Museum::Log("script", "pressall: %d panel(s) exercised", panels);
@@ -813,8 +823,18 @@ void MuseumGame::RunScript()
         } else if (op == "quit") {
             Exit();
             return;
+        } else {
+            ScriptError("unknown command '" + step + "'");
         }
     }
+}
+
+// A script step that could not do what it says (an unknown room or command, malformed numbers): a test written against
+// rooms or commands that no longer exist must not pass silently. Logged under its own category and counted in "stats".
+void MuseumGame::ScriptError(const std::string& what)
+{
+    ++scriptErrors_;
+    Museum::Log("script-error", "%s", what.c_str());
 }
 
 GetTypeNameCPP(MuseumGame, "MuseumGame")

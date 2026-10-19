@@ -20,6 +20,17 @@ museum_headless() {
   fi
   command -v xvfb-run >/dev/null 2>&1 || { echo "error: xvfb-run is required (package xvfb)" >&2; return 2; }
   mkdir -p "$(dirname "$log")"
+  # Two runs writing the same log would interleave and each would read the other's result: the second one is refused.
+  # (Point BUILD_DIR or MUSEUM_LOG elsewhere to run side by side.) The lock is released when this run ends, however it ends.
+  local museum_lock=
+  if command -v flock >/dev/null 2>&1; then
+    exec {museum_lock}> "$log.lock"
+    if ! flock -n "$museum_lock"; then
+      echo "error: another museum run is writing $log; wait for it or use a different BUILD_DIR/MUSEUM_LOG" >&2
+      exec {museum_lock}>&-
+      return 2
+    fi
+  fi
   local audio=dummy
   [ "${MUSEUM_AUDIO:-dummy}" = real ] && audio=
   # Test runs keep CNA's local gamer profiles and achievements in the build tree, never in the user's own store.
@@ -29,6 +40,7 @@ museum_headless() {
     timeout "${MUSEUM_TIMEOUT:-300}" \
     xvfb-run -a -e "$log.xvfb" -s "-screen 0 ${MUSEUM_SCREEN:-1920x1080x24}" "$bin" "$@" > "$log" 2>&1
   local status=$?
+  [ -n "${museum_lock:-}" ] && exec {museum_lock}>&-
   grep -v '^\[INFO\]' "$log"
   return $status
 }

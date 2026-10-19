@@ -238,7 +238,15 @@ def resolve_execution_evidence(
         stats = re.findall(r"^\[museum\]\[stats\].*$", log, re.MULTILINE)
         if len(stats) != 1 or not re.search(r"\bexhibit errors 0\b", stats[0]):
             raise RuntimeError(f"execution run {run_id} lacks clean final stats")
-        forbidden = ("[museum][exhibit-error]", "[museum][draw-error]", "pressall: exception")
+        script_errors = re.search(r"\bscript errors (\d+)\b", stats[0])
+        if script_errors and script_errors.group(1) != "0":
+            raise RuntimeError(f"execution run {run_id} reports script errors")
+        forbidden = (
+            "[museum][exhibit-error]",
+            "[museum][draw-error]",
+            "[museum][script-error]",
+            "pressall: exception",
+        )
         if any(marker in log for marker in forbidden):
             raise RuntimeError(f"execution run {run_id} contains an execution error")
         museum_sha = raw.get("museumBinarySha256")

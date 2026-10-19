@@ -69,7 +69,7 @@ class ValidateRendererLogTests(unittest.TestCase):
         self.assertIn("1 validation check(s) failed", result.errors)
 
     def test_exhibit_or_draw_error_is_never_green(self):
-        for marker in ("[museum][exhibit-error]", "[museum][draw-error]"):
+        for marker in ("[museum][exhibit-error]", "[museum][draw-error]", "[museum][script-error]"):
             with self.subTest(marker=marker):
                 result = MODULE.validate_log(self.rooms, complete_log() + "\n" + marker)
                 self.assertTrue(any(marker in error for error in result.errors))

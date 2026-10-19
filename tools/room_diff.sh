@@ -23,13 +23,16 @@ done
 bin=${MUSEUM_BIN:-${BUILD_DIR:-build}/bin/cna-3d-museum}
 if [ $# -gt 0 ]; then keys=("$@"); else mapfile -t keys < <("$bin" --list-rooms); fi
 out=${BUILD_DIR:-build}/room_diff
+run_failed=0
 if [ "$compare_only" -eq 0 ]; then
   for r in "$base" "$renderer"; do
     mkdir -p "$out/$r"
+    # Pictures from an earlier run must not stand in for rooms this run failed to reach.
+    for k in "${keys[@]}"; do rm -f "$out/$r/$k.png"; done
     script=""
     for k in "${keys[@]}"; do script+="goto:$k;wait:8;shot:$PWD/$out/$r/$k.png;"; done
     CNA_GRAPHICS_RENDERER=$r MUSEUM_TIMEOUT=${MUSEUM_TIMEOUT:-1500} tools/run.sh "${script}quit" --no-audio --no-hud --time 11 --width 640 --height 360 \
-      > "$out/$r.log" 2>&1 || echo "note: $r exited with status $? (see $out/$r.log)"
+      > "$out/$r.log" 2>&1 || { echo "FAIL: $r exited with status $? (see $out/$r.log); its missing rooms are listed as 100 %"; run_failed=1; }
   done
 fi
 python3 -I - "$out/$base" "$out/$renderer" "$threshold" "${keys[@]}" <<'PY'
@@ -55,3 +58,6 @@ for pct, k in over:
     print(f"  {pct:6.2f} %  {k}")
 sys.exit(1 if over else 0)
 PY
+compare=$?
+[ "$run_failed" = 1 ] && exit 1
+exit $compare
