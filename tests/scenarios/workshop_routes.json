@@ -40,5 +40,13 @@
   "forbid": [
     ": the group itself: FAIL",
     "the check run itself: FAIL"
-  ]
+  ],
+  "web": {
+    "replace": {
+      "wk-routes tone.mp3: SongImporter -> SongProcessor -> SongContentWriter, the media deployed beside it: PASS": "wk-routes .mp3 Song route: INFO (expected a build-time media decoder, got unavailable: the duration probe cannot run)",
+      "wk-routes ContentManager.Load<Song>(\"tone\"): PASS": "wk-routes .mp3 Song route: INFO (expected a build-time media decoder, got unavailable: the duration probe cannot run)",
+      "wk-routes clip.wmv: VideoImporter -> VideoProcessor -> VideoContentWriter: PASS": "wk-routes .wmv Video route: INFO (expected a build-time media decoder, got unavailable: the frame probe cannot run)",
+      "wk-routes ContentManager.Load<Video>(\"clip\"): PASS": "wk-routes .wmv Video route: INFO (expected a build-time media decoder, got unavailable: the frame probe cannot run)"
+    }
+  }
 }

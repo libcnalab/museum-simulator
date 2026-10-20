@@ -30,5 +30,11 @@
     "ct-storage FileExists after Dispose: PASS (expected ObjectDisposedException, got ObjectDisposedException)",
     "ct-storage CreateFile after Dispose: PASS (expected ObjectDisposedException, got ObjectDisposedException)",
     "ct-storage GetFileNames after Dispose: PASS (expected ObjectDisposedException, got ObjectDisposedException)"
-  ]
+  ],
+  "web": {
+    "ignoreEnv": true,
+    "replaceRegex": {
+      "\\[museum\\]\\[storage\\] open the container: root .*/storage_contracts\\.d/data/cna-3d-museum  connected yes": "\\[museum\\]\\[storage\\] open the container: root /cna-storage/cna-3d-museum  connected yes"
+    }
+  }
 }

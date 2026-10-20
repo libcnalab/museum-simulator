@@ -58,5 +58,12 @@
   "forbid": [
     ": the group itself: FAIL",
     "the check run itself: FAIL"
-  ]
+  ],
+  "web": {
+    "replace": {
+      "wk-incremental Zstd: CompressCnbChunk, then DecompressCnbChunk: PASS": "wk-incremental IsCnbCompressionSupported(Zstd): INFO (expected -, got no: this build has no Zstandard)",
+      "wk-incremental DecompressCnbChunk with uncompressedSize 4095: PASS": "wk-incremental IsCnbCompressionSupported(Zstd): INFO (expected -, got no: this build has no Zstandard)",
+      "wk-incremental DecompressCnbChunk with a 1024-byte ceiling: PASS": "wk-incremental IsCnbCompressionSupported(Zstd): INFO (expected -, got no: this build has no Zstandard)"
+    }
+  }
 }

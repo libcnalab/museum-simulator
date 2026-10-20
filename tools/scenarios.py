@@ -57,25 +57,33 @@ def run_scenario(name: str, spec: dict, build_dir: str) -> tuple[str, list[str]]
         prefix = f"[{renderer}] " if renderer else ""
         if completed.returncode != 0:
             problems.append(f"{prefix}the museum exited with status {completed.returncode}")
-        stats = re.findall(r"^\[museum\]\[stats\].*$", text, re.MULTILINE)
-        if not stats:
-            problems.append(f"{prefix}no stats line (the script did not finish)")
-        elif not re.search(r"\bexhibit errors 0\b", stats[-1]) or re.search(r"\bscript errors [1-9]", stats[-1]):
-            problems.append(f"{prefix}errors in the stats line: {stats[-1][-60:]}")
-        for marker in ("[museum][exhibit-error]", "[museum][draw-error]", "[museum][script-error]"):
-            if marker in text:
-                first = next(line for line in text.splitlines() if marker in line)
-                problems.append(f"{prefix}{first[:160]}")
-        for expected in spec.get("expect", []):
-            if expected not in text:
-                problems.append(f"{prefix}missing: {expected}")
-        for pattern in spec.get("expectRegex", []):
-            if not re.search(pattern, text, re.MULTILINE):
-                problems.append(f"{prefix}no line matches: {pattern}")
-        for forbidden in spec.get("forbid", []):
-            if forbidden in text:
-                problems.append(f"{prefix}must not occur: {forbidden}")
+        problems += check_log(spec, text, prefix)
     return ("FAIL" if problems else "PASS"), problems
+
+
+def check_log(spec: dict, text: str, prefix: str = "") -> list[str]:
+    """What a scenario's log must show: a clean final stats line, no error markers, and every expectation
+    (shared with tools/web_scenarios.py, which reads the same lines from the browser's console)."""
+    problems: list[str] = []
+    stats = re.findall(r"^\[museum\]\[stats\].*$", text, re.MULTILINE)
+    if not stats:
+        problems.append(f"{prefix}no stats line (the script did not finish)")
+    elif not re.search(r"\bexhibit errors 0\b", stats[-1]) or re.search(r"\bscript errors [1-9]", stats[-1]):
+        problems.append(f"{prefix}errors in the stats line: {stats[-1][-60:]}")
+    for marker in ("[museum][exhibit-error]", "[museum][draw-error]", "[museum][script-error]"):
+        if marker in text:
+            first = next(line for line in text.splitlines() if marker in line)
+            problems.append(f"{prefix}{first[:160]}")
+    for expected in spec.get("expect", []):
+        if expected not in text:
+            problems.append(f"{prefix}missing: {expected}")
+    for pattern in spec.get("expectRegex", []):
+        if not re.search(pattern, text, re.MULTILINE):
+            problems.append(f"{prefix}no line matches: {pattern}")
+    for forbidden in spec.get("forbid", []):
+        if forbidden in text:
+            problems.append(f"{prefix}must not occur: {forbidden}")
+    return problems
 
 
 def main() -> int:

@@ -51,6 +51,17 @@ and rendering check, not yet a complete all-room browser tour or the floor 9 val
 continuously for six simulated seconds and requires progress persistence to occur only after a subsequent five-second
 idle period; the verified autosave occurred at frame 112 after 5.1 idle seconds.
 
+Complete browser runs (2026-10-20, Chrome headless, WEBGL2 on SwiftShader, `tools/web_tour.sh` and `tools/web_scenarios.py`):
+the WEBGL2 tour visits all 320 rooms with 0 exhibit and 0 script errors, and the floor 9 rooms report 99 renderer
+self-checks PASS and 0 FAIL. The functional scenarios run in the page too: 18 pass, 5 are skipped for a stated reason (C ABI,
+compiled effects, Inspector and video are not built into the browser edition; one scenario needs a blocked data folder, which
+a page cannot be given), and `notifications` fails on a CNA gap recorded in `docs/CNA_FINDINGS.md` (the notification
+channel cannot listen in a browser and reports nothing). Where the browser build lacks an optional library (Zstandard, the
+FFmpeg media decoder) a scenario names the room's exact replacement line in its `web` entry. The browser WEBGPU renderer
+(`MUSEUM_WEB_RENDERER=WEBGPU`) visits 316 rooms with 0 exhibit errors once the four rooms that create an `rgba16unorm`
+texture are left out, but CNA ends the page on those four and reports a destroyed-canvas-texture validation error 85 times,
+so that tour fails until CNA fixes both (`docs/CNA_FINDINGS.md`).
+
 Browser-generated signs stay in their mipmapped render targets instead of synchronously crossing from WebGL to
 Wasm for CPU mip generation and then being uploaded again. On the same 20-second Chrome/SwiftShader walking trace,
 this reduced the largest lazy-room-build frame from 3,949.9 ms to 333.3 ms, only modestly above that software
@@ -66,6 +77,8 @@ renderer run's ordinary 100-300 ms frames. Individual room builds fell from 600-
 | `tools/reference.sh capture\|compare` | stored images for 30 named views (OPENGLES3 only) (`tests/reference/<R>`) |
 | `tools/roomshots.sh`, `tools/shot.sh` | contact sheets and single screenshots for comparing renderers by eye |
 | `tools/web_smoke.sh` | serves and runs the Emscripten bundle in Chrome, requiring a WebGL 2 context, idle-deferred autosave, final statistics and zero exhibit errors |
+| `tools/web_tour.sh [room ...]` | every room in the browser (WEBGL2, or WEBGPU with `MUSEUM_WEB_RENDERER`), renderer self-checks included; `MUSEUM_WEB_SCRIPT` runs one script instead |
+| `tools/web_scenarios.py` | the functional scenarios in the browser, with the same checks as `tools/scenarios.py` |
 
 ## The Renderer Validation rooms (floor 9)
 

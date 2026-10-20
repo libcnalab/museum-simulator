@@ -96,8 +96,13 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
 - **Museum handling:** in a browser WebGPU build `app-device` does not query the capability lists and says why. The
   browser tour (`MUSEUM_WEB_RENDERER=WEBGPU tools/web_tour.sh`) then reached 162 of 320 rooms with 0 exhibit errors until
   the same exception ended the page near `rt-mrt` (a render target in Rgba64); the start-up validation error was reported
-  18 times on the way. Any room that creates an Rgba64 texture ends the browser WebGPU page, so the full browser tour
-  waits for this fix.
+  18 times on the way. Any room that creates an Rgba64 texture ends the browser WebGPU page.
+- **Re-run on 2026-10-20, after the WEBGL2 browser tour passed 320/320:** four rooms end the browser WebGPU page this way,
+  found one at a time: `rt-mrt`, `pl-renderer`, `rv-formats`, `rv-capabilities`. With them left out
+  (`MUSEUM_WEB_SKIP="rt-mrt pl-renderer rv-formats rv-capabilities"`) the other 316 rooms are all visited with 0 exhibit and
+  0 script errors and 69 renderer self-checks pass; the one self-check FAIL is the WEBGPU PBR metallic finding above, as
+  natively. The destroyed-canvas-texture validation error is not limited to start-up: it was reported 85 times over the
+  tour, so the browser WebGPU tour fails until both are fixed in CNA.
 
 ### HapticDevice's inline default constructor cannot be compiled outside CNA (CNA-DEMOS-ISSUE-009)
 - **Where:** `modules/input/include/CNA/Input/HapticDevice.hpp`: `CNAEXT HapticDevice() = default;` with a
@@ -275,6 +280,17 @@ pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/
   (`modules/audio/src/Xna/SoundEffect.cpp:236`, `DrainClaimed` line 218) deletes pending pan states while the SDL audio thread
   still runs `FireAndForgetPanCallback` (line 154) through `MixCallback` (seen at the end of the notifications and Inspector
   scenarios, which played fire-and-forget sounds). Needed: stop or lock the mixer before the static drain.
+
+### HttpNotificationChannel fails silently where no socket can listen (browser build)
+- **Where:** `modules/phone/src/HttpNotificationChannel.cpp`, `Open()`: when `socket`, `bind`/`listen` or `getsockname`
+  fails it logs a warning (or nothing, for `getsockname`) and returns.
+- **What happens:** in the browser build (Emscripten, no listening sockets) `dev-notify` opens the channel and nothing
+  follows: `ChannelUriUpdated` is raised 0 times, `ChannelUri` stays null and `Find` finds nothing, and the game is told
+  nothing (CNA's channel declares only `ChannelUriUpdated` and `HttpNotificationReceived`, no `ErrorOccurred`); a raw send to the unreachable `http://127.0.0.1:9/notify` reports accepted, where the native build reports it
+  refused (`tools/web_scenarios.py notifications`, 2026-10-20). XNA's channel reports a failed open through
+  `ErrorOccurred` with `NotificationChannelErrorType.ChannelOpenFailed`.
+- **Needed change:** add the channel's `ErrorOccurred` event (`NotificationChannelErrorEventArgs`), raise it with
+  ChannelOpenFailed when the channel cannot listen, and complete a send that could not connect as refused on every platform.
 
 ### Native C API
 The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`

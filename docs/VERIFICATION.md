@@ -48,6 +48,8 @@ is current and nothing failed.
 | Online service | `tools/online_check.sh` | signed in through the Guide, rating and achievement stored by a private service | `build/online-check/` |
 | Invitations, party, private slots, sign-out | `tools/online_party_check.sh` | three museums signed in as Visitor, Curator and Archivist: an invited gamer joins into the private slot, a party of two, SignedOut from the Guide | `build/online-party/` |
 | WebGL 2 in a browser | `tools/build_web.sh` then `tools/web_smoke.sh` | `WEBGL2 BROWSER SMOKE: PASS` | Chrome console lines |
+| The whole museum in a browser | `tools/web_tour.sh` (WEBGL2; `MUSEUM_WEB_RENDERER=WEBGPU` for browser WebGPU) | `WEBGL2 BROWSER TOUR: PASS`, every room visited | `build-consumer/web-tour/<renderer>/` |
+| Scenarios in a browser | `tools/web_scenarios.py` | the same expectations as `tools/scenarios.py`; SKIP names its reason | `build-consumer/web-scenarios/<renderer>/` |
 | API audit | `python3 tools/generate_api_inventory.py --check`, `python3 tools/audit_api_coverage.py --check` | inventory and evidence current; every unclaimed public header classified | `docs/CNA_API_INVENTORY.md`, `docs/CNA_COVERAGE_AUDIT.md` |
 | Execution evidence | `tools/execution_coverage.py run --id <id> --build-dir build-probe --renderer OPENGLES3 --scenarios` (in a `-DMUSEUM_COVERAGE=ON` tree whose binary matches the sources) | one process per room, 0 errors; the audit then marks the implementation records whose every step ran | `audit/runs/<id>.*`, `audit/execution_evidence.json` |
 

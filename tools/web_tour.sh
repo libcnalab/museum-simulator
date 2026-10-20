@@ -4,6 +4,7 @@
 # parameter, in headless Chrome with background throttling off.
 #
 #   tools/web_tour.sh [room ...]   exit 0 when the tour finished cleanly; needs tools/build_web.sh first
+#   MUSEUM_WEB_SCRIPT="a;b;c" [MUSEUM_WEB_OUT=dir] tools/web_tour.sh   one script instead (tools/web_scenarios.py uses it)
 #
 # It passes only when the page reported exit 0, the final stats line has 0 exhibit and 0 script errors and every room
 # was visited, no renderer self-check failed, and nothing aborted, threw on the page or lost the WebGL context.
@@ -23,7 +24,10 @@ native=${MUSEUM_BIN:-build/bin/cna-3d-museum}
 [ -x "$native" ] || { echo "error: $native (for the room list) is not built" >&2; exit 2; }
 command -v "$chrome" >/dev/null 2>&1 || { echo "error: browser '$chrome' not found" >&2; exit 2; }
 
-if [ $# -gt 0 ]; then rooms=("$@"); else mapfile -t rooms < <("$native" --list-rooms); fi
+rooms=()
+if [ -n "${MUSEUM_WEB_SCRIPT:-}" ]; then
+  : # one script instead of the tour (tools/web_scenarios.py): no room list, no profile
+elif [ $# -gt 0 ]; then rooms=("$@"); else mapfile -t rooms < <("$native" --list-rooms); fi
 # MUSEUM_WEB_SKIP="room ..." leaves rooms out (named in the result, never silently): for a renderer defect that ends the page.
 skipped=()
 if [ -n "${MUSEUM_WEB_SKIP:-}" ]; then
@@ -41,6 +45,7 @@ for k in "${rooms[@]}"; do
   [ "${MUSEUM_WEB_PRESSALL:-0}" = 1 ] && script+="pressall;wait:4;"
 done
 script+="stats;quit"
+[ -n "${MUSEUM_WEB_SCRIPT:-}" ] && script=$MUSEUM_WEB_SCRIPT
 query=$(python3 -I -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$script")
 renderer=${MUSEUM_WEB_RENDERER:-WEBGL2}
 profile_name="web-$(echo "$renderer" | tr '[:upper:]' '[:lower:]')-tour"
@@ -54,7 +59,7 @@ if [ "$renderer" = WEBGPU ]; then
   fi
 fi
 
-out="$build_dir/web-tour/$renderer"
+out=${MUSEUM_WEB_OUT:-$build_dir/web-tour/$renderer}
 mkdir -p "$out"
 # The page must name the renderer it runs on; a silent fallback would tour the wrong one.
 expect_renderer="renderer $renderer on adapter"
@@ -90,7 +95,7 @@ visited=$(echo "$stats" | grep -oE 'visited [0-9]+' | grep -oE '[0-9]+' || echo 
 problems=()
 grep -aq 'MUSEUM_EXIT 0' "$out/museum.log" || problems+=("the page did not report exit 0 ($(grep -a 'MUSEUM_EXIT\|MUSEUM_ABORT' "$out/museum.log" | tail -1))")
 echo "$stats" | grep -q 'exhibit errors 0 .*script errors 0' || problems+=("errors in the stats line: ${stats: -60}")
-[ "${visited:-0}" -ge "${#rooms[@]}" ] || problems+=("visited ${visited:-0} of ${#rooms[@]} rooms")
+[ -n "${MUSEUM_WEB_SCRIPT:-}" ] || [ "${visited:-0}" -ge "${#rooms[@]}" ] || problems+=("visited ${visited:-0} of ${#rooms[@]} rooms")
 if grep -aqE 'MUSEUM_(ABORT|PAGE_ERROR)|WebGL context.*lost|\[museum\]\[(exhibit|draw|script)-error\]' "$out/museum.log"; then
   problems+=("$(grep -aE 'MUSEUM_(ABORT|PAGE_ERROR)|context.*lost|-error\]' "$out/museum.log" | sed -n 1p | cut -c1-160)")
 fi
@@ -104,7 +109,10 @@ validate_pass=$(grep -acE '\[museum\]\[validate\] .*: PASS' "$out/museum.log" ||
 
 [ ${#skipped[@]} -gt 0 ] && echo "left out on purpose: ${skipped[*]}"
 echo "$renderer tour: ${#rooms[@]} rooms, visited ${visited:-0}; renderer self-checks $validate_pass PASS, ${validate_fail:-0} FAIL (log: $out/museum.log)"
-if [ ${#problems[@]} -eq 0 ]; then
+if [ -n "${MUSEUM_WEB_SCRIPT:-}" ]; then
+  [ ${#problems[@]} -eq 0 ] || printf 'FAIL  %s\n' "${problems[@]}"
+  [ ${#problems[@]} -eq 0 ]; exit
+elif [ ${#problems[@]} -eq 0 ]; then
   echo "$renderer BROWSER TOUR: PASS"
   BUILD_DIR=$build_dir python3 tools/record_profile.py "$profile_name" --passed 1 --failed 0 --binary "$build_dir/bin/cna-3d-museum.wasm" --library "$build_dir/bin/cna-3d-museum.wasm" --not-run ${#skipped[@]} --note "$validate_pass self-checks PASS${skipped:+; left out: ${skipped[*]}}" || true
 else
