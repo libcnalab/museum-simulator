@@ -7,7 +7,7 @@ Implementation, execution and correctness counts rise only from recorded evidenc
 The complete per-claim and per-declaration matrix
 is generated in `build/api-audit/coverage-evidence.json`.
 
-Museum catalogue SHA-256: `812f5e37bfbac033d4fe0c4d552274702666129cdaa460acd6db2ed9e5e78fab`; exhibit sources SHA-256: `0fd45f8d88704c13d60f8f1af2882504e266b6c6fc32ced835297f2359eebcae`
+Museum catalogue SHA-256: `812f5e37bfbac033d4fe0c4d552274702666129cdaa460acd6db2ed9e5e78fab`; exhibit sources SHA-256: `4314033f911823a52ca3516426a127be8625152c43fcef6bf4ce19a50b9e6c42`
 
 CNA revision: `faa5dd7192f90af5d32cfae61de30fbf3f896574` (`v0.1.0-508-gfaa5dd719-dirty`)
 

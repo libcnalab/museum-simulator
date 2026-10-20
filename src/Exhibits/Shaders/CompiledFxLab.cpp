@@ -315,9 +315,9 @@ private:
         }
         GraphicsDevice& d = ctx.device;
         if (effect_ != nullptr) {
-            const EffectParameterCollection& ps = effect_->getParametersProperty();
-            const EffectParameter* weight = ps["Weight"];
-            const EffectParameter* offset = ps["Offset"];
+            EffectParameterCollection& reflected = effect_->getParametersProperty();
+            const EffectParameter* weight = reflected["Weight"];
+            const EffectParameter* offset = reflected["Offset"];
             const EffectTechnique* blur = effect_->getTechniquesProperty()["Blur"];
             const std::string got = std::string(weight != nullptr && weight->getParameterClassProperty() == EffectParameterClass::Scalar ? "Weight scalar" : "no scalar Weight") + ", " +
                                     (offset != nullptr && offset->getParameterClassProperty() == EffectParameterClass::Vector && offset->getColumnCountProperty() == 2 ? "Offset float2" : "no float2 Offset") + ", " +
@@ -349,7 +349,8 @@ private:
                 std::snprintf(want, sizeof want, "%d,%d,%d +-3", er, eg, eb);
                 check("blur2tap with Weight " + std::string(w == 0.5f ? "0.5" : "0.25") + ", Offset 0 on 200,100,40", want, near ? std::string(want) : std::string(buffer));
             }
-            effect_->getParametersProperty()["Weight"]->SetValue(weight_);
+            const float panelWeight = weight_;
+            reflected["Weight"]->SetValue(panelWeight);   // the panel's own weight back
         }
         if (vertexEffect_ == nullptr || vertexTexture_ == nullptr) {
             Museum::Log("check", "%s vertextexture: SKIP (the renderer refused it: %s)", R().key.c_str(), vertexStatus_.c_str());
