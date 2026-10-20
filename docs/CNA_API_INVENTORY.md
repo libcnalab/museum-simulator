@@ -9,14 +9,14 @@ and build-time content pipeline APIs, plus the native C ABI. Paths containing `I
 `Detail` (case-insensitive) are excluded unless a reviewed public facade exports declarations
 physically defined there.
 
-CNA revision: `faa5dd7192f90af5d32cfae61de30fbf3f896574` (`v0.1.0-508-gfaa5dd719-dirty`)
+CNA revision: `f3212655a4c789520d7a76bd931e521e97ba79a1` (`v0.1.0-609-gf3212655a-dirty`)
 
-Public-header SHA-256: `85ae512c5d81dbf21e68d2c05c42cff062a1c73ce33ead82a557eeff88049697`
+Public-header SHA-256: `9d843487294267d1a2c7e0b2dec5f90de741f9530580b9fa1e8f44a16b019c9e`
 
 Doxygen: `1.9.8`
 
-Snapshot: **699 headers**, **19851 declarations** (**12941 C++**, **6910 C**), **225 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
-The snapshot also records **70 public declarations whose signatures still reference internal/detail types**; these declarations remain in the denominator, while the referenced internal types do not.
+Snapshot: **699 headers**, **19855 declarations** (**12945 C++**, **6910 C**), **226 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
+The snapshot also records **71 public declarations whose signatures still reference internal/detail types**; these declarations remain in the denominator, while the referenced internal types do not.
 One reviewed detail header is included through its public `IntermediateSerializer.hpp` facade.
 
 The complete deterministic JSON is generated in
@@ -26,8 +26,8 @@ The complete deterministic JSON is generated in
 |---|---:|---:|---:|
 | `audio` | 22 | 11 | 321 |
 | `c-api` | 60 | 0 | 6910 |
-| `content` | 56 | 46 | 1546 |
-| `content-pipeline` | 101 | 6 | 2249 |
+| `content` | 56 | 47 | 1549 |
+| `content-pipeline` | 101 | 6 | 2250 |
 | `core` | 15 | 10 | 128 |
 | `design` | 14 | 2 | 83 |
 | `devices` | 20 | 13 | 216 |
@@ -66,7 +66,7 @@ fails when a new leaking declaration appears or a classified one stops leaking.
 | `defaulted-internal-parameter` | 1 | A public constructor whose trailing parameter has an internal type with a default value. Callers that rely on the default never name the internal type; only the defaulted parameter is upstream leakage. |
 | `public-alias-or-proxy` | 2 | A public alias or a returned proxy implemented in a detail namespace. Applications use it through the public name (or the proxy's implicit conversion) without naming the detail type, so it counts as ordinary public API. |
 | `renderer-plumbing` | 25 | A backend hook (renderer objects, GPU draw parameters, renderer-thread leases) that is public or protected only so CNA's own renderers and effects can reach it. It is not application API: the museum must not call it, it is not demonstrated, and it is not counted as missing museum coverage. Upstream fix: make it private with friend access or move it behind an internal accessor. |
-| `pipeline-internal-type` | 18 | Public content-pipeline API whose signature returns, takes or exposes an internal XNB codec type. An application can only use the result by touching CNA::Internal::Xnb fields, so every use is upstream leakage. Upstream fix: a public result/options type (for ContentCompiler::Compile, e.g. a public CompiledXnb { bytes, rootReaderName }) or a public alias in the pipeline namespace. |
+| `pipeline-internal-type` | 19 | Public content-pipeline API whose signature returns, takes or exposes an internal XNB codec type. An application can only use the result by touching CNA::Internal::Xnb fields, so every use is upstream leakage. Upstream fix: a public result/options type (for ContentCompiler::Compile, e.g. a public CompiledXnb { bytes, rootReaderName }) or a public alias in the pipeline namespace. |
 
 Museum use of these declarations:
 

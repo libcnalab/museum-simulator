@@ -9,32 +9,20 @@
   },
   "entries": [
     {
-      "id": "CPP-4343F437E0A8",
-      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::GetData",
-      "category": "constraint-concept",
+      "id": "CPP-027E248EAE17",
+      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentWriter::Output() const noexcept",
+      "category": "pipeline-internal-type",
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-FF3329A608C0",
-      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::GetData",
-      "category": "constraint-concept",
+      "id": "CPP-0B3C5DAA5A7D",
+      "declaration": "Microsoft::Xna::Framework::Graphics::IndexBuffer::GetRenderer() const",
+      "category": "renderer-plumbing",
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-62809F36737F",
-      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::GetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-B5E6A17ED02D",
-      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::SetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-76E2DA34A858",
-      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::SetData",
+      "id": "CPP-1934D2401DC1",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
       "category": "constraint-concept",
       "museumUse": "not used by the museum"
     },
@@ -45,86 +33,14 @@
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-3B1AB05027AE",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-CCD5077C5EAD",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-26EF3FAF55C7",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
-      "category": "constraint-concept",
+      "id": "CPP-1DC922482B92",
+      "declaration": "Microsoft::Xna::Framework::Graphics::SkinnedPbrEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
+      "category": "renderer-plumbing",
       "museumUse": "not used by the museum"
     },
     {
       "id": "CPP-230ECB5CDAF4",
       "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-F699E746A348",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-DF32BBE641E3",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-C5E5A56B2BB3",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-AEF6BF864953",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-C4EED360774B",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-C1255583F877",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-F8A1D68CA3FF",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-1934D2401DC1",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-4D45092EE168",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-780A23953682",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
       "category": "constraint-concept",
       "museumUse": "not used by the museum"
     },
@@ -135,105 +51,9 @@
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-BE8F42BC57A7",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
+      "id": "CPP-26EF3FAF55C7",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
       "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-9668D52497F9",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-BBB7CF9BDF63",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
-      "category": "constraint-concept",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-CB197EACFEF6",
-      "declaration": "Microsoft::Xna::Framework::Content::ContentReader::ContentReader(ContentManager *manager, System::IO::Stream *stream, std::string assetName, int version, char platform, RecordDisposableFn recordDispos",
-      "category": "defaulted-internal-parameter",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-F3D86372069B",
-      "declaration": "CNA::Content::Pipeline::ContentCompilerOptions::xnbContainer",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-B69527561C9E",
-      "declaration": "CNA::Content::Pipeline::ConvertCnbTextureToXnb(const Cnb::CnbTextureData &texture, CNA::Internal::Xnb::XnbTextureKind kind, const CNA::Internal::Xnb::XnbFileOptions &options, const std::string &diagno",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-7B003A2AB022",
-      "declaration": "CNA::Content::Pipeline::ProcessedModelBundle::xnaModel",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-3E7E93B8705D",
-      "declaration": "CNA::Content::Pipeline::RegisterXnaXmlSourceContentPipeline(ContentPipelineRegistry &registry, std::shared_ptr< const Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentComp",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-D2758CA2D9AF",
-      "declaration": "CNA::Content::Pipeline::RegisterXnaXnbOutput(ContentPipelineRegistry &registry, std::shared_ptr< const Xna::Serialization::Compiler::ContentCompiler > compiler, const CNA::Internal::Xnb::XnbFileOption",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-738EBCDACFCB",
-      "declaration": "CNA::Content::Pipeline::RegisterXnbOutputContentPipeline(ContentPipelineRegistry &registry, const CNA::Internal::Xnb::XnbFileOptions &options)",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-83868E843C1A",
-      "declaration": "CNA::Content::Pipeline::ToCanonicalModel(const Microsoft::Xna::Framework::Content::Pipeline::Processors::ModelContent &model)",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-3DE028A53CDF",
-      "declaration": "CNA::Content::Pipeline::XnbOutputOptionsDigest(const CNA::Internal::Xnb::XnbFileOptions &options)",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-59F219B45FCC",
-      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::CompileOptions::container",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-97EECE78B4FD",
-      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentCompiler::ActiveWriter(const CNA::Internal::Xnb::XnbWriter &output) const",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-EE82FF218A83",
-      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentCompiler::Compile",
-      "category": "pipeline-internal-type",
-      "museumUse": "used: AudioPipelineLab, VideoLab, CompiledFxLab, FontBuildLab and CompilerLab read the returned bytes; CompilerLab also reads rootReaderName. Recorded upstream blocker: no public result type exists, so these reads necessarily touch CNA::Internal::Xnb::XnbAssetWriteResult fields (the museum never spells the internal name; it uses auto)."
-    },
-    {
-      "id": "CPP-4D7C6167F19C",
-      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentCompiler::CompileObject(const ContentObject &value, const CompileOptions &options) const",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-5BB823B66A67",
-      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentCompiler::TypeWriterRegistry(TargetPlatform platform) const",
-      "category": "pipeline-internal-type",
       "museumUse": "not used by the museum"
     },
     {
@@ -243,86 +63,20 @@
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-027E248EAE17",
-      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentWriter::Output() const noexcept",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-3F6BE88F129F",
-      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::XnaTypeWorker::AddSharedFromObject(CNA::Internal::Xnb::XnbWriter &output, const std::shared_ptr< System::Object > &object) const ",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-B59657DB95F0",
-      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::XnaTypeWorker::Canonical() const noexcept=0",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-FC242DC0CDF9",
-      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::XnaTypeWorker::WriteFromObject(CNA::Internal::Xnb::XnbWriter &output, const std::shared_ptr< System::Object > &object, bool raw) ",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-4D5051062268",
-      "declaration": "CNA::Devices::FileDialog::ResultCallbackDetail::FileDialogResultCallback",
-      "category": "public-alias-or-proxy",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-85095AC779C7",
-      "declaration": "Microsoft::Xna::Framework::Net::NetworkSessionProperties::operator[](int index) override",
-      "category": "public-alias-or-proxy",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-D234E26D2A70",
-      "declaration": "Microsoft::Xna::Framework::Graphics::AlphaTestEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-4DBD660F6F78",
-      "declaration": "Microsoft::Xna::Framework::Graphics::BasicEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-96236E37115B",
-      "declaration": "Microsoft::Xna::Framework::Graphics::ColorMatrixEffect::FillSpriteDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-C57AA2A7C114",
-      "declaration": "Microsoft::Xna::Framework::Graphics::DualTextureEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-7E3150BBBEB7",
-      "declaration": "Microsoft::Xna::Framework::Graphics::Effect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-4592F2A215A9",
-      "declaration": "Microsoft::Xna::Framework::Graphics::Effect::GetCompiledRuntimePtr() const",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-4743AE708383",
-      "declaration": "Microsoft::Xna::Framework::Graphics::Effect::GetEffectRendererPtr() const",
+      "id": "CPP-2E8F62472763",
+      "declaration": "Microsoft::Xna::Framework::Graphics::ShaderEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
       "category": "renderer-plumbing",
       "museumUse": "not used by the museum"
     },
     {
       "id": "CPP-33AC970EB1FF",
       "declaration": "Microsoft::Xna::Framework::Graphics::EnvironmentMapEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-38084D5F2964",
+      "declaration": "Microsoft::Xna::Framework::Graphics::RenderTarget2D::GetRenderTargetRenderer() const",
       "category": "renderer-plumbing",
       "museumUse": "not used by the museum"
     },
@@ -339,50 +93,50 @@
       "museumUse": "not used by the museum"
     },
     {
+      "id": "CPP-3B1AB05027AE",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-3DE028A53CDF",
+      "declaration": "CNA::Content::Pipeline::XnbOutputOptionsDigest(const CNA::Internal::Xnb::XnbFileOptions &options)",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-3E7E93B8705D",
+      "declaration": "CNA::Content::Pipeline::RegisterXnaXmlSourceContentPipeline(ContentPipelineRegistry &registry, std::shared_ptr< const Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentComp",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-3F6BE88F129F",
+      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::XnaTypeWorker::AddSharedFromObject(CNA::Internal::Xnb::XnbWriter &output, const std::shared_ptr< System::Object > &object) const ",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
       "id": "CPP-43334E0F2DE7",
       "declaration": "Microsoft::Xna::Framework::Graphics::GraphicsResource::LeaseRendererContext(GraphicsDevice *device)",
       "category": "renderer-plumbing",
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-EB8F933D1FFD",
-      "declaration": "Microsoft::Xna::Framework::Graphics::GraphicsResource::TryLeaseRendererContext() const noexcept",
+      "id": "CPP-4343F437E0A8",
+      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::GetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-4592F2A215A9",
+      "declaration": "Microsoft::Xna::Framework::Graphics::Effect::GetCompiledRuntimePtr() const",
       "category": "renderer-plumbing",
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-0B3C5DAA5A7D",
-      "declaration": "Microsoft::Xna::Framework::Graphics::IndexBuffer::GetRenderer() const",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-FC69FC35E060",
-      "declaration": "Microsoft::Xna::Framework::Graphics::PbrEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-38084D5F2964",
-      "declaration": "Microsoft::Xna::Framework::Graphics::RenderTarget2D::GetRenderTargetRenderer() const",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-A3EE02CBECC5",
-      "declaration": "Microsoft::Xna::Framework::Graphics::RenderTargetCube::GetRenderTargetCubeRenderer() const",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-2E8F62472763",
-      "declaration": "Microsoft::Xna::Framework::Graphics::ShaderEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
-      "category": "renderer-plumbing",
-      "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-8FD66D2484A6",
-      "declaration": "Microsoft::Xna::Framework::Graphics::ShaderEffect::GetEffectRendererPtr() const override",
+      "id": "CPP-4743AE708383",
+      "declaration": "Microsoft::Xna::Framework::Graphics::Effect::GetEffectRendererPtr() const",
       "category": "renderer-plumbing",
       "museumUse": "not used by the museum"
     },
@@ -393,21 +147,39 @@
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-1DC922482B92",
-      "declaration": "Microsoft::Xna::Framework::Graphics::SkinnedPbrEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
+      "id": "CPP-4D45092EE168",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-4D5051062268",
+      "declaration": "CNA::Devices::FileDialog::ResultCallbackDetail::FileDialogResultCallback",
+      "category": "public-alias-or-proxy",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-4D7C6167F19C",
+      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentCompiler::CompileObject(const ContentObject &value, const CompileOptions &options) const",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-4DBD660F6F78",
+      "declaration": "Microsoft::Xna::Framework::Graphics::BasicEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
       "category": "renderer-plumbing",
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-B669EFD9E567",
-      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::GetRenderer() const",
-      "category": "renderer-plumbing",
+      "id": "CPP-59F219B45FCC",
+      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::CompileOptions::container",
+      "category": "pipeline-internal-type",
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-99F6E5D738F7",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetRenderer() const",
-      "category": "renderer-plumbing",
+      "id": "CPP-5BB823B66A67",
+      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentCompiler::TypeWriterRegistry(TargetPlatform platform) const",
+      "category": "pipeline-internal-type",
       "museumUse": "not used by the museum"
     },
     {
@@ -417,8 +189,92 @@
       "museumUse": "not used by the museum"
     },
     {
-      "id": "CPP-D6B7604D9B60",
-      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::TextureCube(GraphicsDevice &device, int size, SurfaceFormat format, std::shared_ptr< CNA::Internal::Renderers::ITextureCubeRenderer > renderer, int le",
+      "id": "CPP-62809F36737F",
+      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::GetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-738EBCDACFCB",
+      "declaration": "CNA::Content::Pipeline::RegisterXnbOutputContentPipeline(ContentPipelineRegistry &registry, const CNA::Internal::Xnb::XnbFileOptions &options)",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-76E2DA34A858",
+      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::SetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-780A23953682",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-7B003A2AB022",
+      "declaration": "CNA::Content::Pipeline::ProcessedModelBundle::xnaModel",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-7E3150BBBEB7",
+      "declaration": "Microsoft::Xna::Framework::Graphics::Effect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-83868E843C1A",
+      "declaration": "CNA::Content::Pipeline::ToCanonicalModel(const Microsoft::Xna::Framework::Content::Pipeline::Processors::ModelContent &model)",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-85095AC779C7",
+      "declaration": "Microsoft::Xna::Framework::Net::NetworkSessionProperties::operator[](int index) override",
+      "category": "public-alias-or-proxy",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-8726ED2854C4",
+      "declaration": "Microsoft::Xna::Framework::Content::ContentManager::ReadXnbHeader",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum; public only by accident: it follows DEF_PROP(RootDirectory) in ContentManager's private section, and DEF_PROP emits public: (docs/CNA_FINDINGS.md)"
+    },
+    {
+      "id": "CPP-8FD66D2484A6",
+      "declaration": "Microsoft::Xna::Framework::Graphics::ShaderEffect::GetEffectRendererPtr() const override",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-96236E37115B",
+      "declaration": "Microsoft::Xna::Framework::Graphics::ColorMatrixEffect::FillSpriteDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-9668D52497F9",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-97EECE78B4FD",
+      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentCompiler::ActiveWriter(const CNA::Internal::Xnb::XnbWriter &output) const",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-99F6E5D738F7",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetRenderer() const",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-A3EE02CBECC5",
+      "declaration": "Microsoft::Xna::Framework::Graphics::RenderTargetCube::GetRenderTargetCubeRenderer() const",
       "category": "renderer-plumbing",
       "museumUse": "not used by the museum"
     },
@@ -426,6 +282,156 @@
       "id": "CPP-AD25B677203B",
       "declaration": "Microsoft::Xna::Framework::Graphics::VertexBuffer::GetRenderer() const",
       "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-AEF6BF864953",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-B59657DB95F0",
+      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::XnaTypeWorker::Canonical() const noexcept=0",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-B5E6A17ED02D",
+      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::SetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-B669EFD9E567",
+      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::GetRenderer() const",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-B69527561C9E",
+      "declaration": "CNA::Content::Pipeline::ConvertCnbTextureToXnb(const Cnb::CnbTextureData &texture, CNA::Internal::Xnb::XnbTextureKind kind, const CNA::Internal::Xnb::XnbFileOptions &options, const std::string &diagno",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-BBB7CF9BDF63",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-BE8F42BC57A7",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-C1255583F877",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-C4EED360774B",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-C57AA2A7C114",
+      "declaration": "Microsoft::Xna::Framework::Graphics::DualTextureEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-C5E5A56B2BB3",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-CB197EACFEF6",
+      "declaration": "Microsoft::Xna::Framework::Content::ContentReader::ContentReader(ContentManager *manager, System::IO::Stream *stream, std::string assetName, int version, char platform, RecordDisposableFn recordDispos",
+      "category": "defaulted-internal-parameter",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-CCD5077C5EAD",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-D234E26D2A70",
+      "declaration": "Microsoft::Xna::Framework::Graphics::AlphaTestEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-D2758CA2D9AF",
+      "declaration": "CNA::Content::Pipeline::RegisterXnaXnbOutput(ContentPipelineRegistry &registry, std::shared_ptr< const Xna::Serialization::Compiler::ContentCompiler > compiler, const CNA::Internal::Xnb::XnbFileOption",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-D6B7604D9B60",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::TextureCube(GraphicsDevice &device, int size, SurfaceFormat format, std::shared_ptr< CNA::Internal::Renderers::ITextureCubeRenderer > renderer, int le",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-DF32BBE641E3",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-EB8F933D1FFD",
+      "declaration": "Microsoft::Xna::Framework::Graphics::GraphicsResource::TryLeaseRendererContext() const noexcept",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-EE82FF218A83",
+      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::ContentCompiler::Compile",
+      "category": "pipeline-internal-type",
+      "museumUse": "used: AudioPipelineLab, VideoLab, CompiledFxLab, FontBuildLab and CompilerLab read the returned bytes; CompilerLab also reads rootReaderName. Recorded upstream blocker: no public result type exists, so these reads necessarily touch CNA::Internal::Xnb::XnbAssetWriteResult fields (the museum never spells the internal name; it uses auto)."
+    },
+    {
+      "id": "CPP-F3D86372069B",
+      "declaration": "CNA::Content::Pipeline::ContentCompilerOptions::xnbContainer",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-F699E746A348",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::GetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-F8A1D68CA3FF",
+      "declaration": "Microsoft::Xna::Framework::Graphics::TextureCube::SetData",
+      "category": "constraint-concept",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-FC242DC0CDF9",
+      "declaration": "Microsoft::Xna::Framework::Content::Pipeline::Serialization::Compiler::XnaTypeWorker::WriteFromObject(CNA::Internal::Xnb::XnbWriter &output, const std::shared_ptr< System::Object > &object, bool raw) ",
+      "category": "pipeline-internal-type",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-FC69FC35E060",
+      "declaration": "Microsoft::Xna::Framework::Graphics::PbrEffect::FillGpuDrawParams(CNA::Internal::Renderers::GpuDrawParams &params) const override",
+      "category": "renderer-plumbing",
+      "museumUse": "not used by the museum"
+    },
+    {
+      "id": "CPP-FF3329A608C0",
+      "declaration": "Microsoft::Xna::Framework::Graphics::Texture3D::GetData",
+      "category": "constraint-concept",
       "museumUse": "not used by the museum"
     }
   ]

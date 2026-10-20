@@ -313,6 +313,18 @@ pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/
   a gamer whose account is going away should fail with XNA's exception for a signed-out gamer.
 - **Museum handling:** the players room catches a failed `GetProfile` per card and shows it there.
 
+### `DEF_PROP` in a private section makes the members after it public
+- **Where:** `modules/content/include/Microsoft/Xna/Framework/Content/ContentManager.hpp`: the class opens with `private:`
+  and declares `DEF_PROP(std::string, RootDirectory, ...)` there; sharp-runtime's `DEF_PROP` (`SharpRuntime/Prop.hpp:89-91`)
+  expands to `public:` before the getter and setter and never restores the previous access.
+- **What happens:** every member declared after it up to the next access specifier is public in the compiled class:
+  `BuildAssetPath`, `ResolveExistingAssetPath`, `TryReadAssetBytes`, `NormalizeKey`, `TryOpenCompiledStream`,
+  `ReadStreamToEnd`, `LoadXnbAssetUntyped` and the new `ReadXnbHeader`, which returns the internal
+  `CNA::Internal::Xnb::XnbHeader` (found by `tools/generate_api_inventory.py --check` on 2026-10-20 as a public declaration
+  naming an internal type; the museum classifies it in `audit/internal_type_classification.json`).
+- **Needed change:** declare properties in a public section (or follow `DEF_PROP` with an explicit `private:`), and check
+  the other headers that place `DEF_PROP` in a private or protected section.
+
 ### Native C API
 The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
 that the room starts as a child process because a process hosts one game) check every C header family against the
