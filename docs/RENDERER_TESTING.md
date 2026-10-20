@@ -145,15 +145,18 @@ The museum cross-compiles with CNA's MinGW toolchain and runs under Wine on the 
 (`localtime_r` in the clock room does not exist on Windows) and is the only way to run CNA's DIRECTX9 renderer here:
 
 ```bash
-BUILD_DIR=build-consumer MUSEUM_RENDERERS="DIRECTX9;SOFTWARE" \
-  MUSEUM_CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$PWD/../cna/cmake/toolchains/mingw-w64.cmake -DCMAKE_BUILD_TYPE=Release -DMUSEUM_NETWORKING=OFF" tools/build.sh
-cp -r build/bin/Content/Compiled build-consumer/bin/Content/        # the content tool is a foreign executable: reuse the native output
-cp /usr/lib/gcc/x86_64-w64-mingw32/*-win32/{libgcc_s_seh-1,libstdc++-6}.dll /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll build-consumer/bin/
+# build-consumer/windows/ (a prefix inside the shared tree) keeps the browser build in build-consumer/ intact
+BUILD_DIR=build-consumer/windows MUSEUM_RENDERERS="DIRECTX9;SOFTWARE" \
+  MUSEUM_CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$PWD/../cna/cmake/toolchains/mingw-w64.cmake -DCMAKE_BUILD_TYPE=Release -DMUSEUM_NETWORKING=OFF -DMUSEUM_C_API=OFF -DCNA_BUILD_C_API=OFF" tools/build.sh
+cp -r build/bin/Content/Compiled build-consumer/windows/bin/Content/        # the content tool is a foreign executable: reuse the native output
+cp /usr/lib/gcc/x86_64-w64-mingw32/*-win32/{libgcc_s_seh-1,libstdc++-6}.dll /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll build-consumer/windows/bin/
 WINEPREFIX=$HOME/.cache/museum-wine SDL_VIDEODRIVER=windows CNA_GRAPHICS_RENDERER=DIRECTX9 \
-  xvfb-run -a wine build-consumer/bin/cna-3d-museum.exe --script "goto:info;wait:5;quit" --no-audio
+  xvfb-run -a wine build-consumer/windows/bin/cna-3d-museum.exe --script "goto:info;wait:5;quit" --no-audio
 ```
 
-The Windows tree is configured with `-DMUSEUM_NETWORKING=OFF`: CNA's GamerServices needs libcurl, which the MinGW sysroot does not have, so the Players and Networking rooms there say they are not built in (the Avatars, Leaderboards and Net rooms are Linux-only for now). The content pipeline room (`MUSEUM_PIPELINE`) does build and run under Wine.
+The Windows tree is configured with `-DMUSEUM_NETWORKING=OFF` (and therefore `-DMUSEUM_C_API=OFF`: CNA's C API exports the GamerServices routes): CNA's GamerServices needs libcurl, which the MinGW sysroot does not have, so the Players and Networking rooms there say they are not built in (the Avatars, Leaderboards and Net rooms are Linux-only for now). The content pipeline room (`MUSEUM_PIPELINE`) does build and run under Wine.
+
+Latest (2026-10-20, 320 rooms, `tools/wine_tour.sh -p`, which runs this recipe and records the profile `wine-<renderer>-tour`): under Wine both renderers tour every room with every control operated and reach final stats with 0 exhibit and 0 script errors, SOFTWARE in 2,031 s and DIRECTX9 (Wine's Direct3D on llvmpipe) in 89 s, where the floor 9 rooms log 198 self-check PASS lines and no FAIL. These are Wine results; no real Windows machine has run the museum.
 
 Under Wine the SOFTWARE renderer draws the lobby identically to Linux and tours all rooms with every control operated (272 rooms on 2026-10-14: exit 0, 0 exhibit errors, 1,313 s; the networking, avatar and video rooms say they are not built in on this tree; 257 rooms earlier took 1,413 s). **DIRECTX9** (Wine's Direct3D on llvmpipe OpenGL): the first tour (2026-10-14) ran without a crash but 11 rooms or stages were switched
 off by the museum's guard, all with one CNA message, `DirectX9Renderer::DrawPrimitivesEx (BasicEffect): stride N with lighting=...
