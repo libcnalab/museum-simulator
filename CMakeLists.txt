@@ -105,9 +105,9 @@ if(NOT CNA_BUILD_TESTS)
 endif()
 
 # CNA discovers SDL inside its subdirectory. Imported package targets are directory-scoped, so
-# create the Emscripten SDL target in the application's directory as well before linking the
-# final browser executable.
-if(EMSCRIPTEN)
+# create the Emscripten or Android SDL target in the application's directory as well before linking the
+# final browser executable or Android library.
+if(EMSCRIPTEN OR ANDROID)
     find_package(SDL3 REQUIRED CONFIG)
 endif()
 
@@ -205,7 +205,14 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     endforeach()
 endif()
 
-add_executable(cna-3d-museum src/Main.cpp)
+if(ANDROID)
+    # SDL's Java glue (android/) loads the game as libmain.so and calls SDL_main; the target keeps its name.
+    add_library(cna-3d-museum SHARED src/Main.cpp)
+    set_target_properties(cna-3d-museum PROPERTIES OUTPUT_NAME main)
+    target_link_libraries(cna-3d-museum PRIVATE SDL3::SDL3 log)
+else()
+    add_executable(cna-3d-museum src/Main.cpp)
+endif()
 target_link_libraries(cna-3d-museum PRIVATE museum_core)
 
 # Execution evidence: gcov line counters in the museum's own code only (CNA stays as built), unoptimised so every
@@ -242,9 +249,9 @@ if(COMMAND cna_copy_renderer_runtime)
     cna_copy_renderer_runtime(cna-3d-museum)
 endif()
 
-if(NOT EMSCRIPTEN)
+if(NOT EMSCRIPTEN AND NOT ANDROID)
     # Put Content/ next to the executable so the build tree is self-contained. Web builds preload it
-    # into Emscripten's virtual filesystem as /Content before main() starts.
+    # into Emscripten's virtual filesystem as /Content before main() starts; Android packages it as APK assets.
     add_custom_command(TARGET cna-3d-museum POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
             "${CMAKE_CURRENT_SOURCE_DIR}/Content" "$<TARGET_FILE_DIR:cna-3d-museum>/Content"

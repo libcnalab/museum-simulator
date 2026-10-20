@@ -158,5 +158,6 @@ tools/audio_check.sh            # audio on, SDL disk driver, FFT of the real mix
 tools/net_check.sh              # three processes, host migration
 tools/online_check.sh           # the account service (needs ../cna-gamer-services-server built)
 tools/online_party_check.sh     # three accounts: invitation into a private slot, a party, sign-out
+tools/build_android.sh && MUSEUM_ANDROID_SKIP=model-sampler tools/android_run.sh   # Android emulator tour (see RENDERER_TESTING)
 tools/execution_coverage.py run --id <run> --build-dir build-probe --renderer OPENGLES3 --scenarios
 ```

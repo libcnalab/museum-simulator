@@ -8,6 +8,10 @@
 #include <string>
 #include <utility>
 
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
+
 namespace Museum {
 
 // The most recent log lines with a running sequence number, so a script can wait for one (await:TEXT).
@@ -35,6 +39,10 @@ inline void Log(const char* tag, const char* format, ...)
     if (size > 0) std::vsnprintf(text.data(), text.size() + 1, format, again);
     va_end(again);
     std::fprintf(stderr, "[museum][%s] %s\n", tag, text.c_str());
+#ifdef __ANDROID__
+    // Android drops stderr: the same line goes to logcat (tag "museum"), where tools/android_run.sh reads it.
+    __android_log_print(ANDROID_LOG_INFO, "museum", "[museum][%s] %s", tag, text.c_str());
+#endif
     RecentLog& recent = Recent();
     std::lock_guard<std::mutex> lock(recent.mutex);
     recent.lines.emplace_back(++recent.sequence, std::string("[museum][") + tag + "] " + text);

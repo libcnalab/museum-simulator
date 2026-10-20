@@ -292,6 +292,15 @@ pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/
 - **Needed change:** add the channel's `ErrorOccurred` event (`NotificationChannelErrorEventArgs`), raise it with
   ChannelOpenFailed when the channel cannot listen, and complete a send that could not connect as refused on every platform.
 
+### Float16RenderTargets is reported on the Android emulator, whose half-float target reads back as NaN
+- **Where:** EasyGL's capability profile (OPENGLES3) on the Android emulator's guest GLES (`-gpu guest`, Android 15 image).
+- **What happens:** `GraphicsDevice` reports `GraphicsCapability.Float16RenderTargets` as supported, but in rv-capabilities
+  two additive white quads drawn into a `HalfVector4` render target read back as `(0.000, NaN, 0.000, NaN)` instead of 2.0
+  per channel (`tools/android_run.sh`, 2026-10-20). On the desktop OPENGLES3 renderer the same check passes.
+- **Needed change:** claim the capability only when the context can render to and read back RGBA16F
+  (`EXT_color_buffer_half_float`/`EXT_color_buffer_float`, and a half-float `glReadPixels` path that the implementation
+  accepts), or convert on readback.
+
 ### Native C API
 The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
 that the room starts as a child process because a process hosts one game) check every C header family against the

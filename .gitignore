@@ -15,3 +15,7 @@ compile_commands.json
 # Screenshots and scratch output
 /shots/
 *.log
+
+# Android: Gradle project state and local SDK path
+/android/.gradle/
+/android/local.properties

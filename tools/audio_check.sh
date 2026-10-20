@@ -45,12 +45,14 @@ s6=$(record panright "au-basics;wait:30;press:Pan (left .. right)=1;press:Play c
 s7=$(record xact "au-xact;wait:30;press:Cue=0;press:Play: GetCue then Play;wait:120;stats;quit")
 s8=$(record xactmuted "au-xact;wait:30;press:Default category volume=0;press:Cue=0;press:Play: GetCue then Play;wait:120;stats;quit")
 s9=$(record song "au-music;wait:30;press:Play song 1: arpeggio;wait:150;stats;quit")
+# The orbiting 3D voice: Apply3D must reach it before Play (XNA throws on Apply3D for an instance already playing without 3D).
+s10=$(record spatial "au-spatial;wait:120;pressall;wait:30;stats;quit")
 
-python3 -I - "$dir" "$s1" "$s2" "$s3" "$s4" "$s5" "$s6" "$s7" "$s8" "$s9" <<'PY'
+python3 -I - "$dir" "$s1" "$s2" "$s3" "$s4" "$s5" "$s6" "$s7" "$s8" "$s9" "$s10" <<'PY'
 import pathlib, re, sys
 import numpy as np
 d = pathlib.Path(sys.argv[1])
-statuses = dict(zip(("bell", "sine", "silence", "microphone", "panleft", "panright", "xact", "xactmuted", "song"), sys.argv[2:11]))
+statuses = dict(zip(("bell", "sine", "silence", "microphone", "panleft", "panright", "xact", "xactmuted", "song", "spatial"), sys.argv[2:12]))
 passed = failed = 0
 def report(ok, text):
     global passed, failed
@@ -166,6 +168,9 @@ else:
     events, size, rate, rms, frequency = int(mic.group(1)), int(mic.group(2)), int(mic.group(3)), float(mic.group(4)), float(mic.group(5))
     report(events >= 1 and size > 0, f"microphone: {events} BufferReady event(s), {size} bytes at {rate} Hz arrived")
     report(abs(frequency - 500.0) <= 5.0 and rms > 0.2, f"microphone: the captured signal is the 500 Hz test tone ({frequency:.1f} Hz, RMS {rms:.3f}; the file has RMS 0.354)")
+signal, rate = load("spatial")
+spatial_rms = float(np.sqrt(np.mean(signal[len(signal) // 2 :] ** 2))) if signal is not None and len(signal) else 0.0
+report(spatial_rms > 1e-3, f"spatial: the 3D voice is heard while it orbits (RMS {spatial_rms:.4f} over the second half)")
 print(f"summary: {passed} passed, {failed} failed (raw output and logs: {d})")
 import subprocess
 subprocess.run([sys.executable, "tools/record_profile.py", "audio", "--passed", str(passed), "--failed", str(failed)], check=False)

@@ -1,0 +1,21 @@
+// Top-level build file.
+buildscript {
+    repositories {
+        mavenCentral()
+        google()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.7.3'
+    }
+}
+
+// Build output of the root project stays in the shared build-consumer/ tree too (the app's: app/build.gradle).
+layout.buildDirectory = file("../build-consumer/android-gradle-root")
+
+allprojects {
+    repositories {
+        mavenCentral()
+        google()
+    }
+}
+

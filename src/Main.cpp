@@ -13,6 +13,11 @@
 #include <string>
 #include <vector>
 
+#ifdef __ANDROID__
+// SDL's Java glue looks the entry point up as SDL_main; this header renames main() to it.
+#include <SDL3/SDL_main.h>
+#endif
+
 namespace {
 // What an XNA project declares outside its code: the product title (C# [assembly: AssemblyTitle], the default window
 // title) and the project's graphics profile (HiDef). Both are registered before main() runs, as the attributes are.

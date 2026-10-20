@@ -50,6 +50,7 @@ is current and nothing failed.
 | WebGL 2 in a browser | `tools/build_web.sh` then `tools/web_smoke.sh` | `WEBGL2 BROWSER SMOKE: PASS` | Chrome console lines |
 | The whole museum in a browser | `tools/web_tour.sh` (WEBGL2; `MUSEUM_WEB_RENDERER=WEBGPU` for browser WebGPU) | `WEBGL2 BROWSER TOUR: PASS`, every room visited | `build-consumer/web-tour/<renderer>/` |
 | Scenarios in a browser | `tools/web_scenarios.py` | the same expectations as `tools/scenarios.py`; SKIP names its reason | `build-consumer/web-scenarios/<renderer>/` |
+| Android (emulator) | `tools/build_android.sh` then `tools/android_run.sh` | `ANDROID RUN: PASS`, every room visited in batches | `build-consumer/android-run/` |
 | API audit | `python3 tools/generate_api_inventory.py --check`, `python3 tools/audit_api_coverage.py --check` | inventory and evidence current; every unclaimed public header classified | `docs/CNA_API_INVENTORY.md`, `docs/CNA_COVERAGE_AUDIT.md` |
 | Execution evidence | `tools/execution_coverage.py run --id <id> --build-dir build-probe --renderer OPENGLES3 --scenarios` (in a `-DMUSEUM_COVERAGE=ON` tree whose binary matches the sources) | one process per room, 0 errors; the audit then marks the implementation records whose every step ran | `audit/runs/<id>.*`, `audit/execution_evidence.json` |
 

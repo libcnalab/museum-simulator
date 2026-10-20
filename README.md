@@ -182,6 +182,7 @@ hardware.
 | `tools/online_stack.sh start\|stop\|env` | starts a private CNA gamer-services server (sibling repo, built once) with demo accounts for the *Online Service* rooms; `eval "$(tools/online_stack.sh env)"` points the museum at it |
 | `tools/online_check.sh` | end-to-end check of those rooms: signs in through the Guide with xdotool, plays a scored round and reads the service's database |
 | `tools/online_party_check.sh` | three museums with the stack's three accounts: a game invitation accepted on the Guide's card takes the private slot, a party of two, signing out in the Guide |
+| `tools/build_android.sh`, `tools/android_run.sh` | the Android APK (OPENGLES3) and its tour on a headless x86_64 emulator |
 | `tools/tour.sh [-f FRAMES] [-p] [-z N] [ROOM...]` | visits **every** room (or those named), prints engine statistics, exit status 0 only if nothing threw; `-p` also operates every control of every room through its whole range, `-z N` then makes N random control actions per room (a repeatable fuzz) |
 | `tools/leak_check.sh [RENDERER...]` | tours every room once and three times on the selected renderer(s): peak memory and registered textures must not grow |
 | `tools/nav_test.sh` | rides the elevator to every floor, walks all nine stair flights up and one down, and checks every arrival floor |

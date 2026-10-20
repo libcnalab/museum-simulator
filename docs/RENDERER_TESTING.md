@@ -163,6 +163,31 @@ supplies the elements the chosen shader reads (all 32 BasicEffect shader buckets
 there), and `SetStringMarkerEXT` calls `D3DPERF_SetMarker` instead of throwing. The same tour now has **0 exhibit errors** over 286 rooms
 (72 s) and the `rv-effects` BasicEffect check passes. Two 2026-10-16 follow-ups gave Texture2D, cube and volume resources real native classic-format storage plus live per-resource D3D9 classifiers: `tex-formats` rendered Color, Bgr565, Bgra4444, Alpha8 and HalfVector4; `tex-volume` round-tripped Color, Single and Vector4 with exact boxed reads. The expanded graphics-profile test passed 27/27 and bit-checked every advertised cube and volume format, including compressed cube blocks (`d1a78ca32`, `6da0e4bce`). CNA `829861cd8` then removed the remaining exact-stride gates from DualTextureEffect, EnvironmentMapEffect and SkinnedEffect: explicit compatible declarations at strides 44, 48 and 68 render exactly, the focused Wine test passes 22/22, and the full museum press-all tour has 0 exhibit/draw errors. CNA `0de32e6ba` added unshadowed point/spot `PunctualLightEXT` to the PBR and skinned-PBR shaders; the focused WineD3D pixel test passes 12/12 and was mutation-verified. CNA `86d85198c` then added a CNA-owned SM3 BasicEffect variant selected only for an active point/spot light: the shared test passes 5/5 and its mutation check failed the two illuminated cases, the museum probe reads 255,255,255, and all `rv-effects` checks now pass. CNA `79c513885` completed the matching SkinnedEffect path; its public identity-bone test passes 5/5 and its mutation fails exactly the two illuminated cases. CNA `d3539f3fb` adds directional/cascaded, point-cube and spot shadow reception to all rigid/skinned Basic/PBR paths; the WineD3D pixel oracle passes 29/29 and forcing directional shadows off makes six checks fail. The rebuilt museum reaches `cx-shadow` with 0 exhibit errors. Its caster is now renderer-independent: the CPU projects mesh vertices into orthographic light space and a vertex-coloured `BasicEffect` writes interpolated depth. A Wine/DIRECTX9 capture shows the live map and cast shadows with exit 0 and 0 exhibit errors.
 
+## Android: the APK on the x86_64 emulator (OPENGLES3)
+
+```bash
+tools/build_android.sh          # android/: SDL's Java glue + the museum as libmain.so, x86_64 debug APK in build-consumer/
+tools/android_run.sh [room ...] # headless emulator, read-only AVD; MUSEUM_ANDROID_SCRIPT="a;b;c" runs one script instead
+```
+
+The Gradle project (`android/`) builds the museum with CNA's validated Android renderer, OPENGLES3, offline and with the
+native build held to two jobs by a CMake job pool; the C ABI client, video and the Inspector are not built for Android.
+`MuseumActivity` copies the packaged `Content/` into the app's storage once per installed version (the museum reads Content
+through file paths), passes the desktop options as intent extras (`script`, `scriptfile`, `room`, `renderer`, `args`), and the
+museum's log lines go to logcat (tag `museum`). `tools/android_run.sh` runs the shared `Medium_Phone` AVD read-only, with no
+window and no audio, two virtual CPUs, 4 GB and GLES rendered inside the guest (`-gpu guest`); Wi-Fi and mobile data are
+switched off before the museum starts, the log is streamed to the host, and every adb call has a time limit.
+
+Result (2026-10-20, Android 15 image, Android Emulator 36.5.11): the tour in batches of eight rooms visits 319 of 320 rooms;
+the floor 9 rooms report 98 renderer self-checks PASS and one FAIL, `Float16RenderTargets` claimed but a half-float target
+reading back NaN (`docs/CNA_FINDINGS.md`). The first full run also found a museum bug that no desktop run could: `au-spatial`
+called `Play` before `Apply3D` on its 3D voice, which XNA refuses; the desktop tours run without audio. It is fixed and
+`tools/audio_check.sh` now plays that room with audio on. `model-sampler` is left out (`MUSEUM_ANDROID_SKIP`): after other
+model rooms in the same process it makes the emulator's own qemu crash (SIGSEGV, core dumped), with `swiftshader_indirect`
+as well as `-gpu guest`, while the room alone runs cleanly; an app cannot legitimately crash the emulator, so this is
+recorded as an emulator defect, not passed. `swangle_indirect` cannot start its renderer in a headless emulator. Nothing
+here has run on a physical Android device.
+
 ## Every room against OPENGLES3 (`tools/room_diff.sh`)
 
 Rooms whose arrival view differs from OPENGLES3's by more than 2 % of pixels (640 x 360, fixed clock and step):

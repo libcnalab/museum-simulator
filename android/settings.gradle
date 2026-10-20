@@ -1,0 +1,2 @@
+rootProject.name = 'cna-3d-museum'
+include ':app'
