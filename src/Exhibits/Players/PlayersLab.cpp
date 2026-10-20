@@ -310,7 +310,13 @@ private:
     {
         std::string tag = "?";
         try { if (gamer != nullptr) tag = gamer->getGamertagProperty(); } catch (const std::exception&) { tag = "(disposed gamer)"; }
-        Museum::Log("players", "SignedInGamer.%s: %s", event, tag.c_str());
+        std::string still;
+        try {
+            auto* listed = Gamer::getSignedInGamersProperty();
+            for (int i = 0; listed != nullptr && i < listed->getCountProperty(); ++i)
+                still += (still.empty() ? "" : ", ") + (*listed)[i]->getGamertagProperty() + ((*listed)[i]->getIsSignedInToLiveProperty() ? " (online)" : " (local)");
+        } catch (const std::exception& e) { still = std::string("unreadable: ") + e.what(); }
+        Museum::Log("players", "SignedInGamer.%s: %s; Gamer.SignedInGamers now: %s", event, tag.c_str(), still.empty() ? "none" : still.c_str());
     }
 
     void Refresh()
@@ -335,7 +341,11 @@ private:
                              ", racing: camera " + std::to_string(static_cast<int>(d.getRacingCameraAngleProperty())) + ", auto-centre " + YesNo(d.getAutoCenterProperty()) + ", manual gearbox " + YesNo(d.getManualTransmissionProperty()) +
                              ", right stick moves " + YesNo(d.getMoveWithRightThumbStickProperty()) + ", accelerate/brake on buttons " + YesNo(d.getAccelerateWithButtonsProperty()) + "/" + YesNo(d.getBrakeWithButtonsProperty()) +
                              ", colours " + (d.getPrimaryColorProperty() ? "set" : "unset") + "/" + (d.getSecondaryColorProperty() ? "set" : "unset");
-                if (GamerProfile* profile = g->GetProfile()) {
+                // An account's profile comes from the service: while the Guide signs the account out, the gamer can still be
+                // listed for a moment after its service session has ended, and the read fails. That gamer's card says so.
+                GamerProfile* profile = nullptr;
+                try { profile = g->GetProfile(); } catch (const std::exception& e) { c.profile = std::string("unavailable: ") + e.what(); }
+                if (profile != nullptr) {
                     char buf[160];
                     std::snprintf(buf, sizeof buf, "score %d, %d achievements, reputation %.1f, zone %s, %d titles", profile->getGamerScoreProperty(), profile->getTotalAchievementsProperty(),
                                   static_cast<double>(profile->getReputationProperty()), ZoneName(profile->getGamerZoneProperty()), profile->getTitlesPlayedProperty());
@@ -364,7 +374,7 @@ private:
             }
         } catch (const std::exception& e) {
             lastError_ = e.what();
-            // The profiles are local: reading them should not fail, and lastError_ is not on any panel. Runs twice a second.
+            // Nothing else here should fail (an account's profile read is handled per card above); runs twice a second.
             static bool reported = false;
             if (!reported) { reported = true; ReportError(std::string("profile refresh: ") + e.what()); }
         }

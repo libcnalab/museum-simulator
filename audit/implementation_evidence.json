@@ -8987,7 +8987,7 @@
       "room": "gs-players",
       "kind": "direct-call",
       "symbols": ["CPP-B30286E08CA1"],
-      "path": [{"source": "src/Exhibits/Players/PlayersLab.cpp", "anchor": "if (GamerProfile* profile = g->GetProfile())"}],
+      "path": [{"source": "src/Exhibits/Players/PlayersLab.cpp", "anchor": "try { profile = g->GetProfile(); }"}],
       "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:room-nearby", "runtime:signed-in-gamer-present"],
       "note": "Refresh calls GetProfile for each signed-in gamer and deletes the returned profile afterwards."
     },

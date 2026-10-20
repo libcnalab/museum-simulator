@@ -301,6 +301,18 @@ pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/
   (`EXT_color_buffer_half_float`/`EXT_color_buffer_float`, and a half-float `glReadPixels` path that the implementation
   accepts), or convert on readback.
 
+### A profile read just after a Guide sign-out reached the service without a token (seen once)
+- **Where:** `modules/gamer-services/src/Internal/GamerServicesBackend.cpp`, `tokenFor`: `No authenticated CNA gamer for this
+  operation.`
+- **What happens:** in `tools/online_party_check.sh` (2026-10-20) Visitor signed out from the Guide's Home page in gs-players;
+  `SignedInGamer.SignedOut` was raised, and the room's next profile refresh (a loop over `Gamer.SignedInGamers` calling
+  `GetProfile` and the presence, privileges and game-defaults getters) threw that message. A rerun of the same steps raised
+  no error, and its new log line shows `Gamer.SignedInGamers` empty when `SignedOut` is raised, so which gamer's call reached
+  the service is not known. The message names an internal state, not an XNA exception a game could expect.
+- **Needed change:** a call for a gamer in `Gamer.SignedInGamers` must not reach the service without that gamer's session;
+  a gamer whose account is going away should fail with XNA's exception for a signed-out gamer.
+- **Museum handling:** the players room catches a failed `GetProfile` per card and shows it there.
+
 ### Native C API
 The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
 that the room starts as a child process because a process hosts one game) check every C header family against the

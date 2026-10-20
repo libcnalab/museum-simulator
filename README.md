@@ -199,7 +199,7 @@ screenshot is a non-zero exit status.
 ## Renderers
 
 The museum uses only portable CNA calls, so any 3D-capable renderer should work; it checks capabilities and says so
-in the room when something is unavailable (for example wireframe fill on OPENGLES3). Tested here (the last three need CNA's optional dependencies; see [docs/RENDERER_TESTING.md](docs/RENDERER_TESTING.md)):
+in the room when something is unavailable (for example wireframe fill on OPENGLES3). Tested here (FNA3D, WEBGPU and SDL_GPU need CNA's optional dependencies; see [docs/RENDERER_TESTING.md](docs/RENDERER_TESTING.md)):
 
 | Renderer | Whole museum tour | Self-checks (floor 9) | Notes |
 |---|---|---|---|
@@ -207,10 +207,11 @@ in the room when something is unavailable (for example wireframe fill on OPENGLE
 | OPENGL33 | all rooms clean | all pass | screenshots identical to OPENGLES3 |
 | SOFTWARE | all rooms clean (about 25 minutes under Xvfb) | all pass | CPU rasteriser; no window, so mouse look is off: use the keyboard |
 | SOFTWARE, Windows build under Wine | all rooms clean (MinGW cross build) | - | `docs/RENDERER_TESTING.md` has the recipe; found a Windows-only bug (`localtime_r`) |
-| FNA3D | all rooms clean | 63 pass, 0 fail, 1 info, 23 skipped | runs compiled XNA `.fxb` effects (the only one that does), including the museum's real matrix-stream instancing path and CNA's rigid/skinned PBR with IBL, double-sided materials, independent UV sets and shadow reception, plus Basic/Skinned punctual-light and shadow extensions; no custom source shaders |
+| FNA3D | all rooms clean | 63 pass, 0 fail, 1 info, 23 skipped | runs compiled XNA `.fxb` effects by default (EasyGL, WebGPU, SDL_GPU and SOFTWARE run them too when CNA is built with their `CNA_<RENDERER>_COMPILED_EFFECTS` option), including the museum's real matrix-stream instancing path and CNA's rigid/skinned PBR with IBL, double-sided materials, independent UV sets and shadow reception, plus Basic/Skinned punctual-light and shadow extensions; no custom source shaders |
 | WEBGPU (llvmpipe) | all rooms clean | all pass | takes WGSL: the shader rooms run on WGSL sources the museum carries; the MRT edge map and the shadow-map caster do not |
 | SDL_GPU (llvmpipe) | all rooms clean | all pass | takes SPIR-V: the shader rooms compile Vulkan GLSL at run time; the shadow-map caster does not |
-| WEBGL2 (Emscripten) | browser smoke clean | not yet run | Chrome/SwiftShader rendered the lobby and exited with 0 exhibit errors; `tools/build_web.sh` |
+| WEBGL2 (Emscripten) | all rooms clean in Chrome (`tools/web_tour.sh`) | 99 pass, 0 fail | `tools/build_web.sh`; the scenarios run in the page too (`tools/web_scenarios.py`) |
+| OPENGLES3 on Android (emulator) | 319 of 320 rooms (`tools/android_run.sh`; `model-sampler` crashes the emulator itself) | 98 pass, 1 fail | `tools/build_android.sh`; the fail is a CNA capability finding |
 
 Details, the per-renderer check matrix and what was found are in [docs/RENDERER_TESTING.md](docs/RENDERER_TESTING.md).
 

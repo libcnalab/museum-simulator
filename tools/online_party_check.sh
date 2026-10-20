@@ -5,10 +5,10 @@
 # sign-in page the Guide reads which keys are down each frame, and a bare key tap can fall between two frames).
 #
 #   A, Visitor:   hosts a PlayerMatch session (1 local gamer, MaxGamers 3, PrivateGamerSlots 1), invites its friend Curator
-#                 with Guide.ShowGameInvite, later invites Curator into a party (Guide.ShowParty) and signs out (Guide Home).
+#                 with Guide.ShowGameInvite, later invites Curator and Archivist into a party (Guide.ShowParty) and signs out.
 #   C, Archivist: finds the session over the service (one public and one private slot open) and joins it: a public slot.
 #   B, Curator:   accepts the game invitation on the card the Guide opens (InviteAccepted, JoinInvited: the private slot),
-#                 then accepts the party invitation.
+#                 then accepts the party invitation, as C does.
 #
 #   tools/online_party_check.sh      exit 0 only if every step passed; 77 when a prerequisite is absent (as online_check.sh)
 #
@@ -87,11 +87,11 @@ sign_in() {   # sign_in NAME ACCOUNT PASSWORD: the Guide's sign-in page, as tool
 }
 
 signin_steps="goto:net-session;wait:30;press:Guide.ShowSignIn: an account for PlayerMatch;await:Guide.IsVisible false,6000;wait:30;press:Local gamers in a new session=1"
-launch A "$signin_steps;press:MaxGamers in a new session=2;press:PrivateGamerSlots in a new session=1;press:Over the account service=1;press:Deliver packets=1;await:GamerJoined: Archivist,6000;press:Guide.ShowGameInvite;await:GamerJoined: Curator,9000;wait:50;goto:on-party;wait:60;press:Guide.ShowParty;await:PartySize of Visitor: 2,9000;goto:gs-players;wait:60;await:SignedInGamer.SignedOut,6000;wait:30;stats;quit"
+launch A "$signin_steps;press:MaxGamers in a new session=2;press:PrivateGamerSlots in a new session=1;press:Over the account service=1;press:Deliver packets=1;await:GamerJoined: Archivist,6000;press:Guide.ShowGameInvite;await:GamerJoined: Curator,9000;wait:50;goto:on-party;wait:60;press:Guide.ShowParty;await:PartySize of Visitor: 3,12000;goto:gs-players;wait:60;await:SignedInGamer.SignedOut,6000;wait:30;stats;quit"
 sign_in A visitor museum-visitor-pass
 wait_for A "Create(PlayerMatch" || abort "A: no PlayerMatch session was created: $(grep -a 'net\]' "$dir/A.log" | tail -1)"
 
-launch C "$signin_steps;press:Over the account service=1;press:NetworkSession.BeginFind;await:session(s) found,3000;press:NetworkSession.BeginJoin;await:Joined:,3000;await:SessionEnded,12000;wait:30;stats;quit"
+launch C "$signin_steps;press:Over the account service=1;press:NetworkSession.BeginFind;await:session(s) found,3000;press:NetworkSession.BeginJoin;await:Joined:,3000;await:SessionEnded,12000;goto:on-party;wait:900;press:Guide.ShowParty;await:PartySize of Archivist: 3,9000;wait:30;stats;quit"
 sign_in C archivist museum-archivist-pass
 wait_for A "GamerJoined: Archivist" || abort "A: Archivist never joined: $(grep -a 'net\]' "$dir/C.log" | tail -2 | tr '\n' ' ')"
 
@@ -99,7 +99,7 @@ wait_for A "ShowGameInvite opened" || abort "A: Guide.ShowGameInvite did not ope
 sleep 2.5
 key A y   # the invitation page has A's friends ticked: Y sends and closes it
 
-launch B "$signin_steps;await:InviteAccepted,6000;await:Joined:,3000;await:SessionEnded,12000;goto:on-party;wait:900;press:Guide.ShowParty;await:PartySize of Curator: 2,6000;wait:30;stats;quit"
+launch B "$signin_steps;await:InviteAccepted,6000;await:Joined:,3000;await:SessionEnded,12000;goto:on-party;wait:900;press:Guide.ShowParty;await:PartySize of Curator: 3,9000;wait:30;stats;quit"
 sign_in B curator museum-curator-pass
 # The invitation arrives within a few seconds of signing in and the Guide opens its card (Accept is focused).
 wait_for B "Guide.IsVisible true" 2 || abort "B: no game invitation card opened"
@@ -108,22 +108,38 @@ key B Return
 wait_for A "GamerJoined: Curator" || abort "A: Curator never joined: $(grep -a 'net\]' "$dir/B.log" | tail -2 | tr '\n' ' ')"
 # Read now: the service deletes a session's invitations with the session, which ends when A leaves the room.
 used=$(sqlite3 "$dir/service.sqlite3" "select count(*) from session_invitations i join users u on u.id=i.recipient_id where u.gamertag='Curator' and i.status='used'" 2> /dev/null)
+# A party of three needs Archivist among Visitor's friends (the service invites mutual friends only). The shared fixture keeps
+# Archivist a stranger for the Guide's friend pages, so this check's own service gets the friendship, and only now: earlier,
+# Guide.ShowGameInvite would have ticked Archivist too and opened an invitation card on C.
+python3 -I - "$dir/service.sqlite3" <<'PY' || { echo "FAIL: could not add the Visitor-Archivist friendship"; exit 1; }
+import sqlite3, sys
+db = sqlite3.connect(sys.argv[1])
+ids = dict(db.execute("select username, id from users"))
+db.execute("insert into friends(user_id, friend_id) values (?, ?)", (ids["visitor"], ids["archivist"]))
+db.execute("insert into friends(user_id, friend_id) values (?, ?)", (ids["archivist"], ids["visitor"]))
+db.commit()
+PY
 
-# The party: A opens its party page (no party yet, so the only row is "Invite friends"), picks Curator, closes the Guide.
+# The party: A opens its party page (no party yet, so the only row is "Invite friends") and invites both friends from the
+# picker (Return invites the focused one), then closes the Guide.
 wait_for A "ShowParty opened" || abort "A: Guide.ShowParty did not open"
 sleep 3
 key A Return    # Invite friends
 sleep 2.5
-key A Return    # the focused friend: Curator
+key A Return    # the first friend
+key A Down
+key A Return    # the second friend
 sleep 1.5
 key A Escape; key A Escape
-# B opens its party page after its wait: row 0 is the invitation from Visitor.
-wait_for B "ShowParty opened" || abort "B: Guide.ShowParty did not open"
-sleep 3
-key B Return
-sleep 1.5
-key B Escape
-wait_for A "PartySize of Visitor: 2" || bad "A: the party never reached two members"
+# B and C open their party pages after their waits: row 0 is the invitation from Visitor.
+for n in B C; do
+  wait_for $n "ShowParty opened" || abort "$n: Guide.ShowParty did not open"
+  sleep 3
+  key $n Return
+  sleep 1.5
+  key $n Escape
+done
+wait_for A "PartySize of Visitor: 3" || bad "A: the party never reached three members"
 
 # Signing out: the Guide's Home page, whose last row (the sixth, for an account) is "Sign out".
 wait_for A "goto gs-players" || abort "A: did not reach the players room"
@@ -150,10 +166,11 @@ expect A '\[museum\]\[online\] ShowGameInvite opened' "A opened Guide.ShowGameIn
 expect B '\[museum\]\[net\] InviteAccepted: Curator, joining with JoinInvited' "B accepted the invitation on the Guide's card (NetworkSession.InviteAccepted)"
 expect B '\[museum\]\[net\] Joined: 3 gamer\(s\)' "B joined with JoinInvited and sees three gamers"
 expect A '\[museum\]\[net\] GamerJoined: Curator \(remote, private slot\)' "the invited gamer took the private slot"
-expect A '\[museum\]\[online\] SignedInGamer.PartySize of Visitor: 2' "A's party has two members (PartySize)"
-expect B '\[museum\]\[online\] SignedInGamer.PartySize of Curator: 2' "B is in A's party (PartySize)"
+expect A '\[museum\]\[online\] SignedInGamer.PartySize of Visitor: 3' "A's party has three members (PartySize)"
+expect B '\[museum\]\[online\] SignedInGamer.PartySize of Curator: 3' "B is in A's party of three (PartySize)"
+expect C '\[museum\]\[online\] SignedInGamer.PartySize of Archivist: 3' "C is in A's party of three (PartySize)"
 expect A '\[museum\]\[players\] SignedInGamer.SignedOut: Visitor' "signing out in the Guide raised SignedInGamer.SignedOut"
 [ "${used:-0}" = 1 ] && ok "the service marked Curator's invitation used while the session ran" || bad "the service held ${used:-no} used invitation(s) for Curator, expected 1"
 members=$(sqlite3 "$dir/service.sqlite3" "select count(*) from party_members" 2> /dev/null)
-[ "${members:-0}" = 2 ] && ok "the service holds a party of two" || bad "the service holds ${members:-no} party member(s), expected 2"
+[ "${members:-0}" = 3 ] && ok "the service holds a party of three" || bad "the service holds ${members:-no} party member(s), expected 3"
 finish

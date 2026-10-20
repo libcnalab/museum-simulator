@@ -198,11 +198,11 @@ public:
                 spatial_ = std::make_unique<SoundEffectInstance>(effects_[0]->CreateInstance());
                 spatial_->setIsLoopedProperty(true);
                 // As in XNA, a 3D voice gets Apply3D before Play: Apply3D on an instance already playing without 3D throws.
-                AudioEmitter emitter;
-                emitter.setPositionProperty(R().ToWorld(0.0f, 1.2f, 0.0f) + Off(radius_, 0, 0));
-                AudioListener listener;
-                listener.setPositionProperty(R().ToWorld(0.0f, 1.2f, 0.0f));
-                spatial_->Apply3D(listener, emitter);
+                AudioEmitter startEmitter;
+                startEmitter.setPositionProperty(R().ToWorld(0.0f, 1.2f, 0.0f) + Off(radius_, 0, 0));
+                AudioListener startListener;
+                startListener.setPositionProperty(R().ToWorld(0.0f, 1.2f, 0.0f));
+                spatial_->Apply3D(startListener, startEmitter);
                 spatial_->Play();
             } else if (mode_ == Mode::Music) {
                 songToken_ = MediaPlayer::ActiveSongChanged.Add([this](System::Object*, const System::EventArgs&) { ++songEvents_; Museum::Log("audio", "MediaPlayer.ActiveSongChanged (%d)", songEvents_); });
