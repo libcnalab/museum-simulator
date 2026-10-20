@@ -88,7 +88,23 @@ where filtering makes an exact value meaningless. Rooms: geometry and coverage, 
 interpolation/lighting/fog, sampling, render targets, camera matrices, stock effects. The *Depth* room also reports (as
 information, not pass/fail) the smallest depth gap the renderer resolves at 100 m.
 
-Result refreshed on 2026-10-16 after CNA `83c7b324c`
+Latest result: the final battery of 2026-10-20/21 (`tools/renderer_check.sh`; the compiled-effects rows come from the
+build-probe tree, which builds every `CNA_<RENDERER>_COMPILED_EFFECTS` option; `-gpu` is the machine's radeonsi/RADV GPU
+without a display):
+
+| Renderer | Pass | Fail | Info | Skip | Notes |
+|---|---|---|---|---|---|
+| OPENGLES3, OPENGL33 (llvmpipe and GPU) | 103 | 0 | 2 | 1 | the skip is compiled XNA effects, off in `build/` |
+| SOFTWARE | 103 | 0 | 2 | 1 | 104 / 0 / 2 / 0 with `CNA_SOFTWARE_COMPILED_EFFECTS` (build-probe) |
+| FNA3D | 81 | 0 | 2 | 23 | on the GPU 78 / 0 / 3 / 23; its SDL_GPU (Vulkan) backend crashed once in four runs (`docs/CNA_FINDINGS.md`) |
+| WEBGPU (lavapipe and GPU through Weston) | 82 | 1 | 2 | 21 | the fail: PbrEffect metallic (`docs/CNA_FINDINGS.md`) |
+| SDL_GPU (lavapipe and GPU) | 101 | 0 | 3 | 0 | |
+| HEADLESS | 7 | 0 | 0 | 36 | no readback: one SKIP per room with its cause |
+| WEBGL2 in Chrome | 99 | 0 | - | - | `tools/web_tour.sh` |
+| OPENGLES3 on the Android emulator | 98 | 1 | - | - | the fail: Float16RenderTargets reads back NaN (`docs/CNA_FINDINGS.md`) |
+| DIRECTX9 under Wine | 99 | 0 | 3 | 2 | `tools/wine_tour.sh -p`; each of the 104 checks appears twice in that press-all log, counted once here |
+
+Historical, kept as it was recorded: the result refreshed on 2026-10-16 after CNA `83c7b324c`
 (CNA at the commit shown by `git -C ../cna log -1`; the SOFTWARE renderer is flagged Experimental by CNA):
 
 | Renderer | Checks | Pass | Fail | Info | Skip |
@@ -156,7 +172,7 @@ WINEPREFIX=$HOME/.cache/museum-wine SDL_VIDEODRIVER=windows CNA_GRAPHICS_RENDERE
 
 The Windows tree is configured with `-DMUSEUM_NETWORKING=OFF` (and therefore `-DMUSEUM_C_API=OFF`: CNA's C API exports the GamerServices routes): CNA's GamerServices needs libcurl, which the MinGW sysroot does not have, so the Players and Networking rooms there say they are not built in (the Avatars, Leaderboards and Net rooms are Linux-only for now). The content pipeline room (`MUSEUM_PIPELINE`) does build and run under Wine.
 
-Latest (2026-10-20, 320 rooms, `tools/wine_tour.sh -p`, which runs this recipe and records the profile `wine-<renderer>-tour`): under Wine both renderers tour every room with every control operated and reach final stats with 0 exhibit and 0 script errors, SOFTWARE in 2,031 s and DIRECTX9 (Wine's Direct3D on llvmpipe) in 89 s, where the floor 9 rooms log 198 self-check PASS lines and no FAIL. These are Wine results; no real Windows machine has run the museum.
+Latest (2026-10-20, 320 rooms, `tools/wine_tour.sh -p`, which runs this recipe and records the profile `wine-<renderer>-tour`): under Wine both renderers tour every room with every control operated and reach final stats with 0 exhibit and 0 script errors, SOFTWARE in 2,031 s and DIRECTX9 (Wine's Direct3D on llvmpipe) in 89 s, whose floor 9 checks give 99 PASS, 0 FAIL, 3 INFO and 2 SKIP (each check appears twice in the press-all log). These are Wine results; no real Windows machine has run the museum.
 
 Under Wine the SOFTWARE renderer draws the lobby identically to Linux and tours all rooms with every control operated (272 rooms on 2026-10-14: exit 0, 0 exhibit errors, 1,313 s; the networking, avatar and video rooms say they are not built in on this tree; 257 rooms earlier took 1,413 s). **DIRECTX9** (Wine's Direct3D on llvmpipe OpenGL): the first tour (2026-10-14) ran without a crash but 11 rooms or stages were switched
 off by the museum's guard, all with one CNA message, `DirectX9Renderer::DrawPrimitivesEx (BasicEffect): stride N with lighting=...

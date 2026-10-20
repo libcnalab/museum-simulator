@@ -203,14 +203,14 @@ in the room when something is unavailable (for example wireframe fill on OPENGLE
 
 | Renderer | Whole museum tour | Self-checks (floor 9) | Notes |
 |---|---|---|---|
-| OPENGLES3 (default) | all rooms clean | all pass | the reference renderer; `tests/reference/OPENGLES3` |
-| OPENGL33 | all rooms clean | all pass | screenshots identical to OPENGLES3 |
-| SOFTWARE | all rooms clean (about 25 minutes under Xvfb) | all pass | CPU rasteriser; no window, so mouse look is off: use the keyboard |
-| SOFTWARE, Windows build under Wine | all rooms clean (MinGW cross build) | - | `docs/RENDERER_TESTING.md` has the recipe; found a Windows-only bug (`localtime_r`) |
-| FNA3D | all rooms clean | 63 pass, 0 fail, 1 info, 23 skipped | runs compiled XNA `.fxb` effects by default (EasyGL, WebGPU, SDL_GPU and SOFTWARE run them too when CNA is built with their `CNA_<RENDERER>_COMPILED_EFFECTS` option), including the museum's real matrix-stream instancing path and CNA's rigid/skinned PBR with IBL, double-sided materials, independent UV sets and shadow reception, plus Basic/Skinned punctual-light and shadow extensions; no custom source shaders |
-| WEBGPU (llvmpipe) | all rooms clean | all pass | takes WGSL: the shader rooms run on WGSL sources the museum carries; the MRT edge map and the shadow-map caster do not |
-| SDL_GPU (llvmpipe) | all rooms clean | all pass | takes SPIR-V: the shader rooms compile Vulkan GLSL at run time; the shadow-map caster does not |
-| WEBGL2 (Emscripten) | all rooms clean in Chrome (`tools/web_tour.sh`) | 99 pass, 0 fail | `tools/build_web.sh`; the scenarios run in the page too (`tools/web_scenarios.py`) |
+| OPENGLES3 (default) | all rooms clean, also on the machine's GPU | 103 pass, 0 fail | the reference renderer; `tests/reference/OPENGLES3` |
+| OPENGL33 | all rooms clean, also on the GPU | 103 pass, 0 fail | screenshots identical to OPENGLES3 |
+| SOFTWARE | all rooms clean (about 25 minutes under Xvfb) | 103 pass, 0 fail (104 with its compiled-effects option) | CPU rasteriser; no window, so mouse look is off: use the keyboard |
+| SOFTWARE and DIRECTX9, Windows build under Wine | all rooms and controls clean (`tools/wine_tour.sh -p`) | DIRECTX9: no fail | MinGW cross build, recipe in `docs/RENDERER_TESTING.md`; a Wine result, not a Windows one; found a Windows-only bug earlier (`localtime_r`) |
+| FNA3D | all rooms clean | 81 pass, 0 fail, 2 info, 23 skipped (on the GPU 78 pass; its Vulkan backend crashed once in four runs, a CNA finding) | runs compiled XNA `.fxb` effects by default (EasyGL, WebGPU, SDL_GPU and SOFTWARE run them too when CNA is built with their `CNA_<RENDERER>_COMPILED_EFFECTS` option), including the museum's real matrix-stream instancing path and CNA's rigid/skinned PBR with IBL, double-sided materials, independent UV sets and shadow reception, plus Basic/Skinned punctual-light and shadow extensions; no custom source shaders |
+| WEBGPU (llvmpipe, and the GPU through a private Weston) | all rooms clean | 82 pass, 1 fail (PbrEffect metallic, a CNA finding), 21 skipped | takes WGSL: the shader rooms run on WGSL sources the museum carries; the MRT edge map and the shadow-map caster do not |
+| SDL_GPU (llvmpipe and the GPU) | all rooms clean | 101 pass, 0 fail | takes SPIR-V: the shader rooms compile Vulkan GLSL at run time; the shadow-map caster does not |
+| WEBGL2 (Emscripten) | all rooms clean in Chrome (`tools/web_tour.sh`); browser WebGPU visits 316 rooms but CNA ends the page on four | 99 pass, 0 fail | `tools/build_web.sh`; the scenarios run in the page too (`tools/web_scenarios.py`) |
 | OPENGLES3 on Android (emulator) | 319 of 320 rooms (`tools/android_run.sh`; `model-sampler` crashes the emulator itself) | 98 pass, 1 fail | `tools/build_android.sh`; the fail is a CNA capability finding |
 
 Details, the per-renderer check matrix and what was found are in [docs/RENDERER_TESTING.md](docs/RENDERER_TESTING.md).

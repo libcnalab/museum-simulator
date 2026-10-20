@@ -325,6 +325,16 @@ pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/
 - **Needed change:** declare properties in a public section (or follow `DEF_PROP` with an explicit `private:`), and check
   the other headers that place `DEF_PROP` in a private or protected section.
 
+### FNA3D's SDL_GPU (Vulkan) backend crashed once binding fragment samplers
+- **Where:** CNA's FNA3D renderer on the machine's GPU (`MUSEUM_GPU=1`, radeonsi/RADV), where FNA3D picks its SDL_GPU
+  driver: `GraphicsDevice::DrawUserPrimitives` → `SDLGPU_DrawPrimitives` → `SDLGPU_INTERNAL_BindDeferredState` →
+  SDL's `VULKAN_BindFragmentSamplers`, SIGSEGV (core dumped), in rv-effects' punctual-lights probe right after rv-formats.
+- **What happens:** once in four runs of `MUSEUM_GPU=1 BUILD_DIR=build-probe tools/renderer_check.sh FNA3D` on 2026-10-20
+  (the final battery: exit 139 after 60 checks); the next three runs of the same command, and rv-effects alone, finished
+  cleanly (78 PASS, 0 FAIL; 81 with `FNA3D_FORCE_DRIVER=OpenGL`). On llvmpipe FNA3D uses OpenGL and has not crashed.
+- **Needed change:** find the sampler binding that outlives its texture or sampler in FNA3D's SDL_GPU driver as CNA wires
+  it (the deferred state is bound at draw time, after rv-formats created and released many textures).
+
 ### Native C API
 The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
 that the room starts as a child process because a process hosts one game) check every C header family against the

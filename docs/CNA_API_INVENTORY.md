@@ -9,13 +9,13 @@ and build-time content pipeline APIs, plus the native C ABI. Paths containing `I
 `Detail` (case-insensitive) are excluded unless a reviewed public facade exports declarations
 physically defined there.
 
-CNA revision: `f3212655a4c789520d7a76bd931e521e97ba79a1` (`v0.1.0-609-gf3212655a-dirty`)
+CNA revision: `ee92c1eaa95ffad3aec1aa0c9d4c77c0e4fb8407` (`v0.1.0-619-gee92c1eaa`)
 
-Public-header SHA-256: `9d843487294267d1a2c7e0b2dec5f90de741f9530580b9fa1e8f44a16b019c9e`
+Public-header SHA-256: `30820b243782ee2e46d6709723fd1d73603049bdf2e0cd42857cd4cd8e397336`
 
 Doxygen: `1.9.8`
 
-Snapshot: **699 headers**, **19855 declarations** (**12945 C++**, **6910 C**), **226 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
+Snapshot: **699 headers**, **19856 declarations** (**12946 C++**, **6910 C**), **226 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
 The snapshot also records **71 public declarations whose signatures still reference internal/detail types**; these declarations remain in the denominator, while the referenced internal types do not.
 One reviewed detail header is included through its public `IntermediateSerializer.hpp` facade.
 
@@ -26,7 +26,7 @@ The complete deterministic JSON is generated in
 |---|---:|---:|---:|
 | `audio` | 22 | 11 | 321 |
 | `c-api` | 60 | 0 | 6910 |
-| `content` | 56 | 47 | 1549 |
+| `content` | 56 | 47 | 1550 |
 | `content-pipeline` | 101 | 6 | 2250 |
 | `core` | 15 | 10 | 128 |
 | `design` | 14 | 2 | 83 |
