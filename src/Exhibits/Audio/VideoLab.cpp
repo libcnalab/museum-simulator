@@ -98,11 +98,14 @@ public:
             pausedByLeaving_ = false;
         }
         try {
+            const std::string previous = state_;
             switch (player_->getStateProperty()) {
                 case Media::MediaState::Playing: state_ = "Playing"; break;
                 case Media::MediaState::Paused: state_ = "Paused"; break;
                 default: state_ = "Stopped"; break;
             }
+            // Each transition is logged, so a script can wait for a video ending by itself instead of counting frames.
+            if (previous != "-" && previous != state_) Museum::Log("video", "state changed: %s -> %s", previous.c_str(), state_.c_str());
             if (video_) {
                 char buf[96];
                 std::snprintf(buf, sizeof buf, "%.1f / %.1f s", player_->getPlayPositionProperty().getTotalSecondsProperty(), video_->getDurationProperty().getTotalSecondsProperty());

@@ -1,6 +1,6 @@
 {
   "description": "VideoPlayer: play, the picture follows PlayPosition, pause holds the position, resume, stop, and a non-looped video ending by itself",
-  "script": "goto:au-video;wait:30;press:VideoPlayer.Play(video);wait:60;press:Log the player's state;press:Check that the picture follows PlayPosition;wait:30;press:Check that the picture follows PlayPosition;press:VideoPlayer.Pause;wait:5;press:Log the player's state;wait:40;press:Log the player's state;press:VideoPlayer.Resume;wait:40;press:Log the player's state;press:VideoPlayer.Stop;wait:5;press:Log the player's state;press:VideoPlayer.IsLooped=0;press:VideoPlayer.Play(video);wait:400;press:Log the player's state;stats;quit",
+  "script": "goto:au-video;wait:30;press:VideoPlayer.Play(video);wait:60;press:Log the player's state;press:Check that the picture follows PlayPosition;wait:30;press:Check that the picture follows PlayPosition;press:VideoPlayer.Pause;wait:5;press:Log the player's state;wait:40;press:Log the player's state;press:VideoPlayer.Resume;wait:40;press:Log the player's state;press:VideoPlayer.Stop;wait:5;press:Log the player's state;press:VideoPlayer.IsLooped=0;press:VideoPlayer.Play(video);await:state changed: Playing -> Stopped,6000;press:Log the player's state;stats;quit",
   "expectRegex": [
     "\\[museum\\]\\[video\\] state Playing, position [0-9.]+ / [0-9.]+ s, frames [1-9][0-9]*",
     "\\[museum\\]\\[video\\] state Paused, position ([0-9.]+) / [0-9.]+ s, frames [0-9]+\\n(.*\\n)*\\[museum\\]\\[video\\] state Paused, position \\1 / ",
