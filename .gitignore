@@ -19,3 +19,6 @@ compile_commands.json
 # Android: Gradle project state and local SDK path
 /android/.gradle/
 /android/local.properties
+
+# Execution evidence: the run logs are hashed in audit/execution_evidence.json and must be tracked
+!audit/runs/*.log

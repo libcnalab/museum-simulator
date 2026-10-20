@@ -1,0 +1,38 @@
+[museum][script] goto pl-diagnostics
+[museum][achievement] awarded first-steps to Visitor
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto cx-stats
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto pf-dashboard
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto pf-state
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto pf-targets
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto pl-exceptions
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto tex-io
+[museum][textures] image round trip (PNG, 128 px, decode mode 0): 29989 bytes (raw 65536), 45.8%, bit-exact: mean error 0.00, worst 0
+[museum][script] pressall: 1 panel(s) exercised
+[museum][textures] image round trip (PNG, 64 px, decode mode 0): 12557 bytes (raw 16384), 76.6%, decoded 64 x 64
+[museum][script] goto ct-resource
+[museum][content] ResourceContentManager.Load<Texture2D>("unlisted"): ResourceContentManager: the resource 'unlisted' could not be found.
+[museum][content] ResourceContentManager(services).Load<Texture2D>("picture"): ResourceContentManager: this manager was constructed without a ResourceManager, so it has no resource family to read 'picture' from.
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto text-hud
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto ct-compiler
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto model-cameras
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto model-ibl
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto model-material
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto rt-formats
+[museum][script] pressall: 1 panel(s) exercised
+[museum][script] goto app-gametime
+[museum][script] pressall: 1 panel(s) exercised
+[museum][app] Update after the stall: ElapsedGameTime 0.0 ms
+[museum][stats] built 8 loaded 2 (lifetime built 115 destroyed 107) triangles 24468  textures 51  frame 391  fps 50  interactables 36 + 69 panel controls in 28 loaded cells  visited 15  floor 1  exhibit errors 0
+[museum][app] Game.Exiting raised: the museum is shutting down

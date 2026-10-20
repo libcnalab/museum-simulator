@@ -1,0 +1,15 @@
+[museum][script] goto tex-io
+[museum][textures] image round trip (PNG, 128 px, decode mode 0): 29989 bytes (raw 65536), 45.8%, bit-exact: mean error 0.00, worst 0
+[museum][achievement] awarded first-steps to Visitor
+[museum][script] press 'Encoder': done
+[museum][textures] image round trip (JPEG, 128 px, decode mode 0): 42482 bytes (raw 65536), 64.8%, differs: mean error 13.76, worst 255
+[museum][script] press 'FromStream': done
+[museum][textures] image round trip (JPEG, 128 px, decode mode 1): 42482 bytes (raw 65536), 64.8%, decoded 48 x 48
+[museum][script] press 'Encoder': done
+[museum][textures] image round trip (PNG, 128 px, decode mode 1): 29989 bytes (raw 65536), 45.8%, decoded 48 x 48
+[museum][script] press 'FromStream': done
+[museum][textures] image round trip (PNG, 128 px, decode mode 2): 29989 bytes (raw 65536), 45.8%, decoded 96 x 48
+[museum][script] press 'FromStream': done
+[museum][textures] image round trip (PNG, 128 px, decode mode 0): 29989 bytes (raw 65536), 45.8%, bit-exact: mean error 0.00, worst 0
+[museum][stats] built 8 loaded 2 (lifetime built 15 destroyed 7) triangles 20522  textures 45  frame 77  fps 50  interactables 13 + 5 panel controls in 6 loaded cells  visited 1  floor 3  exhibit errors 0
+[museum][app] Game.Exiting raised: the museum is shutting down

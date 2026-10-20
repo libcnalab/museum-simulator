@@ -125,6 +125,9 @@ def load_scenarios() -> dict[str, str]:
         steps = [step for step in script.split(";") if step]
         rooms = [step[5:] for step in steps if step.startswith("goto:")]
         if len(rooms) == 1 and steps[0].startswith("goto:") and steps[-2:] == ["stats", "quit"] and rooms[0] not in scripts:
+            # A scenario that only visits (its room checks on arrival) still sweeps the panels, as the default script does.
+            if not any(step.startswith("press") for step in steps):
+                script = ";".join(steps[:-2] + ["pressall", "wait:4", "stats", "quit"])
             scripts[rooms[0]] = script
     return scripts
 

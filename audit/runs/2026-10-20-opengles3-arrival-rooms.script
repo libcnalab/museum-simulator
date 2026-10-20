@@ -1,0 +1,1 @@
+goto:wk-meshhelper;wait:30;pressall;wait:4;stats;quit;goto:wk-processor;wait:30;pressall;wait:4;stats;quit;goto:rv-vertextype;wait:30;pressall;wait:4;stats;quit

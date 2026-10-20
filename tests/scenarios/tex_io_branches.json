@@ -1,0 +1,8 @@
+{
+  "description": "Texture2D.SaveAsJpeg and FromStream's decode modes: a lossy JPEG round trip and a PNG decoded to a requested size",
+  "script": "goto:tex-io;wait:20;press:Encoder=1;wait:10;press:FromStream=1;wait:10;press:Encoder=0;wait:10;press:FromStream=2;wait:10;press:FromStream=0;wait:10;stats;quit",
+  "expect": [
+    "[museum][textures] image round trip (JPEG, 128 px, decode mode 0): 42482 bytes (raw 65536), 64.8%, differs: mean error 13.76, worst 255",
+    "[museum][textures] image round trip (PNG, 128 px, decode mode 2): 29989 bytes (raw 65536), 45.8%, decoded 96 x 48"
+  ]
+}

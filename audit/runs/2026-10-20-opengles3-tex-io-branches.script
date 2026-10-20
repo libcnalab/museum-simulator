@@ -1,0 +1,1 @@
+goto:tex-io;wait:20;press:Encoder=1;wait:10;press:FromStream=1;wait:10;press:Encoder=0;wait:10;press:FromStream=2;wait:10;press:FromStream=0;wait:10;stats;quit
