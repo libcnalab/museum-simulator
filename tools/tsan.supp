@@ -4,3 +4,7 @@
 # remain instrumented and are not suppressed.
 race:libglib-2.0.so
 race:libgio-2.0.so
+# Mesa's Gallium driver (llvmpipe/radeonsi) is not instrumented either: two reports with only
+# libgallium frames appeared in the 2026-10-20 TSan tour of the audio, notification, Inspector and
+# network rooms. Museum and CNA frames stay instrumented and unsuppressed.
+race:libgallium-*.so

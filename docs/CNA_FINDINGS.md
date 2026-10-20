@@ -259,6 +259,23 @@ Measured by the `ct-storage` button "Error paths and async results, checked agai
   the expected bit today, so no packet was lost, but the compiler may assume it never happens.
 - **Needed change:** `1u << (index % 32)` in both places.
 
+### Data races found by ThreadSanitizer (build-tsan, 2026-10-20)
+Seen in the targeted TSan run (`tools/scenarios.py notifications inspector`, a 30-frame press-all tour of the au-*, dev-notify,
+pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/net_check.sh`; the network rounds were clean).
+- **`HttpNotificationChannel::Close` and its listener thread:** `Close()` (`modules/phone/src/HttpNotificationChannel.cpp:223`)
+  writes `listenSocket_ = -1` under the channel mutex while the listener thread started by `Open()` reads `listenSocket_` for
+  `::accept` in `Listen()` (line 180) without it (dev-notify, "Close, then send to the closed channel"). Needed: the listener works on the socket
+  value it was started with (or `listenSocket_` becomes atomic), and `Close` only shuts it down and joins.
+- **`SetMixerTrackMixCallback` against the mixer thread:** `context->mixCallback` and `mixUserdata`
+  (`modules/audio/src/Backend/Sdl3Mixer/MixerEngine.cpp:559-560`) are written by the game thread
+  (`SoundEffectInstance::Apply3D` → `INTERNAL_applyComposedTrackProperties` → `EnsureTrackDspState`) while SDL's audio thread
+  reads them in `MixCallback` (line 245) for a track that is already playing (every au-* room with 3D voices, 12 reports per
+  audio_check run). Needed: write them under the mixer lock the cooked callback runs under, or set them before the track plays.
+- **Static teardown of pending pan state while the audio thread still mixes:** at process exit `~PendingPanStateCleanup`
+  (`modules/audio/src/Xna/SoundEffect.cpp:236`, `DrainClaimed` line 218) deletes pending pan states while the SDL audio thread
+  still runs `FireAndForgetPanCallback` (line 154) through `MixCallback` (seen at the end of the notifications and Inspector
+  scenarios, which played fire-and-forget sounds). Needed: stop or lock the mixer before the static drain.
+
 ### Native C API
 The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
 that the room starts as a child process because a process hosts one game) check every C header family against the

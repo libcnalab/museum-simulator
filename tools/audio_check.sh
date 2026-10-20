@@ -116,9 +116,18 @@ silence, rate = load("silence")
 if silence is None:
     report(False, "silence: no audio output was written")
 else:
-    tail = silence[len(silence) // 2 :]   # after MasterVolume was set to 0, with chirps played throughout
+    # The room is audible from its start until MasterVolume reaches 0; how long that lasts depends on the build's speed (a
+    # sanitizer build takes seconds over the first frames). The measured stretch starts after the first half second of silence
+    # that follows the audible start, runs to the end and must be long enough to hold the six chirps played after the change.
+    loud = np.abs(silence) >= 1e-4
+    window = rate // 2
+    start = int(np.argmax(loud)) if loud.any() else 0
+    quiet = np.convolve(loud[start:].astype(np.int32), np.ones(window, dtype=np.int32), mode="valid") == 0
+    begin = start + int(np.argmax(quiet)) if quiet.any() else len(silence)
+    tail = silence[begin:]
     loudest = float(np.max(np.abs(tail))) if len(tail) else 1.0
-    report(loudest < 1e-4, f"silence: with MasterVolume 0 the output is silent, chirp included (peak {loudest:.2e} over the last {len(tail) / rate:.1f} s)")
+    report(len(tail) >= 4 * rate and loudest < 1e-4,
+           f"silence: with MasterVolume 0 the output is silent, chirp included (peak {loudest:.2e} over the last {len(tail) / rate:.1f} s, from {begin / rate:.1f} s)")
 # Pan -1 puts the chirp in the left channel, +1 in the right (XNA's SoundEffect.Play pan). The ratio is taken over the
 # loudest half second.
 for name, louder, quieter in (("panleft", 0, 1), ("panright", 1, 0)):
