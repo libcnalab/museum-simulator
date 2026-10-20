@@ -165,11 +165,17 @@ def source_hashes() -> dict[str, str]:
 
 def require_current_binary(build_dir: pathlib.Path) -> None:
     """The binary must be what the working tree builds now: the line numbers are read against these sources."""
-    if not (build_dir / "build.ninja").is_file():
-        raise RuntimeError(f"{build_dir} is not a Ninja tree; cannot prove the binary matches the sources")
-    dry = subprocess.run(["ninja", "-C", str(build_dir), "-n", "cna-3d-museum"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, check=False)
-    if dry.returncode != 0 or "no work to do" not in dry.stdout:
-        raise RuntimeError(f"{build_dir}/bin/cna-3d-museum is older than the sources; rebuild it first")
+    binary = build_dir / "bin" / "cna-3d-museum"
+    if not binary.is_file():
+        raise RuntimeError(f"{binary} is not built")
+    # Ninja cannot answer this with a dry run here: the sources are globbed with CONFIGURE_DEPENDS, whose check is an
+    # always-dirty edge a dry run cannot execute, so it always reports a CMake re-run and never looks at the objects.
+    # The binary must instead be newer than every file it is built from (the same set source_hashes() records); CNA's
+    # state is recorded separately by its binary hash.
+    built = binary.stat().st_mtime
+    newer = [path for path in [*(ROOT / "src").rglob("*"), ROOT / "CMakeLists.txt"] if path.is_file() and path.stat().st_mtime > built]
+    if newer:
+        raise RuntimeError(f"{binary} is older than the sources ({newer[0].relative_to(ROOT)} and {len(newer) - 1} more); rebuild it first")
 
 
 def museum_lines(text: str) -> list[str]:
@@ -193,10 +199,11 @@ def run(arguments: argparse.Namespace) -> int:
     library = build_dir / "cna" / "libcna.so"
     if cache_value(build_dir, "MUSEUM_COVERAGE") != "ON":
         raise RuntimeError(f"{arguments.build_dir} is not configured with -DMUSEUM_COVERAGE=ON")
+    require_current_binary(build_dir)
+    reset_counters(build_dir)   # before the binary runs at all: counters left by an older build have other checksums
     rooms = arguments.rooms or subprocess.run(
         [str(binary), "--list-rooms"], stdout=subprocess.PIPE, text=True, check=True
     ).stdout.split()
-    require_current_binary(build_dir)
     # Provenance is taken before the first room runs and checked again at the end, so edits made during a long run
     # cannot be recorded as the sources of this binary.
     sources_at_start = source_hashes()
