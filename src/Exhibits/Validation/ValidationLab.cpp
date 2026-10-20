@@ -276,7 +276,7 @@ private:
         try {
             rt.GetData(img.px.data(), static_cast<int>(img.px.size()));
         } catch (const std::exception& e) {
-            Museum::Log("validate", "readback failed: %s", e.what());
+            Museum::Log("render", "readback failed: %s", e.what());
             readback_ = false;
             return std::nullopt;
         }
@@ -346,6 +346,17 @@ private:
         if (!d.SupportsCapability(CNA::GraphicsCapability::ThreeD)) {
             Skip("3D pipeline", "this renderer has no 3D pipeline");
             return;
+        }
+        // Every pixel check reads a render target back. A renderer that refuses that (HEADLESS rasterises nothing, and no
+        // capability says so beforehand: docs/CNA_FINDINGS.md) gets one SKIP naming the cause instead of silent rooms.
+        {
+            RenderTarget2D& probe = Target(d, false);
+            Begin(d, probe, Color(0, 0, 0, 255));
+            if (!End(d, probe) && mode_ != Mode::Capabilities && mode_ != Mode::Formats) {   // those two read no render target back for most checks
+                Skip("render-target readback", "this renderer cannot read a render target back, so no pixel check can run here");
+                d.setViewportProperty(savedViewport);
+                return;
+            }
         }
         try {
             switch (mode_) {
@@ -720,7 +731,7 @@ private:
                 try {
                     st.GetData(img.px.data(), static_cast<int>(img.px.size()));
                 } catch (const std::exception& e) {
-                    Museum::Log("validate", "readback failed: %s", e.what());
+                    Museum::Log("render", "readback failed: %s", e.what());
                     readback_ = false;
                     return std::optional<Image>();
                 }
@@ -1240,7 +1251,9 @@ private:
         }
         d.SetRenderTarget(nullptr);
         d.setRasterizerStateProperty(RasterizerState::CullNone);
-        if (info.support == CNA::RendererFeatureSupport::Supported)
+        if (info.support == CNA::RendererFeatureSupport::Supported && !worked && !readback_)
+            Skip(name + " (" + support + ")", "cannot be verified: this renderer cannot read a render target back");
+        else if (info.support == CNA::RendererFeatureSupport::Supported)
             Add(name + " (" + support + ")", "the operation works", outcome.substr(0, 90), worked, std::nullopt);
         else if (info.support == CNA::RendererFeatureSupport::Unsupported)
             Add(name + " (" + support + ")", "the operation refuses", outcome.substr(0, 90), !worked, std::nullopt);

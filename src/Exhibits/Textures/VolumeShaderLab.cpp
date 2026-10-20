@@ -135,6 +135,11 @@ public:
             dummy_ = std::make_unique<Texture2D>(d, 1, 1, false, SurfaceFormat::Color);
             const Color white = Kit::Rgba(255, 255, 255);
             dummy_->SetData(&white, 1);
+            if (!d.SupportsCapability(CNA::GraphicsCapability::Texture3D)) {
+                notRun_ = "this renderer stores no real volume textures (GraphicsCapability.Texture3D is false)";
+                supported_ = false;
+                return;
+            }
             volume_ = std::make_unique<Texture3D>(d, kSize, kSize, kSize, false, SurfaceFormat::Color);
             std::vector<Color> texels(static_cast<std::size_t>(kSize) * kSize * kSize);
             for (int z = 0; z < kSize; ++z)
@@ -244,7 +249,7 @@ private:
             Museum::Log("check", "%s %s: %s (expected %s, got %s)", R().key.c_str(), name.c_str(), expected == got ? "PASS" : "FAIL", expected.c_str(), got.c_str());
         };
         if (!volume_) {
-            Museum::Log("check", "%s volume checks: SKIP (the volume could not be made)", R().key.c_str());
+            Museum::Log("check", "%s volume checks: SKIP (%s)", R().key.c_str(), notRun_.c_str());
             return;
         }
         const auto level = [](int v) { return v * 255 / (kSize - 1); };
