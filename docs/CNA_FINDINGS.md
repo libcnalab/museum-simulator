@@ -250,6 +250,15 @@ Measured by the `ct-storage` button "Error paths and async results, checked agai
     `PathUtils.SafeDeleteFile(CacheFilename)`). Needed: the clean removes the lock file after releasing it (or the lock
     lives under the intermediate directory).
 
+### Vendored ENet shifts a signed 1 by 31 places (UBSan)
+- **Where:** `third_party/enet/protocol.c`, `enet_protocol_handle_send_unsequenced`: `1 << (index % 32)` at lines 492
+  and 498, on the `enet_uint32` unsequenced window.
+- **What happens:** with an unsequenced packet whose window index is 31 the shift is undefined behaviour in C
+  (`runtime error: left shift of 1 by 31 places cannot be represented in type 'int'`, 9 times each in the
+  ASan+UBSan `tools/net_check.sh` run on 2026-10-20, packet round with `SendDataOptions.None`). GCC and Clang produce
+  the expected bit today, so no packet was lost, but the compiler may assume it never happens.
+- **Needed change:** `1u << (index % 32)` in both places (upstream ENet later changed these to unsigned shifts).
+
 ### Native C API
 The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
 that the room starts as a child process because a process hosts one game) check every C header family against the

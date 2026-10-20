@@ -36,7 +36,9 @@ record() {   # record NAME "ROOM;SCRIPT" [MUSEUM ARGS]: one museum run whose aud
 
 s1=$(record bell "au-generate;wait:30;press:Sound=2;wait:5;press:Play it;wait:150;stats;quit")
 s2=$(record sine "au-synth;wait:30;press:Octave=4;press:Waveform=0;press:Note A;wait:120;stats;quit")
-s3=$(record silence "au-master;wait:20;press:SoundEffect.MasterVolume=0;wait:10;press:Play a test chirp;wait:150;stats;quit")
+# Six chirps spread over a post-volume stretch longer than the audible start, so the analysed second half falls after the
+# change and still holds chirps however slowly the build runs (a sanitizer build takes seconds over the first 20 frames).
+s3=$(record silence "au-master;wait:20;press:SoundEffect.MasterVolume=0;wait:40;press:Play a test chirp;wait:40;press:Play a test chirp;wait:40;press:Play a test chirp;wait:40;press:Play a test chirp;wait:40;press:Play a test chirp;wait:40;press:Play a test chirp;wait:40;wait:40;stats;quit")
 s4=$(record microphone "au-mic;wait:30;press:Start / stop capture;wait:200;press:Start / stop capture;wait:10;stats;quit")
 s5=$(record panleft "au-basics;wait:30;press:Pan (left .. right)=-1;press:Play chirp;wait:80;stats;quit")
 s6=$(record panright "au-basics;wait:30;press:Pan (left .. right)=1;press:Play chirp;wait:80;stats;quit")
@@ -114,7 +116,7 @@ silence, rate = load("silence")
 if silence is None:
     report(False, "silence: no audio output was written")
 else:
-    tail = silence[len(silence) // 2 :]   # well after MasterVolume was set to 0 and the chirp was played
+    tail = silence[len(silence) // 2 :]   # after MasterVolume was set to 0, with chirps played throughout
     loudest = float(np.max(np.abs(tail))) if len(tail) else 1.0
     report(loudest < 1e-4, f"silence: with MasterVolume 0 the output is silent, chirp included (peak {loudest:.2e} over the last {len(tail) / rate:.1f} s)")
 # Pan -1 puts the chirp in the left channel, +1 in the right (XNA's SoundEffect.Play pan). The ratio is taken over the
