@@ -48,8 +48,10 @@ MuseumGame::MuseumGame(const MuseumOptions& options) : options_(options), graphi
     // The build compiles the CPU zones and event timeline in (CNA_DIAGNOSTICS=FULL); recording starts at the counters-only level so the
     // visitor pays for the timeline only in the rooms that switch it on.
     (void)CNA::Diagnostics::SetRuntimeMode(CNA::Diagnostics::Mode::Stats);
-    // HiDef: render-target readback (signs, screenshots), 32-bit indices and larger textures.
-    graphics_.setGraphicsProfileProperty(GraphicsProfile::HiDef);
+    // HiDef (render-target readback for signs and screenshots, 32-bit indices, larger textures) is the project profile
+    // declared in Main.cpp, as an XNA project declares it; the device manager starts with it, so nothing sets it here.
+    services_.startupWindowTitle = getWindowProperty().getTitleProperty();
+    services_.startupGraphicsProfile = static_cast<int>(graphics_.getGraphicsProfileProperty());
     graphics_.setPreferredBackBufferWidthProperty(options.width);
     graphics_.setPreferredBackBufferHeightProperty(options.height);
     graphics_.setPreferredDepthStencilFormatProperty(DepthFormat::Depth24Stencil8);
@@ -57,7 +59,6 @@ MuseumGame::MuseumGame(const MuseumOptions& options) : options_(options), graphi
     graphics_.setSynchronizeWithVerticalRetraceProperty(options.vsync);
     // The simulation uses real elapsed time, clamped, so frame pacing is left to vertical sync.
     setIsFixedTimeStepProperty(false);
-    getWindowProperty().setTitleProperty("CNA 3D Museum");
     getWindowProperty().setAllowUserResizingProperty(true);
     // Game.Exiting is raised once, as the loop ends; the log line is the evidence (and the lifecycle room says where to look).
     Exiting.Add([](System::Object*, const System::EventArgs&) { Museum::Log("app", "Game.Exiting raised: the museum is shutting down"); });
@@ -688,11 +689,20 @@ void MuseumGame::SaveScreenshot(const std::string& path)
 //   time:H          set the museum clock to hour H (0..24)
 //   press:LABEL[=V] operate the control-panel row whose label contains LABEL (slider value V)
 //   shot:FILE       save a screenshot        quit            exit
+//   await:TEXT[,N]  wait until a museum log line containing TEXT is logged (at most N frames, default 3000; then a script error)
 void MuseumGame::RunScript()
 {
     if (scriptWait_ > 0) {
         --scriptWait_;
         return;
+    }
+    if (awaitFrames_ > 0) {
+        if (Museum::LoggedSince(awaitAfter_, awaitText_)) {
+            awaitFrames_ = 0;
+        } else {
+            if (--awaitFrames_ == 0) ScriptError("await: no line with '" + awaitText_ + "' was logged in time");
+            return;
+        }
     }
     while (scriptIndex_ < scriptSteps_.size()) {
         const std::string step = scriptSteps_[scriptIndex_++];
@@ -701,6 +711,14 @@ void MuseumGame::RunScript()
         const std::string arg = colon == std::string::npos ? std::string() : step.substr(colon + 1);
         if (op == "wait") {
             scriptWait_ = std::atoi(arg.c_str());
+            return;
+        } else if (op == "await") {
+            // await:TEXT[,FRAMES]: wait until a log line containing TEXT is logged from now on (default at most 3000 frames).
+            const std::size_t comma = arg.rfind(',');
+            const bool limited = comma != std::string::npos && comma + 1 < arg.size() && arg.find_first_not_of("0123456789", comma + 1) == std::string::npos;
+            awaitText_ = limited ? arg.substr(0, comma) : arg;
+            awaitFrames_ = limited ? std::max(1, std::atoi(arg.c_str() + comma + 1)) : 3000;
+            awaitAfter_ = Museum::LogSequence();
             return;
         } else if (op == "goto") {
             if (const RoomDef* r = museum_->FindByKey(arg)) {

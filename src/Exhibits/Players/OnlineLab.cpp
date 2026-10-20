@@ -67,6 +67,7 @@ public:
                 p.AddButton("Guide.ShowGamerCard(first friend)", [this] { WithFriend("ShowGamerCard", [](FriendGamer* f) { Guide::ShowGamerCard(PlayerIndex::One, f); }); });
                 p.AddButton("Guide.ShowPlayerReview(first friend)", [this] { WithFriend("ShowPlayerReview", [](FriendGamer* f) { Guide::ShowPlayerReview(PlayerIndex::One, f); }); });
                 p.AddButton("Guide.ShowFriendRequest(first friend)", [this] { WithFriend("ShowFriendRequest", [](FriendGamer* f) { Guide::ShowFriendRequest(PlayerIndex::One, f); }); });
+                p.AddButton("Log the friends (SignedInGamer.GetFriends)", [this] { LogFriends(); });
                 p.AddReadout("GetFriends().Count", [this] { return std::to_string(friends_.size()); });
                 p.AddReadout("FriendCollection.IsDisposed", [this] { return friendCollectionState_; });
                 break;
@@ -170,6 +171,23 @@ private:
         } catch (const std::exception& e) {
             note_ = std::string(what) + ": " + std::string(e.what()).substr(0, 80);
             Museum::Log("online", "%s: %s", what, e.what());
+        }
+    }
+    // A scripted run reads the friend list the service returned from the log: gamertag and presence flags of each friend.
+    void LogFriends()
+    {
+        try {
+            SignedInGamer* g = First();
+            if (g == nullptr) throw std::runtime_error("nobody is signed in");
+            FriendCollection list = g->GetFriends();
+            std::string line;
+            for (int i = 0; i < list.getCountProperty(); ++i) {
+                FriendGamer* f = list[i];
+                line += (line.empty() ? "" : "; ") + f->getGamertagProperty() + " (online " + (f->getIsOnlineProperty() ? "yes" : "no") + ", joinable " + (f->getIsJoinableProperty() ? "yes" : "no") + ")";
+            }
+            Museum::Log("online", "friends of %s: %d: %s", g->getGamertagProperty().c_str(), static_cast<int>(list.getCountProperty()), line.empty() ? "none" : line.c_str());
+        } catch (const std::exception& e) {
+            Museum::Log("online", "friends: %s", e.what());
         }
     }
     void WithFriend(const char* what, const std::function<void(FriendGamer*)>& fn)

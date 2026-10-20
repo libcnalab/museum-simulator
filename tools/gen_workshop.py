@@ -23,6 +23,26 @@ Processor and material sources (rooms wk-processor, wk-material):
     caption.label   a second label, built as a nested asset ("caption text")
     plaque.notes    a sidecar the processor records as a dependency
 
+Build-route, incremental-build and task sources (rooms wk-routes, wk-incremental, wk-tasks):
+
+    curve.cnj       a CNA Curve document: a Step key 2.5 at position 0, 7.5 at position 2, constant loops
+    texture.cnj     a CNA Texture2D document naming plaque.png as its sidecar
+    unknown.cnj     a .cnj of type "Effect", which CNA's compiler refuses by name
+    tone8.wav       80 frames of 8-bit unsigned mono PCM at 8000 Hz, sample k = 128 + 10 * (k % 10), no loop
+    loop16.wav      40 frames of 16-bit stereo PCM at 8000 Hz (left 100 k, right -100 k) with a smpl loop over frames 10..29
+    deep24.wav      10 frames of 24-bit mono PCM, a width XNA's WavImporter refuses
+    vector.xml      XNA intermediate XML of a Vector3 (1.5, -2, 3.25)
+    workshop.xap    an XACT project header for BuildXact's validation (never compiled here)
+    workshop.contentproj  an XNA Game Studio 4.0 content project (room wk-contentproject): plaque.png (TextureImporter,
+                    TextureProcessor), tone8.wav (WavImporter, SoundEffectProcessor) and vector.xml (XmlImporter,
+                    PassThroughProcessor) as Compile items, plaque.notes as a copied None item, Windows / HiDef
+
+Animation (room wk-animation) and a reflectively written .xnb (room wk-typewriter):
+
+    arm.x           DirectX text: frames Root > Arm > Hand, AnimTicksPerSecond 10, an AnimationSet "Wave" with position keys
+                    on Arm (0, 1, 2 along +X at 0, 0.5, 1 s) and matrix keys on Hand (a 0.25 lift along +Y at 1 s)
+    reflective.xnb  a game type without a ContentTypeWriter, as XNA 4.0's ReflectiveWriter writes it (see reflective_xnb)
+
 These live in Content/Workshop rather than Content/Pipeline/Workshop: the museum's build runs cna-content over everything under
 Content/Pipeline, and that build would (rightly) refuse required.gltf and the tone.mp3/tone.wma pair sharing one asset name.
 
@@ -250,6 +270,197 @@ def sources():
     (OUT / "plaque.notes").write_text("curated in the workshop\n")
 
 
+def wav(name, bits, channels, rate, samples, loop=None):
+    """A PCM WAV: `samples` are already-encoded little-endian frame bytes; `loop` = (first, last) frame of a smpl loop,
+    last inclusive as the RIFF smpl chunk stores it."""
+    block = channels * bits // 8
+    fmt = struct.pack("<HHIIHH", 1, channels, rate, rate * block, block, bits)
+    body = b"WAVE" + b"fmt " + struct.pack("<I", len(fmt)) + fmt + b"data" + struct.pack("<I", len(samples)) + samples
+    if len(samples) % 2:
+        body += b"\x00"
+    if loop is not None:
+        # smpl: manufacturer, product, sample period, MIDI unity note, pitch fraction, SMPTE format/offset, loop count, sampler data,
+        # then one loop: cue id, type 0 (forward), start, end (inclusive), fraction, play count 0 (infinite).
+        smpl = struct.pack("<9I", 0, 0, 1000000000 // rate, 60, 0, 0, 0, 1, 0) + struct.pack("<6I", 0, 0, loop[0], loop[1], 0, 0)
+        body += b"smpl" + struct.pack("<I", len(smpl)) + smpl
+    (OUT / name).write_bytes(b"RIFF" + struct.pack("<I", len(body)) + body)
+
+
+TONE8_FRAMES = 80                                      # tone8.wav: 8-bit unsigned, mono, 8000 Hz; sample k = 128 + 10 * (k % 10)
+LOOP16_FRAMES = 40                                     # loop16.wav: 16-bit stereo 8000 Hz; left = 100 k, right = -100 k; loop frames 10..29
+
+
+def build_sources():
+    """Sources of the C06 rooms (wk-routes, wk-incremental) and the task room (wk-tasks)."""
+    # A Curve in CNA's own .cnj: a step from 2.5 to 7.5 at position 2, constant outside the keys.
+    (OUT / "curve.cnj").write_text(json.dumps({"cnjVersion": 1, "type": "Curve", "preLoop": "Constant", "postLoop": "Constant",
+                                               "keys": [{"position": 0, "value": 2.5, "continuity": "Step"}, {"position": 2, "value": 7.5}]}) + "\n")
+    # A Texture2D .cnj naming plaque.png as its sidecar (no colour key requested).
+    (OUT / "texture.cnj").write_text(json.dumps({"cnjVersion": 1, "type": "Texture2D", "sourceFile": "plaque.png"}) + "\n")
+    # A .cnj of a type CNA's compiler does not know: refused by name.
+    (OUT / "unknown.cnj").write_text(json.dumps({"cnjVersion": 1, "type": "Effect"}) + "\n")
+    wav("tone8.wav", 8, 1, 8000, bytes(128 + 10 * (k % 10) for k in range(TONE8_FRAMES)))
+    wav("loop16.wav", 16, 2, 8000, b"".join(struct.pack("<hh", 100 * k, -100 * k) for k in range(LOOP16_FRAMES)), loop=(10, 29))
+    wav("deep24.wav", 24, 1, 8000, b"".join(struct.pack("<i", 1000 * k)[:3] for k in range(10)))
+    # XNA's intermediate XML for a framework value type.
+    (OUT / "vector.xml").write_text('<?xml version="1.0" encoding="utf-8"?>\n<XnaContent>\n  <Asset Type="Microsoft.Xna.Framework.Vector3">1.5 -2 3.25</Asset>\n</XnaContent>\n')
+    # An XACT project file for BuildXact's validation (never compiled: XactBld3.exe is Microsoft's tool).
+    (OUT / "workshop.contentproj").write_text(CONTENT_PROJECT)
+    (OUT / "workshop.xap").write_text("Signature = XACT3;\nVersion = 18;\nContent Version = 46;\nRelease = February 2010;\n")
+
+
+CONTENT_PROJECT = """<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{6F7A2D1C-0000-4000-8000-00000000C0DE}</ProjectGuid>
+    <XnaFrameworkVersion>v4.0</XnaFrameworkVersion>
+    <XnaPlatform>Windows</XnaPlatform>
+    <XnaProfile>HiDef</XnaProfile>
+    <XnaCompressContent>False</XnaCompressContent>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == '' ">
+    <Configuration>Debug</Configuration>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="plaque.png">
+      <Name>plaque</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="tone8.wav">
+      <Name>tone8</Name>
+      <Importer>WavImporter</Importer>
+      <Processor>SoundEffectProcessor</Processor>
+    </Compile>
+    <Compile Include="vector.xml">
+      <Name>vector</Name>
+      <Importer>XmlImporter</Importer>
+      <Processor>PassThroughProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="plaque.notes">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
+"""
+
+
+ANIMATED_X = """xof 0303txt 0032
+// Written by tools/gen_workshop.py for the Pipeline Workshop (room wk-animation). Two frames, no mesh, one AnimationSet that
+// moves the Arm frame along +X with position keys at ticks 0, 5 and 10, at 10 ticks per second (0 s, 0.5 s, 1 s), and a
+// second animation on the Hand frame with matrix keys at ticks 0 and 10 (a lift of 0.25 along +Y).
+
+AnimTicksPerSecond {
+  10;
+}
+
+Frame Root {
+  FrameTransformMatrix {
+    1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0;;
+  }
+  Frame Arm {
+    FrameTransformMatrix {
+      1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0;;
+    }
+    Frame Hand {
+      FrameTransformMatrix {
+        1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0;;
+      }
+    }
+  }
+}
+
+AnimationSet Wave {
+  Animation {
+    { Arm }
+    AnimationKey {
+      2;
+      3;
+      0;3;0.0,0.0,0.0;;,
+      5;3;1.0,0.0,0.0;;,
+      10;3;2.0,0.0,0.0;;;
+    }
+  }
+  Animation {
+    { Hand }
+    AnimationKey {
+      4;
+      2;
+      0;16;1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0;;,
+      10;16;1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.25,0.0,1.0;;;
+    }
+  }
+}
+"""
+
+
+def seven_bit(value):
+    out = bytearray()
+    while value >= 0x80:
+        out.append((value & 0x7F) | 0x80)
+        value >>= 7
+    out.append(value)
+    return bytes(out)
+
+
+def xnb_string(text):
+    data = text.encode("utf-8")
+    return seven_bit(len(data)) + data
+
+
+GAME = ", MuseumGame, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+FRAMEWORK = ", Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553"
+
+
+def reflective_xnb():
+    """An .xnb as XNA 4.0 writes a game type that has no ContentTypeWriter of its own (room wk-typewriter): the implicit
+    ReflectiveWriter<T>, read at run time by ReflectiveReader<T>. The game's C# types:
+
+        namespace Museum.Workshop {
+            public enum Wing { North, South, East, West }
+            public class SettingsBase { public int Revision; }
+            public class Curator { public string Name; public int Years; }
+            public class ExhibitSettings : SettingsBase {
+                public string Title; public int Visitors; public float Scale; public Vector3 Position; public bool Open;
+                public Wing Wing; public TimeSpan Opening; public Color Tint; public Curator Curator; public Curator Deputy;
+            }
+        }
+
+    ReflectiveReader<T>.Read (XNA 4.0) reads the base type's members first, then T's properties, then its fields, in declaration
+    order; ReflectiveReaderMemberHelper reads a value-type member inline and a reference-type member (string, Curator) as a
+    1-based type-reader index followed by the object, 0 meaning null. The type table holds every reader the members name."""
+    readers = [
+        "Microsoft.Xna.Framework.Content.ReflectiveReader`1[[Museum.Workshop.ExhibitSettings" + GAME + "]]" + FRAMEWORK,   # 1
+        "Microsoft.Xna.Framework.Content.ReflectiveReader`1[[Museum.Workshop.SettingsBase" + GAME + "]]" + FRAMEWORK,      # 2
+        "Microsoft.Xna.Framework.Content.Int32Reader" + FRAMEWORK,                                                         # 3
+        "Microsoft.Xna.Framework.Content.StringReader" + FRAMEWORK,                                                        # 4
+        "Microsoft.Xna.Framework.Content.SingleReader" + FRAMEWORK,                                                        # 5
+        "Microsoft.Xna.Framework.Content.Vector3Reader" + FRAMEWORK,                                                       # 6
+        "Microsoft.Xna.Framework.Content.BooleanReader" + FRAMEWORK,                                                       # 7
+        "Microsoft.Xna.Framework.Content.EnumReader`1[[Museum.Workshop.Wing" + GAME + "]]" + FRAMEWORK,                    # 8
+        "Microsoft.Xna.Framework.Content.TimeSpanReader" + FRAMEWORK,                                                      # 9
+        "Microsoft.Xna.Framework.Content.ColorReader" + FRAMEWORK,                                                         # 10
+        "Microsoft.Xna.Framework.Content.ReflectiveReader`1[[Museum.Workshop.Curator" + GAME + "]]" + FRAMEWORK,           # 11
+    ]
+    body = seven_bit(len(readers)) + b"".join(xnb_string(r) + struct.pack("<i", 0) for r in readers) + seven_bit(0)
+    body += seven_bit(1)                                     # the root object: ReflectiveReader<ExhibitSettings>
+    body += struct.pack("<i", 7)                             # SettingsBase.Revision
+    body += seven_bit(4) + xnb_string("Hall of Pipelines")   # Title (string: reader index 4)
+    body += struct.pack("<i", 1234)                          # Visitors
+    body += struct.pack("<f", 0.75)                          # Scale
+    body += struct.pack("<3f", 1.5, -2.0, 3.25)              # Position
+    body += b"\x01"                                          # Open
+    body += struct.pack("<i", 2)                             # Wing.East
+    body += struct.pack("<q", 342000000000)                  # Opening: 9 h 30 min in 100 ns ticks
+    body += bytes((10, 20, 30, 255))                         # Tint: Color(10, 20, 30, 255), packed R, G, B, A
+    body += seven_bit(11) + seven_bit(4) + xnb_string("Ada") + struct.pack("<i", 12)   # Curator { Name "Ada", Years 12 }
+    body += seven_bit(0)                                     # Deputy: null
+    header = b"XNBw" + bytes((5, 0))
+    (OUT / "reflective.xnb").write_bytes(header + struct.pack("<I", len(header) + 4 + len(body)) + body)
+
+
 def media():
     if shutil.which("ffmpeg") is None:
         print("ffmpeg not found: media files not written", file=sys.stderr)
@@ -273,6 +484,9 @@ def main():
     required_and_used()
     instancing()
     sources()
+    build_sources()
+    (OUT / "arm.x").write_text(ANIMATED_X)
+    reflective_xnb()
     media()
     for path in sorted(OUT.iterdir()):
         print("%8d %s" % (path.stat().st_size, path.relative_to(HERE)))

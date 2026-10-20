@@ -28,7 +28,11 @@ fi
 [ "$mode" = capture ] && mkdir -p "$refdir"
 status=0
 for v in "${views[@]}"; do
+  rm -f "$outdir/$v.png"   # an image left from an earlier run must never be compared as this run's
   tools/shot.sh "$outdir/$v.png" --view "$v" --no-hud --time 11 --no-audio --width 640 --height 360 --fixed-step 0.02 --screenshot-frame 20 > "$outdir/$v.log" 2>&1 || { echo "FAIL  $v: the museum did not produce a screenshot (see $outdir/$v.log)"; status=1; continue; }
+  if [ ! -s "$outdir/$v.png" ] || grep -qE '\[museum\]\[(exhibit|draw|script)-error\]' "$outdir/$v.log"; then
+    echo "FAIL  $v: no fresh screenshot, or an error while rendering it ($(grep -m1 -E 'error\]' "$outdir/$v.log" | cut -c1-120); log $outdir/$v.log)"; status=1; continue
+  fi
   if [ "$mode" = capture ]; then
     # The museum's own PNG writer stores uncompressed data; recompress for the repository (pixels are unchanged).
     python3 -I -c "import sys; from PIL import Image; Image.open(sys.argv[1]).convert('RGB').save(sys.argv[2], optimize=True, compress_level=9)" "$outdir/$v.png" "$refdir/$v.png"

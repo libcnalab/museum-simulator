@@ -135,6 +135,9 @@ private:
     std::string focusPrompt_;
     bool screenshotDone_ = false;
     int scriptWait_ = 0;
+    int awaitFrames_ = 0;   // await: frames left before giving up
+    std::uint64_t awaitAfter_ = 0;
+    std::string awaitText_;
     std::string pendingShot_;
     std::vector<std::string> scriptSteps_;
     std::size_t scriptIndex_ = 0;

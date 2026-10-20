@@ -1,0 +1,9 @@
+{
+  "description": "Texture3D: storage round trip, and a volume shader in the renderer's own dialect sampling one slice texel for texel",
+  "script": "goto:tex-volshader;wait:30;press:Check: storage;wait:5;stats;quit",
+  "expect": [
+    "tex-volshader Texture3D.GetData returns what SetData stored: PASS",
+    "shader samples slice 20 texel for texel: PASS"
+  ],
+  "forbid": [": FAIL (", "volume checks: SKIP"]
+}

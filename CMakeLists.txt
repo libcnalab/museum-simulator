@@ -118,7 +118,9 @@ file(GLOB_RECURSE MUSEUM_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/
 list(REMOVE_ITEM MUSEUM_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Main.cpp")
 
 if(MUSEUM_C_API AND NOT EMSCRIPTEN)
-    list(APPEND MUSEUM_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/CApi/NativeCProbe.c")
+    # NativeCProbe.c and the game-less families (CProbe*.c); the C game probe under src/CApi/GameProbe/ is its own program.
+    file(GLOB MUSEUM_C_API_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/CApi/*.c")
+    list(APPEND MUSEUM_SOURCES ${MUSEUM_C_API_SOURCES})
 endif()
 add_library(museum_core STATIC ${MUSEUM_SOURCES})
 target_include_directories(museum_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -126,6 +128,22 @@ target_link_libraries(museum_core PUBLIC CNA)
 if(MUSEUM_C_API AND NOT EMSCRIPTEN AND TARGET cna_c_api)
     target_link_libraries(museum_core PUBLIC cna_c_api)
     target_compile_definitions(museum_core PUBLIC MUSEUM_C_API=1)
+endif()
+# The C game probe: a separate C17 program that creates its own CNA game through the C ABI (a process hosts one game, and
+# the museum already is one). The cx-capi room starts it as a child process; it lands in bin/ beside the museum.
+if(MUSEUM_C_API AND NOT EMSCRIPTEN AND TARGET cna_c_api)
+    file(GLOB MUSEUM_C_GAME_PROBE_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/CApi/GameProbe/*.c")
+    add_executable(cna-c-probe ${MUSEUM_C_GAME_PROBE_SOURCES} "${CMAKE_CURRENT_SOURCE_DIR}/src/CApi/CProbe.c")
+    target_include_directories(cna-c-probe PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+    target_link_libraries(cna-c-probe PRIVATE cna_c_api)
+    if(NOT WIN32)
+        target_link_libraries(cna-c-probe PRIVATE m)
+    endif()
+    set_target_properties(cna-c-probe PROPERTIES C_STANDARD 17 C_STANDARD_REQUIRED ON C_EXTENSIONS OFF LINKER_LANGUAGE C)
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(cna-c-probe PRIVATE -Wall -Wextra -Wpedantic -Wshadow)
+    endif()
+    add_dependencies(museum_core cna-c-probe)
 endif()
 if(MUSEUM_NETWORKING AND TARGET CNA_Net AND TARGET CNA_GamerServices)
     target_link_libraries(museum_core PUBLIC CNA_Net CNA_GamerServices)
@@ -150,6 +168,11 @@ option(MUSEUM_PIPELINE "Link CNA's content pipeline library for the Pipeline in 
 if(MUSEUM_PIPELINE AND TARGET cna_content_pipeline)
     target_link_libraries(museum_core PUBLIC cna_content_pipeline)
     target_compile_definitions(museum_core PUBLIC MUSEUM_PIPELINE=1)
+    # The content compiler (RunContentCompiler and the MSBuild-task counterparts BuildContent, CleanContent, ContentProject).
+    if(TARGET cna_content_compiler)
+        target_link_libraries(museum_core PUBLIC cna_content_compiler)
+        target_compile_definitions(museum_core PUBLIC MUSEUM_CONTENT_COMPILER=1)
+    endif()
 endif()
 # The CNA revision this build was configured against, shown by the History rooms (read, never typed in).
 execute_process(COMMAND git -C "${CNA_ROOT_DIR}" describe --always --dirty

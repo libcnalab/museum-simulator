@@ -85,6 +85,10 @@ struct Services {
     std::function<void(const Microsoft::Xna::Framework::Vector3& eye, float yaw, float pitch)> focusView;   // glide to a viewing spot
     std::function<void()> openDirectory;            // the full-screen directory and map
     std::string contentRoot;
+    // What the window title and the device manager's profile were before the museum set anything: the defaults XNA takes
+    // from the assembly title and the project profile (declared in Main.cpp).
+    std::string startupWindowTitle;
+    int startupGraphicsProfile = -1;
     bool supportsThreeD = true;
     bool supportsWireframe = true;
 };

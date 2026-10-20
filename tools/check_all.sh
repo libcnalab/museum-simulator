@@ -36,4 +36,7 @@ else
   notrun+=("OPENGL33 and SOFTWARE tours, self-checks and leak checks (SLOW=1)")
 fi
 summary
+profile=check_all
+[ "${SLOW:-0}" = 1 ] && profile=check_all-slow
+python3 tools/record_profile.py "$profile" --passed $passed --failed $failures --skipped $skipped --not-run ${#notrun[@]} || true
 exit $failed

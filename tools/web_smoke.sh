@@ -43,8 +43,10 @@ if grep -aq 'MUSEUM_EXIT 0' "$log" &&
    grep -aq '\[museum\]\[progress\] autosaved .* after 5\.[01] idle seconds' "$log" &&
    ! grep -aqE 'MUSEUM_(ABORT|PAGE_ERROR)|MUSEUM_EXIT [1-9]|WebGL context.*lost|\[museum\]\[(exhibit|draw|script)-error\]' "$log"; then
   echo "WEBGL2 BROWSER SMOKE: PASS"
+  BUILD_DIR=$build_dir python3 tools/record_profile.py web-webgl2 --passed 1 --failed 0 --binary "$build_dir/bin/cna-3d-museum.wasm" --library "$build_dir/bin/cna-3d-museum.wasm" || true
 else
   echo "WEBGL2 BROWSER SMOKE: FAIL" >&2
+  BUILD_DIR=$build_dir python3 tools/record_profile.py web-webgl2 --passed 0 --failed 1 --binary "$build_dir/bin/cna-3d-museum.wasm" --library "$build_dir/bin/cna-3d-museum.wasm" || true
   tail -n 80 "$log" >&2
   exit 1
 fi

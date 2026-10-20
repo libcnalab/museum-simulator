@@ -8,6 +8,7 @@
 #include <exception>
 #include <memory>
 #include <string>
+#include <thread>
 
 #include "Exhibits/ExhibitFactories.hpp"
 #include "Exhibits/ScreenExhibit.hpp"
@@ -61,6 +62,7 @@ public:
         p.AddToggle("Compass.Start", false, [this](bool v) { Run(compass_, v, compassNote_); });
         p.AddToggle("Motion.Start", false, [this](bool v) { Run(motion_, v, motionNote_); });
         p.AddButton("VibrateController.Start(300 ms)", [this] { Vibrate(); });
+        p.AddButton("Legacy Accelerometer.ReadingChanged (one emulated reading)", [this] { LegacyReadingChanged(); });
         p.AddReadout("Environment.DeviceType", [] { return std::string(Microsoft::Devices::Environment::getDeviceTypeProperty() == Microsoft::Devices::DeviceType::Emulator ? "Emulator" : "Device"); });
         p.AddReadout("Accelerometer.IsSupported", [] { return std::string(Sensors::Accelerometer::getIsSupportedProperty() ? "yes" : "no"); });
         p.AddReadout("Gyroscope.IsSupported", [] { return std::string(Sensors::Gyroscope::getIsSupportedProperty() ? "yes" : "no"); });
@@ -202,6 +204,58 @@ private:
         } catch (const std::exception& e) {
             vibrate_ = std::string("Start refused: ") + std::string(e.what()).substr(0, 70);
             last_ = "VibrateController refused";
+        }
+    }
+
+    // Windows Phone 7.0's Accelerometer.ReadingChanged (obsolete, still raised) next to the SensorBase CurrentValueChanged.
+    // No phone here: keyboard emulation lets a sensor start, and CNA's InjectSyntheticSensorUpdate hands it one reading
+    // in m/s^2 (labelled EMULATED). Both events must carry it, CurrentValueChanged first, in units of g.
+    void LegacyReadingChanged()
+    {
+        const auto check = [this](const std::string& name, const std::string& expected, const std::string& got) {
+            Museum::Log("check", "%s %s: %s (expected %s, got %s)", R().key.c_str(), name.c_str(), expected == got ? "PASS" : "FAIL", expected.c_str(), got.c_str());
+        };
+        const bool hadEmulation = Sensors::Accelerometer::getKeyboardEmulationEnabledEXT();
+        try {
+            if (!hadEmulation) Sensors::Accelerometer::setKeyboardEmulationEnabledEXT(true);
+            Sensors::Accelerometer probe;
+            const std::thread::id self = std::this_thread::get_id();
+            bool injecting = false;
+            std::string order;
+            Vector3 current;
+            double x = -9, y = -9, z = -9;
+            System::DateTimeOffset currentTime, legacyTime;
+            probe.CurrentValueChanged.Add([&](System::Object*, const auto& e) {
+                if (!injecting || std::this_thread::get_id() != self) return;
+                order += order.empty() ? "CurrentValueChanged" : ", CurrentValueChanged";
+                current = e.getSensorReadingProperty().getAccelerationProperty();
+                currentTime = e.getSensorReadingProperty().getTimestampProperty();
+            });
+            probe.ReadingChanged.Add([&](System::Object*, const Sensors::AccelerometerReadingEventArgs& e) {
+                if (!injecting || std::this_thread::get_id() != self) return;
+                order += order.empty() ? "ReadingChanged" : ", ReadingChanged";
+                x = e.getXProperty();
+                y = e.getYProperty();
+                z = e.getZProperty();
+                legacyTime = e.getTimestampProperty();
+            });
+            probe.Start();
+            injecting = true;
+            probe.InjectSyntheticSensorUpdate(0.0f, 9.80665f, -9.80665f);   // EMULATED: 1 g up, 1 g away
+            injecting = false;
+            probe.Stop();
+            check("one EMULATED reading raises both events", "CurrentValueChanged, ReadingChanged", order);
+            check("ReadingChanged X, Y, Z in g (9.80665 m/s^2 = 1 g)", "exactly 0 / 1 / -1",
+                  x == 0.0 && y == 1.0 && z == -1.0 ? std::string("exactly 0 / 1 / -1") : Fmt(x) + " / " + Fmt(y) + " / " + Fmt(z));
+            check("CurrentValueChanged Acceleration matches ReadingChanged", "same values and Timestamp",
+                  current.X == static_cast<float>(x) && current.Y == static_cast<float>(y) && current.Z == static_cast<float>(z) && currentTime == legacyTime ? std::string("same values and Timestamp") : std::string("different"));
+            last_ = "legacy ReadingChanged checked with an emulated reading";
+        } catch (const std::exception& e) {
+            Museum::Log("check", "%s legacy ReadingChanged: SKIP (the emulated accelerometer refused: %s)", R().key.c_str(), e.what());
+            last_ = std::string("refused: ") + std::string(e.what()).substr(0, 60);
+        }
+        if (!hadEmulation) {
+            try { Sensors::Accelerometer::setKeyboardEmulationEnabledEXT(false); } catch (const std::exception&) {}
         }
     }
 

@@ -31,6 +31,17 @@ are named in the code where they are used and listed here; nothing is hidden beh
 - **Needed change:** exclude every gamer of the departing peer (its machine), not only the host gamer, before choosing
   the lowest remaining wire id.
 
+### A gamer joining a game in progress stays in the lobby
+- **Where:** `modules/net/include/CNA/Internal/Net/NetPacketCodec.hpp`, `ServerWelcomeMessage` (wire ids, roster and
+  session properties, but no session state), and `ENetBackend`'s `HandleServerWelcome`. `StartGame` announces Playing with
+  `BroadcastStateChange` only to the peers connected at that moment.
+- **What happens:** with `AllowJoinInProgress` the host starts the game, a second museum joins: the joiner's
+  `SessionState` is `Lobby` and it never raises `GameStarted`, while the host plays (`tools/net_check.sh`, round lifecycle:
+  "Joined: ... AllowJoinInProgress true, state Lobby").
+- **XNA 4.0:** a gamer that joins in progress joins a session whose `SessionState` is `Playing`.
+- **Needed change:** carry the session state in `ServerWelcomeMessage` (and apply it in `HandleServerWelcome`, raising
+  nothing for the joiner, as XNA's joiner does not get GameStarted replayed), or send a state change to the new peer.
+
 ### HapticDevice's inline default constructor cannot be compiled outside CNA (CNA-DEMOS-ISSUE-009)
 - **Where:** `modules/input/include/CNA/Input/HapticDevice.hpp`: `CNAEXT HapticDevice() = default;` with a
   `std::unique_ptr<CNA::Platform::IPlatformHapticDevice>` member whose type no public header completes.
@@ -95,8 +106,7 @@ Measured by the `ct-storage` button "Error paths and async results, checked agai
 - A result from the other Begin method, an empty display name, and empty paths (`CreateFile("")`, `FileExists("")`): XNA
   `ArgumentNullException`, CNA the base `ArgumentException` (code catching `ArgumentNullException` misses it).
 - `DeleteDirectory` of a non-empty directory: XNA `IOException`, CNA lets `std::filesystem::filesystem_error` escape.
-- Every member after `Dispose`: XNA `ObjectDisposedException` (`VerifyNotDisposed`), CNA keeps working (it even creates files).
-- **Needed change:** a `VerifyNotDisposed()` at the top of each container member, an end-once flag on both result types,
+- **Needed change:** an end-once flag on both result types,
   the device check in `EndOpenContainer`, the size check, `ArgumentNullException` for null/empty names, and IOException
   for the directory case. Agreeing already: async callbacks and `AsyncState`, path containment, `FileNotFoundException`,
   `DeleteFile` of a missing file, `Disposing` raised once.
@@ -136,6 +146,116 @@ Measured by the `ct-storage` button "Error paths and async results, checked agai
    the difference is visible).
 9. **XmlSerializer has no member list for Color or Rectangle** (`XmlSerializationEXT.hpp` covers vectors, Quaternion and
    Matrix): `XmlSerializer<Color>` and `XmlSerializer<Rectangle>` do not compile; .NET serializes both by reflection.
+10. **`BoneWeightCollection.NormalizeWeights()` keeps zero weights** (wk-animation): for A .2, B .5, C 0, D .1 CNA answers
+    B .625, A .25, D .125, **C 0**; XNA 4.0 (`BoneWeightCollection.NormalizeWeights(int)`) removes every weight `<= 0`
+    (and every one at index `>= maxWeights`) before summing, so C is gone. Needed in `VertexCollections.cpp`
+    `Normalize`: drop entries whose weight is `<= 0` in the same pass that truncates to `maxWeights`, and scale with
+    `weight * (1 / total)` as XNA does (CNA divides, which can differ in the last bit).
+11. **`PipelineComponentScanner.Update` answers false for a changed list** (wk-processor): after `Update({"Museum.Workshop"})`,
+    `Update({"Museum.Workshop", "No.Such.Catalog"})` records the error but returns false. XNA returns true whenever the
+    (empty-filtered) list differs from the previous call's (`AlreadyUpToDate` compares the list and the timestamps) and
+    only answers false for the same list. CNA's header documents "true when the set of components changed". Needed:
+    remember the previous list and return true whenever it differs, as XNA does.
+12. **Two `ContentTypeSerializerAttribute` instances are not `Equals`/`Match`** (wk-cnbloader): .NET `Attribute.Equals`
+    compares the type and every instance field, so two instances of this field-less attribute are equal (and `Match`
+    defaults to `Equals`). CNA inherits sharp-runtime's `System::Attribute::Equals`, which is reference equality.
+    Needed: `ContentTypeSerializerAttribute` (or `System::Attribute` for field-less attributes) compares
+    `typeid(other) == typeid(*this)`.
+13. **A built glTF whose images are embedded cannot be loaded** (wk-routes): `ContentPipeline::Build(uvsets.gltf)` (images as
+    data URIs, default `ModelProcessor`) succeeds with one output, no deployment files and runtime references
+    `uvsets_tex0.png`, `uvsets_tex1.png` that nothing produces; `cna-content build` publishes the same single
+    `uvsets.cnb`. `ContentManager.Load<Model>` then throws `ContentLoadException: could not load asset 'uvsets_tex0.png'`.
+    With `generateChildAssets = true` the two images are child outputs and the model loads. Needed: when the images are
+    embedded, deploy the extracted files (`ImportedModelDocument::generatedTextureFiles`) under the referenced names, or
+    generate the child assets automatically, or fail the build naming the dangling references.
+14. **`DecodeWavAsCnbSoundEffect` does not do what `CnbSourceImport.hpp` says** (wk-incremental): an 8-bit WAV comes back as
+    `CnbAudioFormat::Pcm8` with its bytes unchanged (documented: "8-bit unsigned PCM (widened exactly)" to Pcm16), and a
+    24-bit WAV is accepted and narrowed to Pcm16 (documented: "Refused, by name: 24-bit, 32-bit, IEEE float").
+    `ProcessImportedSoundEffect`'s comment also still promises Pcm16. The behaviour matches the later XNASWEEP-197 work
+    (Pcm8 in schema 2, `ImportedPcmNarrowsToPcm16`). Needed: correct the comments of `DecodeWavAsCnbSoundEffect`,
+    `ImportWavAsCnbSoundEffect` and `ProcessImportedSoundEffect` (or restore the documented refusal of wide PCM).
+15. **`Tasks::TaskItem::operator==` cannot be called** (wk-tasks): it is declared `= default`, but the base
+    `System::Object` has no `operator==`, so the defaulted operator is implicitly deleted and `item == other` does not
+    compile. Needed: define it explicitly over `itemSpec_` and `metadata_`.
+16. **BuildContent, CleanContent, GetLastOutputs and ContentProject do not link from `cna_content_pipeline`** (wk-tasks):
+    their definitions (`BuildContent.cpp`, `CleanContent.cpp`; `ContentProject.cpp` calls BuildContent's setters) call
+    `CNA::Content::Pipeline::RunContentCompiler`, which is defined only in `cna_content_compiler`
+    (`tools/content/content.cpp`), and `cna_content_pipeline` does not link it (the dependency runs the other way). A
+    game linking `cna_content_pipeline`, as this museum does, gets `undefined reference to RunContentCompiler` as soon as
+    it names one of them (`nm`: `U ...RunContentCompiler` in `BuildContent.cpp.o` and `CleanContent.cpp.o`). The same holds
+    for `RegisterBuiltInContentPipeline`. Needed in CNA: move the four task sources into `cna_content_compiler` (and say
+    "link CNA::ContentCompiler" in their headers), or move the coordinator into a library `cna_content_pipeline` links.
+    The museum now links `cna_content_compiler` explicitly (`MUSEUM_CONTENT_COMPILER`), and wk-contentproject runs all four.
+17. **A clean leaves the coordinator's lock file behind** (wk-contentproject): after `CleanContent.Execute` (and
+    `RunContentCompiler({"clean", out})`) the output directory still holds `.cna-content.lock`, which a build or the clean
+    itself created; the outputs and the manifest are removed correctly and foreign files are kept. XNA's CleanContent
+    deletes the outputs and its own cache file and leaves no pipeline file (`BuildItemCollection.DeleteStaleOutputFiles`,
+    `PathUtils.SafeDeleteFile(CacheFilename)`). Needed: the clean removes the lock file after releasing it (or the lock
+    lives under the intermediate directory).
+
+### Native C API
+The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
+that the room starts as a child process because a process hosts one game) check every C header family against the
+header documentation and, for XNA-mirroring routes, against XNA 4.0. The divergences below are FAIL checks there; the
+scenario `capi_native` expects exactly these FAIL lines (logged as `[museum][check] cx-capi <name>: FAIL`, and as
+`cx-capi game: <name>: FAIL` for the game probe).
+
+- **One process carries two CNA states.** `modules/c-api/CMakeLists.txt` links `cna_c_api` against the static component
+  archives (`target_link_libraries(cna_c_api PRIVATE cna_core cna_platform cna_runtime ...)`), so `libcna_c_api.so` embeds
+  its own copy of every process-wide CNA singleton, while a C++ host links the same code again through `libcna.so`. In the
+  museum (both libraries loaded) the C ABI does not see the host's state: the title the museum declares at static
+  initialisation (`CNA::AssemblyTitleAttributeEXT kAssemblyTitle{"CNA 3D Museum"}`, `src/Main.cpp`) reads back as `""`
+  through `cna_assembly_copy_title_ext`, although `core_ext.h` documents the title as process-wide; the renderer selection
+  reports not latched and `cna_graphics_renderer_get_active_ext` answers `CNA_RESULT_INVALID_STATE` although the museum's
+  GraphicsDevice exists; XNA's built-in type readers are not in the C copy's registry until a C content manager exists.
+  **Needed change:** when CNA itself is built as a shared library, link `cna_c_api` against that library (the `CNA`
+  target) instead of the component archives, so the process-wide state exists once; if two copies are intended, document
+  in `docs/c-api/CONSUMING.md` that a process must not combine the C ABI with CNA's C++ library and drop "process-wide"
+  from the affected route docs. Check: "one process, one CNA: cna_assembly_copy_title_ext sees the title the host
+  declared through CNA's C++ API".
+- **`cna_cnb_copy_decompressed` with `CNA_CNB_COMPRESSION_NONE` ignores the declared size.** `cnb.h` says the payload
+  "must expand to exactly `uncompressed_size`", checked against `max_uncompressed_size` before anything is allocated;
+  `DecompressCnbChunk` (`modules/content/src/Cnb/CnbChunkCompression.cpp`) returns the stored bytes unchanged for `None`
+  before either check, so 6 stored bytes declared as 5 succeed with 6 bytes. (The document parser checks
+  `stored_size == uncompressed_size` itself, so a parsed file is not affected; the standalone route is.)
+  **Needed change:** for `None`, throw `ContentLoadException` unless `uncompressedSize <= maxUncompressedSize` and
+  `stored.size() == uncompressedSize`. Check: "cna_cnb_is_compression_supported, copy_compression_name, ...".
+- **`MouseState.ToString` uses another format.** `modules/input/src/Xna/MouseState.cpp` returns
+  `[MouseState X=10, Y=20, Buttons=Left, Wheel=120]`; XNA 4.0 returns `{X:10 Y:20 Buttons:Left Wheel:120}`
+  (`string.Format("{{X:{0} Y:{1} Buttons:{2} Wheel:{3}}}", ...)`, the buttons space-separated or `None`), the same
+  `{Name:value}` style as every other XNA value type CNA already matches. **Needed change:** that format. Check:
+  "cna_mouse_state_get_string_size/copy_string(10, 20, 120, LEFT)".
+- **`GamePadState.ToString` returns the type name.** `modules/input/src/Xna/GamePadState.cpp` follows FNA
+  (`base.ToString()`), and `input_gamepad.h` states that "the canonical type does not override its string conversion";
+  XNA 4.0 does override it: `string.Format("{{IsConnected:{0}}}", _connected)`, i.e. `{IsConnected:True}`.
+  **Needed change:** return `{IsConnected:True|False}` and correct the header comment. Check: "cna_gamepad_state_copy_string
+  of a connected snapshot".
+- **`cna_achievement_collection_get_by_key` answers `CNA_RESULT_INTERNAL` for an unknown key.** The header documents
+  `CNA_RESULT_INVALID_ARGUMENT`; `AchievementCollectionGetByKey` (`modules/c-api/src/CnaCApiAchievements.cpp`) indexes
+  `AchievementCollection::operator[](const std::string&)`, which throws `System::IndexOutOfRangeException`, and the barrier
+  reports that as an internal fault ("Index was outside the bounds of the array."). **Needed change:** look the key up
+  first and return `CNA_RESULT_INVALID_ARGUMENT` when it is absent (or map `IndexOutOfRangeException` from that indexer
+  to `INVALID_ARGUMENT`). Check: "cna_achievement_collection_get_by_key with a key no achievement has".
+- **`cna_presentation_parameters_init` is not XNA's default.** Documented as "XNA-compatible defaults", it returns an
+  800x480 windowed back buffer (`PresentationParameters::PresentationParameters()` in
+  `modules/graphics/src/Xna/PresentationParameters.cpp`); XNA 4.0's constructor sets only `IsFullScreen = true` and leaves
+  the back buffer 0x0 (the 800x480 belongs to `GraphicsDeviceManager`'s defaults). **Needed change:** `isFullScreen_(true)`
+  and a 0x0 back buffer in the constructor, or document the desktop defaults as CNA's own instead of XNA-compatible.
+  Check (game probe): "cna_presentation_parameters_init (documented as XNA-compatible defaults), cna_presentation_parameters_clone".
+- **A missing content asset leaves no canonical exception type.** `core.h` names
+  `Microsoft.Xna.Framework.Content.ContentLoadException` as the example `cna_error_copy_last_exception_type_ext` reports,
+  but the content loaders in `modules/c-api/src/CnaCApiContent.cpp` catch `ContentLoadException` themselves and return
+  `IoError(exception.what())`, so after `cna_content_manager_load_texture2d` of a missing asset the type is empty.
+  **Needed change:** record the canonical type in those catch blocks (an `IoError` overload taking the exception and
+  storing `CanonicalTypeName(exception)`, or let the exception reach the barrier, which maps it to `CNA_RESULT_IO`).
+  Check (game probe): "cna_error_copy_last_exception_type_ext after cna_content_manager_load_texture2d of a missing asset".
+
+Not counted as failures (the checks follow CNA's own documentation): `devices.h` says "supported physical host targets
+report `CNA_DEVICE_TYPE_DEVICE`", while `Microsoft/Devices/Environment.hpp` and the implementation report `Emulator` on
+every desktop and browser target (the museum checks EMULATOR on Linux; the C header sentence should say desktops report
+`EMULATOR`). `cna_plane_get_hash_code` (and the other bounding-volume hashes) use CNA's own `size_t` combination rather
+than XNA's sum of float bit patterns, and `cna_mouse_state_get_hash_code` mixes only position and wheel as `input_mouse.h`
+documents, where XNA also XORs the button states; the checks test the hash contract (equal values, equal hashes) instead.
 
 ## Behaviour worth knowing (not defects)
 - `HttpNotificationChannel`: notifications that arrived while the channel was open but were not dispatched yet are still
@@ -147,9 +267,15 @@ Measured by the `ct-storage` button "Error paths and async results, checked agai
 - `GraphicsAdapter`: like FNA, `Description` is the display's name ("1", "screen") and `VendorId`/`DeviceId` the
   machine's PCI ids, read from sysfs, whichever driver draws: under `LIBGL_ALWAYS_SOFTWARE` (llvmpipe) the adapter still
   reports AMD 1002:15bf. XNA's `Description` named the adapter (the GPU). No public member names the driver that renders.
+- `VideoPlayer` sound follows `SoundEffect.MasterVolume`: with MasterVolume 0 a playing video is silent although its own
+  `Volume` is 1 (measured through SDL's disk audio driver). XNA's managed VideoPlayer hands `Volume` straight to its native
+  decoder and never reads MasterVolume; whether XNA's native mixer applied it cannot be read from the managed code, so this
+  is recorded as a difference to confirm, not as a defect.
 - `MeshHelper.CalculateNormals` sums the normalised normal of every triangle at a position (a quad split into two
   triangles counts twice at the corners its diagonal touches), exactly like XNA.
 
 ## Fixed in CNA after the museum reported them
+- StorageContainer members after `Dispose` now throw `ObjectDisposedException` as in XNA (CNA `5865ae938`); verified by
+  `tests/scenarios/storage_contracts.json` (FileExists, CreateFile and GetFileNames after Dispose: PASS).
 See the "CNA findings fixed in CNA" list in the project memory and `plan.md`; entries move here when their fix is
 verified by a museum run.

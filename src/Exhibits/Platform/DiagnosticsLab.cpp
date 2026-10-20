@@ -10,9 +10,11 @@
 #include <cstdio>
 #include <memory>
 #include <sstream>
+#include <optional>
 #include <string>
 #include <vector>
 
+#include "CNA/Diagnostics/Instrumentation.hpp"
 #include "CNA/Diagnostics/Diagnostics.hpp"
 #include "Exhibits/ExhibitFactories.hpp"
 #include "Exhibits/ScreenExhibit.hpp"
@@ -85,6 +87,7 @@ public:
         p.AddButton("Trace.WriteBinary then ReadBinary", [this] { RoundTrip(); });
         p.AddButton("Overflow: record 16 events while 200 markers fire", [this] { Overflow(); });
         p.AddButton("Unregister the source and the resource, then register again", [this] { Reregister(); });
+        p.AddButton("Instrumentation macros (COUNTER_ADD, GAUGE_SET/ADD, PROFILE_SCOPE, EVENT)", [this] { Macros(); });
         p.AddReadout("Build / runtime level", [] { return std::string(ModeName(Diag::GetBuildMode())) + " / " + ModeName(Diag::GetRuntimeMode()); });
         p.AddReadout("Recording", [this] { return session_.IsActive() ? std::string("active") : std::string("no"); });
         p.AddReadout("Source collected", [this] { return std::to_string(source_->collected_.load()) + " times"; });
@@ -260,6 +263,58 @@ private:
         trace_ = std::make_unique<Diag::Trace>(Diag::StopRecording(session_));
         Describe();
         Museum::Log("diagnostics", "overflow: StartRecording(16) kept %zu events and reports %llu dropped", trace_->GetEvents().size(), static_cast<unsigned long long>(trace_->GetDroppedEventCount()));
+    }
+
+    // The one-line instrumentation macros of CNA/Diagnostics/Instrumentation.hpp. With CNA_DIAGNOSTICS_LEVEL >= 1 (STATS,
+    // FULL) they register and update metrics; at OFF they compile to an unevaluated check and leave nothing behind. The
+    // profile scope and event only reach a trace at runtime level Full, so they are recorded in a short session.
+    void Macros()
+    {
+        const auto check = [this](const std::string& name, const std::string& expected, const std::string& got) {
+            Museum::Log("check", "%s %s: %s (expected %s, got %s)", R().key.c_str(), name.c_str(), expected == got ? "PASS" : "FAIL", expected.c_str(), got.c_str());
+        };
+        const auto metric = [](const Diag::Snapshot& snap, const std::string& name) -> std::optional<std::int64_t> {
+            for (const Diag::MetricSample& m : snap.metrics)
+                if (m.name == name) return m.value;
+            return std::nullopt;
+        };
+        const auto shown = [](const std::optional<std::int64_t>& v) { return v ? std::to_string(*v) : std::string("absent"); };
+        const std::optional<std::int64_t> before = metric(Diag::GetProvider().CaptureSnapshot(), "Museum/MacroCounter");
+        CNA_DIAGNOSTICS_COUNTER_ADD("Museum/MacroCounter", 3);
+        CNA_DIAGNOSTICS_GAUGE_SET("Museum/MacroGauge", 40);
+        CNA_DIAGNOSTICS_GAUGE_ADD("Museum/MacroGauge", 2);
+        CNA_DIAGNOSTICS_FRAME_COUNTER_ADD("Museum/MacroFrames", 5);
+        const Diag::Snapshot after = Diag::GetProvider().CaptureSnapshot();
+#if CNA_DIAGNOSTICS_LEVEL >= 1
+        const bool compiledIn = true;
+#else
+        const bool compiledIn = false;
+#endif
+        const std::string level = std::to_string(CNA_DIAGNOSTICS_LEVEL);
+        check("CNA_DIAGNOSTICS_COUNTER_ADD(\"Museum/MacroCounter\", 3) at level " + level, compiledIn ? "the counter grew by 3" : "no counter (compiled out)",
+              compiledIn ? (metric(after, "Museum/MacroCounter").value_or(-1) - before.value_or(0) == 3 ? std::string("the counter grew by 3") : "from " + shown(before) + " to " + shown(metric(after, "Museum/MacroCounter")))
+                         : (metric(after, "Museum/MacroCounter") ? std::string("a counter ") + shown(metric(after, "Museum/MacroCounter")) : std::string("no counter (compiled out)")));
+        check("CNA_DIAGNOSTICS_GAUGE_SET 40 then GAUGE_ADD 2 at level " + level, compiledIn ? "42" : "absent", shown(metric(after, "Museum/MacroGauge")));
+        check("CNA_DIAGNOSTICS_FRAME_COUNTER_ADD registers a per-frame counter at level " + level, compiledIn ? "registered" : "absent",
+              metric(after, "Museum/MacroFrames") ? std::string("registered") : std::string("absent"));
+        if (Diag::GetRuntimeMode() != Diag::Mode::Full || session_.IsActive()) {
+            Museum::Log("check", "%s CNA_PROFILE_SCOPE and CNA_DIAGNOSTICS_EVENT: SKIP (they reach a trace only at runtime level Full with no other recording)", R().key.c_str());
+            return;
+        }
+        Diag::RecordingSession macroSession = Diag::StartRecording(256);
+        {
+            CNA_PROFILE_SCOPE("Museum/MacroScope");
+            CNA_DIAGNOSTICS_EVENT("Museum/MacroEvent");
+        }
+        const Diag::Trace trace = Diag::StopRecording(macroSession);
+        std::string zone = "absent", marker = "absent";
+        for (const Diag::EventRecord& e : trace.GetEvents()) {
+            const std::string name = trace.ResolveName(e.name);
+            if (name == "Museum/MacroScope" && e.kind == Diag::EventKind::Zone) zone = "a zone";
+            if (name == "Museum/MacroEvent" && e.kind == Diag::EventKind::Marker) marker = "a marker";
+        }
+        check("CNA_PROFILE_SCOPE(\"Museum/MacroScope\") in the trace at level " + level, compiledIn ? "a zone" : "absent", zone);
+        check("CNA_DIAGNOSTICS_EVENT(\"Museum/MacroEvent\") in the trace at level " + level, compiledIn ? "a marker" : "absent", marker);
     }
 
     // A source and a resource leave the provider's view when their registrations end, and come back when renewed.

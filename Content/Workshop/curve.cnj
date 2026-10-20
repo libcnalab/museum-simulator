@@ -1,0 +1,1 @@
+{"cnjVersion": 1, "type": "Curve", "preLoop": "Constant", "postLoop": "Constant", "keys": [{"position": 0, "value": 2.5, "continuity": "Step"}, {"position": 2, "value": 7.5}]}

@@ -11,7 +11,10 @@
 #   the dummy audio driver), CNA_GRAPHICS_RENDERER (pick a renderer in a multi-renderer build),
 #   MUSEUM_SCREEN (Xvfb screen, default 1920x1080x24), MUSEUM_RENDER_THREADS (default 3: threads Mesa's software renderer may use),
 #   MUSEUM_GPU=1 (no display at all: SDL's offscreen video driver on the machine's real GPU, EGL through the render node
-#   and Vulkan through VK_EXT_headless_surface; pick the Vulkan driver with VK_ICD_FILENAMES).
+#   and Vulkan through VK_EXT_headless_surface; pick the Vulkan driver with VK_ICD_FILENAMES),
+#   MUSEUM_GPU=weston (a private headless Weston compositor rendering with the GPU, started for this run only: renderers
+#   that need a real window surface, such as WEBGPU, present through Wayland on the GPU; MUSEUM_WESTON names the
+#   weston launcher, default ~/deps/weston/bin/weston).
 museum_root() { cd "$(dirname "${BASH_SOURCE[1]}")/.." && pwd; }
 
 museum_headless() {
@@ -42,7 +45,28 @@ museum_headless() {
   # tree, never in the user's own store; MUSEUM_DATA_HOME picks another folder.
   # Software rendering (Mesa llvmpipe/lavapipe) otherwise spreads one museum over every core: keep it to three (MUSEUM_RENDER_THREADS).
   local status
-  if [ -n "$gpu" ]; then
+  if [ "$gpu" = weston ]; then
+    local weston=${MUSEUM_WESTON:-$HOME/deps/weston/bin/weston} socket="museum-gpu-$$-$RANDOM" compositor config=()
+    local ini=${MUSEUM_WESTON_CONFIG:-$(dirname "$(dirname "$weston")")/weston-cna-test.ini}
+    [ -f "$ini" ] && config=(--config="$ini")
+    [ -x "$weston" ] || { echo "error: $weston not found (MUSEUM_WESTON)" >&2; [ -n "${museum_lock:-}" ] && exec {museum_lock}>&-; return 2; }
+    export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+    "$weston" --backend=headless --renderer=gl --socket="$socket" --width="${MUSEUM_WESTON_WIDTH:-1920}" --height="${MUSEUM_WESTON_HEIGHT:-1080}" \
+      --idle-time=0 "${config[@]}" > "$log.weston" 2>&1 &
+    compositor=$!
+    for _ in $(seq 1 50); do [ -S "$XDG_RUNTIME_DIR/$socket" ] && break; sleep 0.1; done
+    if [ ! -S "$XDG_RUNTIME_DIR/$socket" ]; then
+      kill "$compositor" 2> /dev/null; echo "error: the private weston did not start (log: $log.weston)" >&2
+      [ -n "${museum_lock:-}" ] && exec {museum_lock}>&-
+      return 2
+    fi
+    env -u DISPLAY -u LIBGL_ALWAYS_SOFTWARE WAYLAND_DISPLAY="$socket" SDL_VIDEODRIVER=wayland ${audio:+SDL_AUDIODRIVER=$audio} \
+      CNA_GAMER_SERVICES_PROFILES_DIR="${CNA_GAMER_SERVICES_PROFILES_DIR:-$root/${BUILD_DIR:-build}/gamer-profiles}" XDG_DATA_HOME="${MUSEUM_DATA_HOME:-$root/${BUILD_DIR:-build}/data-home}" \
+      timeout -k 15 "${MUSEUM_TIMEOUT:-300}" "$bin" "$@" > "$log" 2>&1
+    status=$?
+    kill "$compositor" 2> /dev/null
+    wait "$compositor" 2> /dev/null
+  elif [ -n "$gpu" ]; then
     # Offscreen: there is no window anywhere, so nothing reaches the live desktop, and the GPU renders for real.
     env -u WAYLAND_DISPLAY -u DISPLAY -u LIBGL_ALWAYS_SOFTWARE SDL_VIDEODRIVER=offscreen ${audio:+SDL_AUDIODRIVER=$audio} \
       CNA_GAMER_SERVICES_PROFILES_DIR="${CNA_GAMER_SERVICES_PROFILES_DIR:-$root/${BUILD_DIR:-build}/gamer-profiles}" XDG_DATA_HOME="${MUSEUM_DATA_HOME:-$root/${BUILD_DIR:-build}/data-home}" \

@@ -1,0 +1,38 @@
+{
+  "description": "XNA build tasks a museum can link: TaskItem, a game's ContentTask, BuildXact validation, XnaComponentNames, ContentCompilerOptions (C06)",
+  "requires": "MUSEUM_PIPELINE",
+  "script": "goto:wk-tasks;wait:30;press:Run the checks again;wait:20;stats;quit",
+  "expect": [
+    "wk-tasks TaskItem(\"Textures\\\\plaque.png\").ItemSpec: PASS",
+    "wk-tasks GetMetadata is case-insensitive, as MSBuild's: PASS",
+    "wk-tasks absent metadata: PASS",
+    "wk-tasks MetadataNames keeps the spelling written: PASS",
+    "wk-tasks SetMetadata under another case replaces the value: PASS",
+    "wk-tasks setItemSpecProperty, GetTypeName: PASS",
+    "wk-tasks ShelfTask.Execute with one item missing its count: PASS",
+    "wk-tasks MessagesEXT, WarningsEXT: PASS",
+    "wk-tasks what reached the XNA ContentBuildLogger: PASS",
+    "wk-tasks a task with a null logger: PASS",
+    "wk-tasks BuildXact::XnaTypeName: PASS",
+    "wk-tasks BuildXact properties: PASS",
+    "wk-tasks Execute with no XACT projects: PASS",
+    "wk-tasks Execute with a project that does not exist: PASS",
+    "wk-tasks Execute with a file that is not an XACT project: PASS",
+    "wk-tasks Execute for TargetPlatform WindowsPhone: PASS",
+    "wk-tasks Execute of a valid project without XactBld3.exe: PASS",
+    "wk-tasks MapXnaProcessorName(\"TextureProcessor\"): PASS",
+    "wk-tasks SpriteTextureProcessor and ModelTextureProcessor: PASS",
+    "wk-tasks PassThroughProcessor; ModelProcessor with and without its namespace: PASS",
+    "wk-tasks MapXnaProcessorName(\"PlaqueProcessor\") (never an XNA component): PASS",
+    "wk-tasks MapXnaImporterName(\"Mp3Importer\", SongProcessor / SoundEffectProcessor): PASS",
+    "wk-tasks MapXnaImporterName(\"XmlImporter\"): PASS",
+    "wk-tasks KnownXnaImporterNames, KnownXnaProcessorNames: PASS",
+    "wk-tasks ContentCompilerOptions defaults: PASS",
+    "wk-tasks ContentCompilerOptions::operator== compares the build-tool services: PASS",
+    "wk-tasks a ContentPipelineRegistryFactory called with Debug options: PASS"
+  ],
+  "forbid": [
+    ": the group itself: FAIL",
+    "the check run itself: FAIL"
+  ]
+}

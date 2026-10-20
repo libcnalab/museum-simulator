@@ -1,6 +1,9 @@
 #include "Catalogue/Inventory.hpp"
 #include "Catalogue/ReferenceViews.hpp"
+#include "CNA/AssemblyInfo.hpp"
 #include "CNA/GraphicsRendererSelection.hpp"
+#include "CNA/ProjectGraphicsProfile.hpp"
+#include "Microsoft/Xna/Framework/Graphics/GraphicsProfile.hpp"
 #include "Microsoft/Xna/Framework/Storage/StorageDevice.hpp"
 #include "MuseumGame.hpp"
 
@@ -9,6 +12,13 @@
 #include <exception>
 #include <string>
 #include <vector>
+
+namespace {
+// What an XNA project declares outside its code: the product title (C# [assembly: AssemblyTitle], the default window
+// title) and the project's graphics profile (HiDef). Both are registered before main() runs, as the attributes are.
+const CNA::AssemblyTitleAttributeEXT kAssemblyTitle{"CNA 3D Museum"};
+const CNA::ProjectGraphicsProfileEXT kProjectProfile{Microsoft::Xna::Framework::Graphics::GraphicsProfile::HiDef};
+}  // namespace
 
 int main(int argc, char** argv)
 {

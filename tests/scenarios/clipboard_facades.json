@@ -1,0 +1,10 @@
+{
+  "description": "CNA::Input::Clipboard and CNA::Devices::Clipboard share one clipboard, and the room puts the visitor's clipboard back on leave",
+  "script": "goto:in-text;wait:20;press:Both clipboard facades agree;wait:5;goto:in-pad;wait:10;stats;quit",
+  "expect": [
+    "in-text Devices::Clipboard.Text set, read by Input::Clipboard.GetTextEXT: PASS",
+    "in-text Input::Clipboard.SetTextEXT, read by Devices::Clipboard.Text: PASS",
+    "[museum][input] clipboard restored on leave (it held no text)"
+  ],
+  "forbid": [": FAIL ("]
+}

@@ -58,6 +58,16 @@ if [ -n "${MUSEUM_CMAKE_ARGS:-}" ]; then
   mapfile -t cmake_args <<< "$parsed_args"
 fi
 
+# Two builds of one tree at the same time corrupt it: a second caller waits for the first (flock on the tree).
+mkdir -p "$build_dir"
+if command -v flock > /dev/null 2>&1; then
+  exec {build_lock}> "$build_dir/.museum-build.lock"
+  if ! flock -n "$build_lock"; then
+    echo "waiting for another build of $build_dir ..."
+    flock "$build_lock"
+  fi
+fi
+
 if [ ! -f "$build_dir/CMakeCache.txt" ] || [ "${RECONFIGURE:-0}" = 1 ]; then
   echo "configuring $build_dir ..."
   cmake -S . -B "$build_dir" "${generator[@]}" "${launchers[@]}" "${renderer_args[@]}" "${cmake_args[@]}" \

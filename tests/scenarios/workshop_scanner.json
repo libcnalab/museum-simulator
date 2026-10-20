@@ -1,0 +1,20 @@
+{
+  "description": "PipelineComponentScanner over the processor room's registry (C02)",
+  "requires": "MUSEUM_PIPELINE",
+  "script": "goto:wk-processor;wait:30;stats;quit",
+  "expect": [
+    "wk-processor PipelineComponentScanner(registry).Update({\"Museum.Workshop\"}): PASS",
+    "wk-processor ImporterAttributes[\"LabelImporter\"]: PASS",
+    "wk-processor ImporterOutputTypes, ProcessorInputTypes, ProcessorOutputTypes: PASS",
+    "wk-processor ProcessorAttributes[\"PlaqueProcessor\"].DisplayName: PASS",
+    "wk-processor ProcessorParameters[\"PlaqueProcessor\"]: PASS",
+    "wk-processor Update with the same list again: PASS",
+    "wk-processor Update naming a catalog that does not exist: FAIL",
+    "wk-processor a scanner with no registry: Update({}): PASS"
+  ],
+  "forbid": [
+    ": the group itself: FAIL",
+    "the check run itself: FAIL"
+  ],
+  "timeout": 300
+}

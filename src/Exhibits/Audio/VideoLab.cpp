@@ -3,6 +3,7 @@
 // texture however it likes: here it is one SpriteBatch sprite on the room's screen.
 // Without FFmpeg (-DMUSEUM_VIDEO=OFF, or no FFmpeg libraries installed) the room says so.
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <exception>
 #include <memory>
@@ -47,6 +48,7 @@ public:
         p.AddButton("VideoPlayer.Stop", [this] { if (player_) player_->Stop(); });
         // A scripted run reads the player's state from the log: the same three readouts, one line per press.
         p.AddButton("Log the player's state", [this] { Museum::Log("video", "state %s, position %s, frames %lld", state_.c_str(), position_.c_str(), frames_); });
+        p.AddButton("Check that the picture follows PlayPosition (audio sync)", [this] { CheckSync(); });
         p.AddToggle("VideoPlayer.IsLooped", true, [this](bool v) { looped_ = v; if (player_) player_->setIsLoopedProperty(v); });
         p.AddToggle("VideoPlayer.IsMuted", false, [this](bool v) { if (player_) player_->setIsMutedProperty(v); });
         p.AddSlider("VideoPlayer.Volume", 0.0f, 1.0f, 0.6f, [this](float v) { volume_ = v; if (player_) player_->setVolumeProperty(v); });
@@ -149,6 +151,24 @@ protected:
         sb.DrawString(*S().font, "This museum was built without FFmpeg video playback (-DMUSEUM_VIDEO=OFF or no FFmpeg libraries).", Vector2(24, 90), Kit::Rgba(255, 190, 150), 0.0f, Vector2(0, 0), 0.65f, SpriteEffects::None, 0.0f);
 #endif
         sb.End();
+    }
+
+    // The picture in the texture and the clock the soundtrack plays against must agree: the presented frame's timestamp
+    // (CNA extension) trails PlayPosition by at most one museum frame (the picture advances when the room draws; a software-
+    // rendered frame can take 0.1 s) plus two video frames at 24 fps: 0.25 s. A soundtrack drifting away from the picture
+    // would grow without bound.
+    void CheckSync()
+    {
+        if (!player_ || player_->getStateProperty() != Media::MediaState::Playing) {
+            Museum::Log("check", "%s picture follows PlayPosition: SKIP (the player is not playing)", R().key.c_str());
+            return;
+        }
+        const double frame = player_->GetFramePresentationTimeEXT();
+        const double position = player_->getPlayPositionProperty().getTotalSecondsProperty();
+        const double gap = frame < 0.0 ? 1e9 : std::fabs(position - frame);
+        char got[96];
+        std::snprintf(got, sizeof got, "frame %.3f s, PlayPosition %.3f s, gap %.3f s", frame, position, gap);
+        Museum::Log("check", "%s picture follows PlayPosition: %s (expected a gap of at most 0.250 s, got %s)", R().key.c_str(), gap <= 0.250 ? "PASS" : "FAIL", got);
     }
 
 private:

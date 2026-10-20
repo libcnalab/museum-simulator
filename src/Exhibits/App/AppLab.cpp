@@ -7,6 +7,8 @@
 #include <exception>
 #include <string>
 
+#include "CNA/AssemblyInfo.hpp"
+#include "CNA/ProjectGraphicsProfile.hpp"
 #include "CNA/GraphicsCapability.hpp"
 #include "CNA/RendererCapabilityProfile.hpp"
 #include "Diagnostics/Log.hpp"
@@ -569,6 +571,16 @@ private:
         const auto add = [&](const std::string& t) { info.lines.push_back({t, false, Kit::kText}); };
         add("Renderer: " + std::string(dev.GetGraphicsRendererName()));
         add("Profile: " + std::string(dev.getGraphicsProfileProperty() == GraphicsProfile::HiDef ? "HiDef" : "Reach"));
+        // The defaults XNA takes from outside the code, seen before the museum set anything (MuseumGame's constructor).
+        const auto profileName = [](int p) { return std::string(p == static_cast<int>(GraphicsProfile::HiDef) ? "HiDef" : p == static_cast<int>(GraphicsProfile::Reach) ? "Reach" : "?"); };
+        const std::string declaredTitle = CNA::GetAssemblyTitleEXT();
+        const std::string declaredProfile = profileName(static_cast<int>(CNA::GetProjectGraphicsProfileEXT()));
+        add("AssemblyTitleEXT \"" + declaredTitle + "\" -> first Window.Title \"" + S().startupWindowTitle + "\"");
+        add("ProjectGraphicsProfileEXT " + declaredProfile + " -> first GraphicsDeviceManager profile " + profileName(S().startupGraphicsProfile));
+        Museum::Log("check", "%s Window.Title before the game sets one is the assembly title: %s (expected \"%s\", got \"%s\")", R().key.c_str(),
+                    S().startupWindowTitle == declaredTitle && !declaredTitle.empty() ? "PASS" : "FAIL", declaredTitle.c_str(), S().startupWindowTitle.c_str());
+        Museum::Log("check", "%s GraphicsDeviceManager.GraphicsProfile before the game sets one is the project profile: %s (expected %s, got %s)", R().key.c_str(),
+                    profileName(S().startupGraphicsProfile) == declaredProfile ? "PASS" : "FAIL", declaredProfile.c_str(), profileName(S().startupGraphicsProfile).c_str());
         const PresentationParameters& pp = dev.getPresentationParametersProperty();
         add("Back buffer: " + std::to_string(pp.getBackBufferWidthProperty()) + " x " + std::to_string(pp.getBackBufferHeightProperty()));
         add("MSAA samples: " + std::to_string(pp.getMultiSampleCountProperty()));

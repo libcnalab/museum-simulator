@@ -1,0 +1,10 @@
+{
+  "description": "Windows Phone 7.0's obsolete Accelerometer.ReadingChanged and CurrentValueChanged for one EMULATED reading",
+  "script": "goto:in-phone;wait:20;press:Legacy Accelerometer.ReadingChanged;wait:5;goto:in-pad;wait:5;stats;quit",
+  "expect": [
+    "in-phone one EMULATED reading raises both events: PASS (expected CurrentValueChanged, ReadingChanged",
+    "in-phone ReadingChanged X, Y, Z in g (9.80665 m/s^2 = 1 g): PASS",
+    "in-phone CurrentValueChanged Acceleration matches ReadingChanged: PASS"
+  ],
+  "forbid": [": FAIL ("]
+}

@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <exception>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,9 @@
 #include "Microsoft/Xna/Framework/Input/Mouse.hpp"
 #include "Microsoft/Xna/Framework/Input/MouseCursor.hpp"
 #include "Microsoft/Xna/Framework/Input/TextInputEXT.hpp"
+#ifdef CNA_DEVICES
+#include "CNA/Devices/Clipboard.hpp"
+#endif
 #include "Microsoft/Xna/Framework/Input/Touch/TouchPanel.hpp"
 
 using namespace Microsoft::Xna::Framework;
@@ -155,6 +159,7 @@ public:
                 p.AddButton("Paste clipboard", [this] { Paste(); });
                 p.AddChoice("Text input type (on-screen keyboard)", {"Text", "TextName", "TextEmail", "TextUsername", "TextPasswordHidden", "TextPasswordVisible", "Number", "NumberPasswordHidden", "NumberPasswordVisible"}, 0, [this](int v) { inputType_ = v; if (typing_) StartTyping(); });
                 p.AddButton("Copy as HTML too (SetDataEXT, text/html)", [this] { CopyHtml(); });
+                p.AddButton("Both clipboard facades agree (CNA::Devices::Clipboard)", [this] { CheckFacades(); });
                 p.AddButton("Set the primary selection (X11/Wayland middle-click)", [this] { SetPrimary(); });
                 p.AddButton("Paste the primary selection", [this] { PastePrimary(); });
                 p.AddReadout("Primary selection (HasPrimarySelectionTextEXT)", [this] { return primaryNote_; });
@@ -480,6 +485,51 @@ private:
         if (mode_ == Mode::Mouse) {
             try { Mouse::SetCursor(MouseCursor::getArrowProperty()); } catch (const std::exception&) {}
         }
+        // The clipboard is the visitor's own: what it held before the room wrote to it is put back.
+        if (clipboardTouched_) {
+            clipboardTouched_ = false;
+            try {
+                CNA::Input::Clipboard::SetTextEXT(savedClipboard_.value_or(std::string()));
+                Museum::Log("input", "clipboard restored on leave (%s)", savedClipboard_ ? "the text it held before" : "it held no text");
+            } catch (const std::exception&) {}
+            savedClipboard_.reset();
+        }
+    }
+
+    void RememberClipboard()
+    {
+        if (clipboardTouched_) return;
+        clipboardTouched_ = true;
+        try {
+            if (CNA::Input::Clipboard::HasTextEXT()) savedClipboard_ = CNA::Input::Clipboard::GetTextEXT();
+        } catch (const std::exception&) {}
+    }
+
+    // CNA has two clipboard facades: CNA::Input::Clipboard (text, MIME data, primary selection) and the text-only
+    // CNA::Devices::Clipboard. Both must see one system clipboard, in either direction.
+    void CheckFacades()
+    {
+#ifdef CNA_DEVICES
+        RememberClipboard();
+        const auto check = [this](const std::string& name, const std::string& expected, const std::string& got) {
+            Museum::Log("check", "%s %s: %s (expected %s, got %s)", R().key.c_str(), name.c_str(), expected == got ? "PASS" : "FAIL", expected.c_str(), got.c_str());
+        };
+        try {
+            const std::string first = "museum: written by CNA::Devices::Clipboard";
+            const bool set = CNA::Devices::Clipboard::setTextProperty(first);
+            check("Devices::Clipboard.Text set, read by Input::Clipboard.GetTextEXT", std::string("true / \"") + first + "\" / HasText true",
+                  std::string(set ? "true" : "false") + " / \"" + CNA::Input::Clipboard::GetTextEXT() + "\" / HasText " + (CNA::Devices::Clipboard::getHasTextProperty() ? "true" : "false"));
+            const std::string second = "museum: written by CNA::Input::Clipboard";
+            CNA::Input::Clipboard::SetTextEXT(second);
+            check("Input::Clipboard.SetTextEXT, read by Devices::Clipboard.Text", "\"" + second + "\"", "\"" + CNA::Devices::Clipboard::getTextProperty() + "\"");
+            clipboardNote_ = "both facades read what the other wrote";
+        } catch (const std::exception& e) {
+            clipboardNote_ = std::string("unavailable: ") + e.what();
+            Museum::Log("check", "%s clipboard facades: SKIP (%s)", R().key.c_str(), e.what());
+        }
+#else
+        clipboardNote_ = "this build has no CNA::Devices (CNA_DEVICES off)";
+#endif
     }
 
     // --- keyboard ----------------------------------------------------------------------------------
@@ -799,6 +849,7 @@ private:
     void CopyHtml()
     {
         try {
+            RememberClipboard();
             const std::string html = "<b>" + text_ + "</b>";
             const std::vector<std::uint8_t> bytes(html.begin(), html.end());
             const bool ok = CNA::Input::Clipboard::SetDataEXT("text/html", bytes);
@@ -840,6 +891,7 @@ private:
     void Copy()
     {
         try {
+            RememberClipboard();
             CNA::Input::Clipboard::SetTextEXT(text_);
             clipboardNote_ = "copied " + std::to_string(text_.size()) + " characters";
         } catch (const std::exception& e) {
@@ -1095,6 +1147,8 @@ private:
     bool touchConnected_ = false, accel_ = false, gyro_ = false;
     Vector3 accelV_, gyroV_;
     std::string powerNote_ = "...";
+    std::optional<std::string> savedClipboard_;   // the visitor's clipboard text before the room first wrote to it
+    bool clipboardTouched_ = false;
 };
 
 }  // namespace

@@ -44,13 +44,16 @@ while Mesa renders in software), so the `.device` file is the evidence, not the 
 The other renderers need a build that contains them (`BUILD_DIR=build-probe`, with
 `VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json` for Vulkan): SDL_GPU on RADV 97 PASS, 0 FAIL, 2 INFO, 1 SKIP
 (the Vulkan loader's choice is in the `.device` file); FNA3D on radeonsi 75 PASS, 0 FAIL, 2 INFO, 23 SKIP (the surface
-formats FNA3D cannot create, as on llvmpipe). WEBGPU cannot run offscreen: CNA's WebGPU renderer needs a native window
-for its surface ("WebGPURenderer::Surface failed: missing native window (Headless)"), and on Xvfb RADV cannot present;
-WEBGPU on the physical GPU therefore needs a real or GPU-backed headless compositor (manual step below).
+formats FNA3D cannot create, as on llvmpipe). WEBGPU cannot run offscreen (CNA's WebGPU renderer needs a native window
+for its surface: "WebGPURenderer::Surface failed: missing native window (Headless)"), so `MUSEUM_GPU=weston` starts a
+private headless Weston (`~/deps/weston`, Weston 14 unpacked from Debian's packages) that renders with the GPU (its log
+says "GL vendor: AMD") for the run only, and the museum presents to it through Wayland: WEBGPU on "AMD Radeon 780M
+(RADV PHOENIX), Vulkan backend" 76 PASS, 0 FAIL, 2 INFO, 22 SKIP (the surface formats WEBGPU cannot create, as on lavapipe).
 
 Blockers in the environment where this museum is developed (2026-10-20):
 - **GPU on a virtual display:** Xvfb has no DRI3, so on it OpenGL is software (llvmpipe) and RADV refuses to present
-  ("No DRI3 support detected - required for presentation"). Use `MUSEUM_GPU=1` (above) instead; what it cannot cover
-  is presentation to a real screen (vsync, swap-chain resize, fullscreen), which stays a manual step.
+  ("No DRI3 support detected - required for presentation"). Use `MUSEUM_GPU=1` or `MUSEUM_GPU=weston` (above) instead;
+  what neither covers is presentation to a real screen (display vsync, mode changes, exclusive fullscreen), which stays a
+  manual step.
 - no haptic device, no touch screen, no phone sensors, no tray host on the private display, a real camera that is
   private and therefore not opened automatically, no Windows or macOS machine.

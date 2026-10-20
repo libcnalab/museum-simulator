@@ -110,6 +110,13 @@ void ImporterChecks(Checks& checks, Services& services);
 void CnbLoaderChecks(Checks& checks, Services& services);
 void CnbLoaderLeave();
 void GltfImportChecks(Checks& checks, Services& services);
+void BuildRouteChecks(Checks& checks, Services& services);
+void IncrementalBuildChecks(Checks& checks, Services& services);
+void BuildTaskChecks(Checks& checks, Services& services);
+void AnimationChecks(Checks& checks, Services& services);
+#ifdef MUSEUM_CONTENT_COMPILER
+void ContentProjectChecks(Checks& checks, Services& services);
+#endif
 #endif
 void XmlSerializerChecks(Checks& checks, Services& services);
 

@@ -1,0 +1,18 @@
+{
+  "description": "ReflectiveTypeReader<T> reading a game type XNA wrote without a ContentTypeWriter (C03)",
+  "requires": "MUSEUM_PIPELINE",
+  "script": "goto:wk-typewriter;wait:30;press:Run the checks again;wait:20;stats;quit",
+  "expect": [
+    "wk-typewriter CanonicalReflectiveReaderNameEXT(\"Museum.Workshop.ExhibitSettings\"): PASS",
+    "wk-typewriter ReflectiveTypeReaderBuilder: Register, RegisterShared, and the EnumField's reader: PASS",
+    "wk-typewriter reflective.xnb: the base type's member first, then the fields: PASS",
+    "wk-typewriter Boolean through Custom, enum, TimeSpan, Color: PASS",
+    "wk-typewriter a nested reference-type member and a null one: PASS",
+    "wk-typewriter Register() of a declaration with a SharedResourceField: PASS",
+    "wk-typewriter reflective.xnb with its readers removed: PASS"
+  ],
+  "forbid": [
+    ": the group itself: FAIL",
+    "the check run itself: FAIL"
+  ]
+}

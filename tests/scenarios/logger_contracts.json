@@ -1,0 +1,12 @@
+{
+  "description": "CNA::Logger: the level filter, the *If forms, the sink's text, a replaced sink never called again, ResetSink",
+  "script": "goto:pl-log;wait:20;press:Contracts;wait:5;stats;quit",
+  "expect": [
+    "pl-log SetMinimumLevel(WARN): Info dropped, Warn delivered: PASS",
+    "pl-log the sink's text: PASS",
+    "pl-log WarnIf(false), ErrorIf(true), InfoIf(true) below the level: PASS",
+    "pl-log SetSink replaces the sink: the old one is not called: PASS",
+    "pl-log ResetSink: no program sink is called: PASS"
+  ],
+  "forbid": [": FAIL ("]
+}

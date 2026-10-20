@@ -89,7 +89,11 @@ private:
             counts_ = std::to_string(songs->getCountProperty()) + " / " + std::to_string(albums->getCountProperty()) + " / " + std::to_string(artists->getCountProperty()) + " / " +
                       std::to_string(genres->getCountProperty());
             lines_.clear();
-            lines_.push_back("Source: " + library_->getMediaSourceProperty()->getNameProperty() + "    songs / albums / artists / genres: " + counts_);
+            const auto* source = library_->getMediaSourceProperty();
+            lines_.push_back("Source: " + source->getNameProperty() + "    songs / albums / artists / genres: " + counts_);
+            const MediaSourceType sourceType = source->getMediaSourceTypeProperty();
+            Museum::Log("medialib", "source %s, MediaSourceType %s", source->getNameProperty().c_str(),
+                        sourceType == MediaSourceType::LocalDevice ? "LocalDevice" : sourceType == MediaSourceType::WindowsMediaConnect ? "WindowsMediaConnect" : "other");
             for (int i = 0; i < songs->getCountProperty(); ++i) {
                 const Song* s = (*songs)[i];
                 const std::string line = "#" + std::to_string(s->getTrackNumberProperty()) + " " + s->getNameProperty() + " - " + (s->getArtistProperty() ? s->getArtistProperty()->getNameProperty() : "?") +

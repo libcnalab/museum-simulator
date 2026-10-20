@@ -239,7 +239,11 @@ public:
             }
             distance_ = Vector3::Distance(ctx.playerPosition, pos);
         }
-        if (mode_ == Mode::Microphone && mic_ != nullptr && micRunning_) PollMic();
+        // As in XNA, the data is read when BufferReady says a buffer is full (the event comes on the game thread).
+        if (mode_ == Mode::Microphone && mic_ != nullptr && micRunning_ && bufferReady_ > buffersRead_) {
+            buffersRead_ = bufferReady_.load();
+            PollMic();
+        }
         if (mode_ == Mode::Xact && xEngine_) {
             try { xEngine_->Update(); } catch (const std::exception& e) {
                 static bool reported = false;   // per-frame path: report the first failure only
@@ -597,13 +601,44 @@ private:
             mic_ = Microphone::getDefaultProperty();
             micCount_ = std::to_string(Microphone::getAllProperty().size());
             if (mic_ == nullptr) { micState_ = "no microphone connected"; return; }
-            if (micRunning_) { mic_->Stop(); micRunning_ = false; micState_ = "stopped"; }
-            else { mic_->Start(); micRunning_ = true; micState_ = "capturing"; }
+            if (micRunning_) {
+                StopMic();
+            } else {
+                captured_.clear();
+                bufferReady_ = 0;
+                buffersRead_ = 0;
+                if (bufferToken_ == 0) bufferToken_ = mic_->BufferReady.Add([this](System::Object*, const System::EventArgs&) { ++bufferReady_; });
+                mic_->Start();
+                micRunning_ = true;
+                micState_ = "capturing";
+            }
         } catch (const std::exception& e) {
             micState_ = std::string("unavailable: ") + std::string(e.what()).substr(0, 36);
             micRunning_ = false;
         }
     }
+    // Stops the capture (also when the visitor leaves: the microphone is never left on) and reports what arrived:
+    // BufferReady events, bytes, RMS and the frequency from zero crossings, which a test tone makes exact.
+    void StopMic()
+    {
+        if (mic_ == nullptr || !micRunning_) return;
+        try { mic_->Stop(); } catch (const std::exception&) {}
+        micRunning_ = false;
+        micState_ = "stopped";
+        if (bufferToken_ != 0) { mic_->BufferReady.Remove(bufferToken_); bufferToken_ = 0; }
+        double sum = 0.0;
+        int crossings = 0;
+        for (std::size_t i = 0; i < captured_.size(); ++i) {
+            sum += static_cast<double>(captured_[i]) * captured_[i];
+            if (i > 0 && (captured_[i - 1] < 0) != (captured_[i] < 0)) ++crossings;
+        }
+        const int rate = mic_->getSampleRateProperty();
+        const double seconds = rate > 0 ? static_cast<double>(captured_.size()) / rate : 0.0;
+        const double rms = captured_.empty() ? 0.0 : std::sqrt(sum / static_cast<double>(captured_.size())) / 32768.0;
+        Museum::Log("audio", "microphone: stopped after %d BufferReady event(s), %zu bytes of 16-bit mono at %d Hz, RMS %.3f, zero-crossing frequency %.1f Hz",
+                    bufferReady_.load(), captured_.size() * 2, rate, rms, seconds > 0.0 ? crossings / (2.0 * seconds) : 0.0);
+    }
+
     [[nodiscard]] std::string MicSummary() const
     {
         try {
@@ -618,11 +653,15 @@ private:
     void PollMic()
     {
         try {
-            Bytes buf(4096);
+            Bytes buf(static_cast<std::size_t>(mic_->GetSampleSizeInBytes(mic_->getBufferDurationProperty())));
             const int got = mic_->GetData(buf);
             if (got < 2) return;
             double sum = 0;
-            for (int i = 0; i + 1 < got; i += 2) { const std::int16_t v = static_cast<std::int16_t>(buf[static_cast<std::size_t>(i)] | (buf[static_cast<std::size_t>(i) + 1] << 8)); sum += static_cast<double>(v) * v; }
+            for (int i = 0; i + 1 < got; i += 2) {
+                const std::int16_t v = static_cast<std::int16_t>(buf[static_cast<std::size_t>(i)] | (buf[static_cast<std::size_t>(i) + 1] << 8));
+                sum += static_cast<double>(v) * v;
+                if (captured_.size() < 10u * 48000u) captured_.push_back(v);   // at most ten seconds are kept for the report
+            }
             micLevel_ = static_cast<float>(std::sqrt(sum / (got / 2)) / 32768.0);
         } catch (const std::exception& e) {
             micState_ = std::string("capture failed: ") + std::string(e.what()).substr(0, 36);
@@ -766,6 +805,7 @@ private:
         SoundEffect::setDopplerScaleProperty(1.0f);
         SoundEffect::setSpeedOfSoundProperty(343.0f);
         if (mode_ == Mode::Music) try { MediaPlayer::Stop(); } catch (const std::exception&) {}
+        if (mode_ == Mode::Microphone) StopMic();
     }
 
     Mode mode_;
@@ -796,6 +836,10 @@ private:
     bool visualize_ = true;
     float visPeakF_ = 0.01f, visPeakW_ = 0.01f;
     Microphone* mic_ = nullptr;
+    std::vector<std::int16_t> captured_;
+    std::atomic<int> bufferReady_{0};
+    std::size_t bufferToken_ = 0;
+    int buffersRead_ = 0;
     std::vector<float> samples_;
     std::array<float, 4> layerVolume_{0.4f, 0.0f, 0.0f, 0.0f}, flash_{};
     Vector3 emitterPos_, listenerPos_;

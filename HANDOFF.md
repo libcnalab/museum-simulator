@@ -135,7 +135,8 @@ build/bin/cna-3d-museum --validate
 Graphics runs use a private Xvfb display with llvmpipe by default. `MUSEUM_GPU=1` in front of any tool runs
 on the machine's real GPU with no display at all (SDL `offscreen`; nothing reaches the live desktop);
 `MUSEUM_GPU=1 tools/renderer_check.sh OPENGLES3 OPENGL33` records the driver that drew in
-`build/renderer_check/<R>-gpu.device` (CNA's adapter line cannot tell llvmpipe from the GPU). Vulkan renderers
+`build/renderer_check/<R>-gpu.device` (CNA's adapter line cannot tell llvmpipe from the GPU). `MUSEUM_GPU=weston` instead
+starts a private headless Weston (`~/deps/weston`) on the GPU for renderers that need a window surface (WEBGPU). Vulkan renderers
 (WEBGPU, SDL_GPU) on the GPU: `BUILD_DIR=build-probe VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json`. Keep renderer, command, build options, revisions, binary hashes, exact script/log
 hashes, room order, interactions, final stats, and error counts in the execution manifest.
 

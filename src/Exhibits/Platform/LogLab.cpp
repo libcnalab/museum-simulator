@@ -86,6 +86,7 @@ public:
         p.AddButton("Logger.InfoIf / WarnIf(message, condition)", [this] { SendConditional(); });
         p.AddButton("Make CNA write a line (a ShaderEffect that will not compile)", [this] { ProvokeEngine(); });
         p.AddButton("Clear the list", [this] { Clear(); });
+        p.AddButton("Contracts: level filter, *If forms, sink replacement and reset", [this] { Contracts(); });
         p.AddReadout("GetMinimumLevel()", [] { return std::string(kLevelNames[LevelIndex(CNA::Logger::GetMinimumLevel())]); });
         p.AddReadout("Lines received by the sink", [this] { return std::to_string(received_.load()); });
         p.AddReadout("Last action", [this] { return note_; });
@@ -97,6 +98,12 @@ public:
     void OnScreenLoaded() override
     {
         startLevel_ = CNA::Logger::GetMinimumLevel();
+        InstallSink();
+        CNA::Logger::Info("the museum's log room installed a sink", CNA::LogCategory::APPLICATION);
+    }
+
+    void InstallSink()
+    {
         CNA::Logger::SetSink([this](CNA::LogLevel level, CNA::LogCategory category, std::string_view text) {
             // The sink replaces the default one, so the console line CNA would have written is written here. The text arrives already
             // formatted: "[LEVEL][CATEGORY] message".
@@ -107,7 +114,41 @@ public:
             ++received_;
         });
         installed_ = true;
-        CNA::Logger::Info("the museum's log room installed a sink", CNA::LogCategory::APPLICATION);
+    }
+
+    // What a program can rely on: a line below the minimum level reaches no sink, the *If forms log only
+    // when their condition holds, a sink sees the line formatted as [LEVEL][CATEGORY] message, a replaced sink is never called
+    // again, and after ResetSink no program sink is. The room's own sink and level are put back afterwards.
+    void Contracts()
+    {
+        const auto check = [this](const std::string& name, const std::string& expected, const std::string& got) {
+            Museum::Log("check", "%s %s: %s (expected %s, got %s)", R().key.c_str(), name.c_str(), expected == got ? "PASS" : "FAIL", expected.c_str(), got.c_str());
+        };
+        const CNA::LogLevel level = CNA::Logger::GetMinimumLevel();
+        std::vector<std::string> first, second;
+        CNA::Logger::SetSink([&first](CNA::LogLevel, CNA::LogCategory, std::string_view text) { first.emplace_back(text); });
+        CNA::Logger::SetMinimumLevel(CNA::LogLevel::WARN);
+        CNA::Logger::Info("contracts: below the level");
+        CNA::Logger::Warn("contracts: at the level", CNA::LogCategory::AUDIO);
+        check("SetMinimumLevel(WARN): Info dropped, Warn delivered", "1 line", std::to_string(first.size()) + (first.size() == 1 ? " line" : " lines"));
+        check("the sink's text", "[WARN][AUDIO] contracts: at the level",
+              first.empty() ? std::string("nothing") : first.front());
+        first.clear();
+        CNA::Logger::WarnIf("contracts: condition false", false);
+        CNA::Logger::ErrorIf("contracts: condition true", true);
+        CNA::Logger::InfoIf("contracts: below the level, condition true", true);
+        check("WarnIf(false), ErrorIf(true), InfoIf(true) below the level", "only the ErrorIf line",
+              first.size() == 1 && first.front().find("condition true") != std::string::npos ? std::string("only the ErrorIf line") : std::to_string(first.size()) + " line(s)");
+        first.clear();
+        CNA::Logger::SetSink([&second](CNA::LogLevel, CNA::LogCategory, std::string_view text) { second.emplace_back(text); });
+        CNA::Logger::Warn("contracts: after SetSink again");
+        check("SetSink replaces the sink: the old one is not called", "old 0, new 1", "old " + std::to_string(first.size()) + ", new " + std::to_string(second.size()));
+        CNA::Logger::ResetSink();
+        CNA::Logger::Warn("contracts: after ResetSink (the default console sink)");
+        check("ResetSink: no program sink is called", "old 0, new 1", "old " + std::to_string(first.size()) + ", new " + std::to_string(second.size()));
+        CNA::Logger::SetMinimumLevel(level);
+        InstallSink();
+        note_ = "contracts checked (see the log)";
     }
 
 protected:

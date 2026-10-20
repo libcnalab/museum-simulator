@@ -1,0 +1,39 @@
+{
+  "description": "AnimationContent imported from arm.x, AnimationChannel rules and the vertex collections (C01)",
+  "requires": "MUSEUM_PIPELINE",
+  "script": "goto:wk-animation;wait:30;press:Run the checks again;wait:20;stats;quit",
+  "expect": [
+    "wk-animation XImporter.Import(arm.x): the frame tree: PASS",
+    "wk-animation NodeContent.Animations of Arm: PASS",
+    "wk-animation AnimationContent.Duration: PASS",
+    "wk-animation AnimationContent.Channels: PASS",
+    "wk-animation the Arm channel's keyframes: times: PASS",
+    "wk-animation the Arm channel's keyframes: transforms: PASS",
+    "wk-animation the Hand animation (matrix keys): PASS",
+    "wk-animation ToString of AnimationContent, the two dictionaries, a channel and a keyframe: PASS",
+    "wk-animation Add(2 s), Add(0 s), Add(1 s), Add(another 1 s): PASS",
+    "wk-animation Contains and IndexOf are by reference: PASS",
+    "wk-animation AnimationKeyframe.CompareTo is by time only: PASS",
+    "wk-animation Remove(k1) twice, then RemoveAt(0): PASS",
+    "wk-animation AnimationKeyframe.Transform set after adding: PASS",
+    "wk-animation AnimationChannel.RemoveAt(10): PASS",
+    "wk-animation AnimationChannel[5]: PASS",
+    "wk-animation AnimationChannel.Add(null): PASS",
+    "wk-animation Clear(): PASS",
+    "wk-animation an AnimationContent built in code, in an AnimationContentDictionary: PASS",
+    "wk-animation BoneWeight(\"Hip\", 0.5) and default(BoneWeight): PASS",
+    "wk-animation BoneWeight(\"\", 0.5): PASS",
+    "wk-animation BoneWeight(\"Hip\", 1.5): PASS",
+    "wk-animation BoneWeight equality and ToString: PASS",
+    "wk-animation NormalizeWeights() of A .2, B .5, C 0, D .1: FAIL",
+    "wk-animation NormalizeWeights(2) of the same: PASS",
+    "wk-animation NormalizeWeights(0): PASS",
+    "wk-animation NormalizeWeights() of weights that sum to zero: PASS",
+    "wk-animation IndexCollection.Add(7), AddRange({0,1,2,2,3,0}): PASS",
+    "wk-animation PositionCollection: PASS"
+  ],
+  "forbid": [
+    ": the group itself: FAIL",
+    "the check run itself: FAIL"
+  ]
+}

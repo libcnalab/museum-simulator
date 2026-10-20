@@ -16,7 +16,9 @@
 #include "Exhibits/ExhibitFactories.hpp"
 #include "Exhibits/ScreenExhibit.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SamplerState.hpp"
+#include "Exhibits/Shaders/ShaderSources.hpp"
 #include "Microsoft/Xna/Framework/Graphics/ShaderEffect.hpp"
+#include "Microsoft/Xna/Framework/Graphics/RenderTarget2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture3D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/TextureAddressMode.hpp"
@@ -60,6 +62,37 @@ void main() {
 }
 )";
 
+// The same picture in the WGSL a WEBGPU ShaderEffect takes: the lab's two floats in a 16-byte uniform block at binding 0,
+// the sampler at 1 and the volume at 2 (CNA's WGSL binding convention, see ShaderSources).
+const char* const kWgslFragment = R"WGSL(
+struct U { uW: f32, uRange: f32, pad: vec2f };
+@group(0) @binding(0) var<uniform> u: U;
+@group(0) @binding(1) var texSampler: sampler;
+@group(0) @binding(2) var tex: texture_3d<f32>;
+@fragment fn fs_main(@location(0) uv: vec2f, @location(1) color: vec4f) -> @location(0) vec4f {
+    let p = (uv - vec2f(0.5, 0.5)) * u.uRange + vec2f(0.5, 0.5);
+    return vec4f(textureSampleLevel(tex, texSampler, vec3f(p, u.uW), 0.0).rgb, 1.0) * color;
+}
+)WGSL";
+
+// And in GLSL 450 for SDL_GPU, whose ShaderEffect has one fixed uniform block: W and the range travel together in its vec4.
+const char* const kVulkanFragment = R"GLSL(#version 450
+layout(location = 0) in vec2 vTexCoord;
+layout(location = 1) in vec4 vColor;
+layout(location = 0) out vec4 FragColor;
+layout(set = 2, binding = 0) uniform sampler3D VolumeSampler;
+layout(set = 3, binding = 0) uniform PC {
+    vec4 vpSize_pad;
+    mat4 matrix;
+    vec4 color;
+    vec4 slot0_pad;
+} pc;
+void main() {
+    vec2 uv = (vTexCoord - 0.5) * pc.color.y + 0.5;
+    FragColor = vec4(texture(VolumeSampler, vec3(uv, pc.color.x)).rgb, 1.0) * vColor;
+}
+)GLSL";
+
 const TextureAddressMode kModes[] = {TextureAddressMode::Clamp, TextureAddressMode::Wrap, TextureAddressMode::Mirror};
 const char* const kModeNames[] = {"Clamp", "Wrap", "Mirror"};
 
@@ -90,7 +123,8 @@ public:
         p.AddChoice("SamplerState.AddressU and V", {kModeNames[0], kModeNames[1], kModeNames[2]}, 0, [this](int v) { addressUV_ = v; });
         p.AddChoice("SamplerState.AddressW", {kModeNames[0], kModeNames[1], kModeNames[2]}, 1, [this](int v) { addressW_ = v; });
         p.AddChoice("SamplerState.Filter", {"Point", "Linear"}, 0, [this](int v) { linear_ = v == 1; });
-        p.AddReadout("Dialect", [this] { return supported_ ? std::string("GLSL ES 3.00 (sampler3D)") : std::string("not GLSL: nothing drawn"); });
+        p.AddButton("Check: storage round trip, then shader sampling of slice 20", [this] { Check(); });
+        p.AddReadout("Dialect", [this] { return supported_ ? std::string(DialectName()) : std::string("no shader source this renderer takes: nothing drawn"); });
         p.AddReadout("Shader compiled", [this] { return effect_ && effect_->IsEffectValid() ? std::string("yes") : (supported_ ? std::string("NO") : std::string("not run")); });
         p.AddReadout("W after AddressW", [this] { return Fmt(Address(w_, addressW_)) + " (slice " + std::to_string(Slice(w_, addressW_)) + " of 32)"; });
         p.AddReadout("Texture3D", [this] { return volume_ ? std::string("32 x 32 x 32 Color, SetTexture(0)") : std::string("not created"); });
@@ -117,7 +151,16 @@ public:
                         texels[(static_cast<std::size_t>(z) * kSize + y) * kSize + x] = grid ? Kit::Rgba(255, 255, 255) : Kit::Rgba(level(x), level(y), level(z));
                     }
             volume_->SetData(texels.data(), static_cast<int>(texels.size()));
-            effect_ = std::make_unique<ShaderEffect>(d, kVertex, kFragment);
+            if (dialect_ == Dialect::Wgsl) {
+                static const char* const names[] = {"uW", "uRange"};
+                static const int offsets[] = {0, 4};
+                effect_ = std::make_unique<ShaderEffect>(d, ShaderSources::kWgslVertex, kWgslFragment);
+                effect_->DeclareUniformBlockEXT(16, names, offsets, 2);
+            } else if (dialect_ == Dialect::Vulkan) {
+                effect_ = std::make_unique<ShaderEffect>(d, ShaderSources::kVulkanGlslVertex, kVulkanFragment);
+            } else {
+                effect_ = std::make_unique<ShaderEffect>(d, kVertex, kFragment);
+            }
             if (!effect_->IsEffectValid()) Museum::Log("volumeshader", "compile failed: %s", effect_->GetCompileErrorEXT().c_str());
         } catch (const std::exception& e) {
             volume_.reset();
@@ -146,7 +189,7 @@ protected:
         sb.End();
         if (!effect_ || !effect_->IsEffectValid() || !volume_ || !dummy_) {
             sb.Begin(SpriteSortMode::Deferred, &BlendState::NonPremultiplied, &SamplerState::LinearClamp, nullptr, nullptr);
-            Text(sb, supported_ ? "the shader did not compile or the volume could not be made" : "this renderer takes no GLSL: a sampler3D shader cannot run here", 34, 200, 0.6f, Kit::Rgba(255, 190, 150));
+            Text(sb, supported_ ? "the shader did not compile or the volume could not be made" : "this renderer runs no shader source: a volume shader cannot run here", 34, 200, 0.6f, Kit::Rgba(255, 190, 150));
             sb.End();
             return;
         }
@@ -192,19 +235,103 @@ private:
         sampler.setAddressWProperty(kModes[addressW_]);
         effect_->SetTexture(0, *volume_);
         effect_->Apply();
-        effect_->SetUniformFloat("uW", w);
-        effect_->SetUniformFloat("uRange", range_);
+        if (dialect_ == Dialect::Vulkan) {
+            effect_->SetUniformVec4("color", w, range_, 0.0f, 0.0f);   // SDL_GPU: one fixed block, names ignored
+        } else {
+            effect_->SetUniformFloat("uW", w);
+            effect_->SetUniformFloat("uRange", range_);
+        }
         sb.Begin(SpriteSortMode::Deferred, &BlendState::Opaque, &sampler, nullptr, nullptr, effect_.get());
         sb.Draw(*dummy_, Rectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(size), static_cast<int>(size)), Rectangle(0, 0, 1, 1), Color::White, 0.0f, Vector2(0.0f, 0.0f), SpriteEffects::None, 0.0f);
         sb.End();
     }
 
+    // Storage and sampling are checked apart: GetData must return every texel SetData stored, and the shader drawing slice 20
+    // (Point, Clamp) into a 32 x 32 target must put texel (x, y, 20) at pixel (x, y): red = x, green = y, blue = 20 levels.
+    void Check()
+    {
+        const auto check = [this](const std::string& name, const std::string& expected, const std::string& got) {
+            Museum::Log("check", "%s %s: %s (expected %s, got %s)", R().key.c_str(), name.c_str(), expected == got ? "PASS" : "FAIL", expected.c_str(), got.c_str());
+        };
+        if (!volume_ || !effect_ || !effect_->IsEffectValid() || !dummy_) {
+            Museum::Log("check", "%s volume checks: SKIP (%s)", R().key.c_str(), supported_ ? "the shader or the volume could not be made" : "this renderer runs no shader source");
+            return;
+        }
+        const auto level = [](int v) { return v * 255 / (kSize - 1); };
+        GraphicsDevice& d = *S().device;
+        try {
+            std::vector<Color> back(static_cast<std::size_t>(kSize) * kSize * kSize);
+            volume_->GetData(back.data(), static_cast<int>(back.size()));
+            int wrong = 0;
+            for (int z = 0; z < kSize; ++z)
+                for (int y = 0; y < kSize; ++y)
+                    for (int x = 0; x < kSize; ++x) {
+                        const bool grid = x % 8 == 0 || y % 8 == 0;
+                        const Color want = grid ? Kit::Rgba(255, 255, 255) : Kit::Rgba(level(x), level(y), level(z));
+                        const Color got = back[(static_cast<std::size_t>(z) * kSize + y) * kSize + x];
+                        wrong += got.getPackedValueProperty() == want.getPackedValueProperty() ? 0 : 1;
+                    }
+            check("Texture3D.GetData returns what SetData stored", "0 of 32768 texels different", std::to_string(wrong) + " of 32768 texels different");
+        } catch (const std::exception& e) {
+            Museum::Log("check", "%s Texture3D.GetData: SKIP (%s)", R().key.c_str(), std::string(e.what()).substr(0, 80).c_str());
+        }
+        try {
+            RenderTarget2D target(d, kSize, kSize, false, SurfaceFormat::Color, DepthFormat::None);
+            d.SetRenderTarget(&target);
+            d.Clear(Color::Black);
+            const float w = (20.0f + 0.5f) / static_cast<float>(kSize);
+            const int linear = linear_, uv = addressUV_, wmode = addressW_;
+            const float range = range_;
+            linear_ = false;
+            addressUV_ = 0;
+            addressW_ = 0;
+            range_ = 1.0f;
+            SpriteBatch batch(d);
+            Quad(batch, w, 0.0f, 0.0f, static_cast<float>(kSize));
+            linear_ = linear;
+            addressUV_ = uv;
+            addressW_ = wmode;
+            range_ = range;
+            d.SetRenderTarget(nullptr);
+            std::vector<Color> px(static_cast<std::size_t>(kSize * kSize));
+            target.GetData(px.data(), static_cast<int>(px.size()));
+            int wrong = 0;
+            for (int y = 0; y < kSize; ++y)
+                for (int x = 0; x < kSize; ++x) {
+                    const bool grid = x % 8 == 0 || y % 8 == 0;
+                    const Color want = grid ? Kit::Rgba(255, 255, 255) : Kit::Rgba(level(x), level(y), level(20));
+                    const Color got = px[static_cast<std::size_t>(y * kSize + x)];
+                    if (std::abs(got.getRProperty() - want.getRProperty()) > 2 || std::abs(got.getGProperty() - want.getGProperty()) > 2 || std::abs(got.getBProperty() - want.getBProperty()) > 2) ++wrong;
+                }
+            check(std::string("the ") + DialectName() + " shader samples slice 20 texel for texel", "0 of 1024 pixels off by more than 2", std::to_string(wrong) + " of 1024 pixels off by more than 2");
+        } catch (const std::exception& e) {
+            d.SetRenderTarget(nullptr);
+            Museum::Log("check", "%s shader sampling: SKIP (%s)", R().key.c_str(), std::string(e.what()).substr(0, 80).c_str());
+        }
+    }
+
+    // The source is chosen in the renderer's own dialect: GLSL (OpenGL family, SOFTWARE), WGSL (WEBGPU), GLSL 450 (SDL_GPU).
     void ChooseDialect()
     {
         GraphicsDevice& d = *S().device;
-        supported_ = d.ExecutesShaderEffectSourceEXT() &&
-                     (d.SupportsShaderLanguageEXT(CNA::ShaderLanguageEXT::GlslEs, CNA::ShaderStageEXT::Fragment) || d.SupportsShaderLanguageEXT(CNA::ShaderLanguageEXT::GlslDesktop, CNA::ShaderStageEXT::Fragment));
+        supported_ = d.ExecutesShaderEffectSourceEXT();
+        if (!supported_) return;
+        if (d.SupportsShaderLanguageEXT(CNA::ShaderLanguageEXT::GlslEs, CNA::ShaderStageEXT::Fragment) || d.SupportsShaderLanguageEXT(CNA::ShaderLanguageEXT::GlslDesktop, CNA::ShaderStageEXT::Fragment))
+            dialect_ = Dialect::Glsl;
+        else if (d.SupportsShaderLanguageEXT(CNA::ShaderLanguageEXT::Wgsl, CNA::ShaderStageEXT::Fragment))
+            dialect_ = Dialect::Wgsl;
+        else if (d.GetShaderDialectEXT() == CNA::ShaderDialectEXT::SpirV)
+            dialect_ = Dialect::Vulkan;
+        else
+            supported_ = false;
+        Museum::Log("volumeshader", "dialect %s", supported_ ? DialectName() : "none: the renderer takes no source this room has");
     }
+    [[nodiscard]] const char* DialectName() const
+    {
+        return dialect_ == Dialect::Wgsl ? "WGSL (texture_3d)" : dialect_ == Dialect::Vulkan ? "GLSL 450 for SDL_GPU (sampler3D)" : "GLSL ES 3.00 (sampler3D)";
+    }
+    enum class Dialect { Glsl, Wgsl, Vulkan };
+    Dialect dialect_ = Dialect::Glsl;
 
     std::unique_ptr<Texture3D> volume_;
     std::unique_ptr<Texture2D> dummy_;

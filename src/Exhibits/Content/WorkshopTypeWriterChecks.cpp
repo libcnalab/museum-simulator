@@ -5,12 +5,16 @@
 // Then the loader is fed bytes the XNA contract says it must refuse with ContentLoadException (ContentReader.PrepareStream and
 // ReadAsset in XNA 4.0: bad magic, a size field larger than the stream, a body cut short, an unknown reader, a type version that
 // disagrees).
+// Last, a game type that has no ContentTypeWriter at all: XNA writes it with its implicit ReflectiveWriter and reads it with
+// ReflectiveReader<T> (Content/Workshop/reflective.xnb, written byte for byte by tools/gen_workshop.py). CNA has no reflection, so the
+// game declares the field list once with ReflectiveTypeReaderBuilder and the file is loaded through an ordinary ContentManager.
 #ifdef MUSEUM_PIPELINE
 
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -19,6 +23,7 @@
 #include "Exhibits/Services.hpp"
 #include "Microsoft/Xna/Framework/Color.hpp"
 #include "Microsoft/Xna/Framework/Content/ContentLoadException.hpp"
+#include "Microsoft/Xna/Framework/Content/ContentManager.hpp"
 #include "Microsoft/Xna/Framework/Content/ContentReader.hpp"
 #include "Microsoft/Xna/Framework/Content/ContentTypeReader.hpp"
 #include "Microsoft/Xna/Framework/Content/ContentTypeReaderManager.hpp"
@@ -27,12 +32,14 @@
 #include "Microsoft/Xna/Framework/Content/Pipeline/Serialization/Compiler/ContentTypeWriter.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/Serialization/Compiler/ContentTypeWriterAttribute.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/Serialization/Compiler/ContentWriter.hpp"
+#include "Microsoft/Xna/Framework/Content/ReflectiveTypeReader.hpp"
 #include "Microsoft/Xna/Framework/Game.hpp"
 #include "Microsoft/Xna/Framework/Matrix.hpp"
 #include "Microsoft/Xna/Framework/Quaternion.hpp"
 #include "Microsoft/Xna/Framework/Vector2.hpp"
 #include "Microsoft/Xna/Framework/Vector3.hpp"
 #include "Microsoft/Xna/Framework/Vector4.hpp"
+#include "System/TimeSpan.hpp"
 
 using namespace Microsoft::Xna::Framework;
 
@@ -375,6 +382,107 @@ std::shared_ptr<Specimen> Load(Services& s, const std::vector<std::uint8_t>& byt
     return manager.Load<std::shared_ptr<Specimen>>(name);
 }
 
+// ---- a game type without a writer of its own, read reflectively -----------------------------------------------------------------
+
+// The game's C# types (see tools/gen_workshop.py): Wing, SettingsBase { int Revision }, Curator { string Name; int Years },
+// ExhibitSettings : SettingsBase { Title, Visitors, Scale, Position, Open, Wing, Opening, Tint, Curator, Deputy }.
+enum class Wing : std::int32_t { North, South, East, West };
+struct SettingsBase {
+    std::int32_t revision = 0;
+};
+struct Curator {
+    std::string name;
+    std::int32_t years = 0;
+};
+struct ExhibitSettings : SettingsBase {
+    std::string title;
+    std::int32_t visitors = 0;
+    float scale = 0.0f;
+    Vector3 position;
+    bool open = false;
+    std::string openedBy;   // filled by the Custom step, not a member of the C# type
+    Wing wing = Wing::North;
+    System::TimeSpan opening;
+    Color tint{0, 0, 0, 0};
+    std::shared_ptr<Curator> curator, deputy;
+};
+
+constexpr const char* kExhibitType = "Museum.Workshop.ExhibitSettings";
+constexpr const char* kBaseType = "Museum.Workshop.SettingsBase";
+constexpr const char* kCuratorType = "Museum.Workshop.Curator";
+constexpr const char* kWingType = "Museum.Workshop.Wing";
+
+std::vector<std::string> ReflectiveReaderNames()
+{
+    return {Content::CanonicalReflectiveReaderNameEXT(kExhibitType), Content::CanonicalReflectiveReaderNameEXT(kBaseType), Content::CanonicalReflectiveReaderNameEXT(kCuratorType),
+            Content::EnumTypeReader<Wing>::CanonicalReaderName(kWingType)};
+}
+
+void RegisterReflective()
+{
+    Content::ReflectiveTypeReaderBuilder<SettingsBase> base(kBaseType);
+    base.Field(&SettingsBase::revision);
+    base.Register();
+    Content::ReflectiveTypeReaderBuilder<Curator>(kCuratorType).Field(&Curator::name).Field(&Curator::years).RegisterShared();
+    Content::ReflectiveTypeReaderBuilder<ExhibitSettings>(kExhibitType)
+        .Base(base)
+        .Field(&ExhibitSettings::title)
+        .Field(&ExhibitSettings::visitors)
+        .Field(&ExhibitSettings::scale)
+        .Field(&ExhibitSettings::position)
+        .Custom([](ExhibitSettings& s, Content::ContentReader& input) {
+            s.open = input.ReadBoolean();
+            s.openedBy = "the Custom step";
+        })
+        .EnumField(&ExhibitSettings::wing, kWingType)
+        .Field(&ExhibitSettings::opening)
+        .Field(&ExhibitSettings::tint)
+        .Field(&ExhibitSettings::curator)
+        .Field(&ExhibitSettings::deputy)
+        .Register();
+}
+
+void RemoveReflective()
+{
+    for (const std::string& readerName : ReflectiveReaderNames()) (void)Content::ContentTypeReaderManager::RemoveTypeCreatorEXT(readerName);
+}
+
+void ReflectiveChecks(Workshop::Checks& checks, Services& services)
+{
+    using Workshop::Checks;
+    using Workshop::F;
+    checks.Add("CanonicalReflectiveReaderNameEXT(\"Museum.Workshop.ExhibitSettings\")", "Microsoft.Xna.Framework.Content.ReflectiveReader`1[[Museum.Workshop.ExhibitSettings]], the same as ReflectiveTypeReader<T>::CanonicalReaderName",
+               Content::CanonicalReflectiveReaderNameEXT(kExhibitType),
+               Content::CanonicalReflectiveReaderNameEXT(kExhibitType) == "Microsoft.Xna.Framework.Content.ReflectiveReader`1[[Museum.Workshop.ExhibitSettings]]" &&
+                   Content::ReflectiveTypeReader<ExhibitSettings>::CanonicalReaderName(kExhibitType) == Content::CanonicalReflectiveReaderNameEXT(kExhibitType));
+    RemoveReflective();
+    RegisterReflective();
+    std::string registered;
+    for (const std::string& name : ReflectiveReaderNames()) registered += Content::ContentTypeReaderManager::IsRegistered(name) ? "+" : "-";
+    checks.Add("ReflectiveTypeReaderBuilder: Register, RegisterShared, and the EnumField's reader", "the four readers the file's table names are registered (++++)", registered, registered == "++++");
+    checks.Group("ContentManager.Load<ExhibitSettings>(\"Workshop/reflective\")", [&] {
+        Content::ContentManager manager(&services.game->getServicesProperty(), services.contentRoot);
+        const ExhibitSettings s = manager.Load<ExhibitSettings>("Workshop/reflective");
+        checks.Add("reflective.xnb: the base type's member first, then the fields", "Revision 7; \"Hall of Pipelines\", 1234, 0.75, (1.5, -2, 3.25)",
+                   "Revision " + std::to_string(s.revision) + "; \"" + s.title + "\", " + std::to_string(s.visitors) + ", " + F(s.scale) + ", (" + F(s.position.X) + ", " + F(s.position.Y) + ", " + F(s.position.Z) + ")",
+                   s.revision == 7 && s.title == "Hall of Pipelines" && s.visitors == 1234 && s.scale == 0.75f && s.position == Vector3(1.5f, -2.0f, 3.25f));
+        checks.Add("Boolean through Custom, enum, TimeSpan, Color", "Open true (read by the Custom step), Wing East (2), Opening 9:30:00, Tint (10,20,30,255)",
+                   std::string("Open ") + (s.open ? "true" : "false") + " (" + s.openedBy + "), Wing " + std::to_string(static_cast<int>(s.wing)) + ", Opening " + F(s.opening.getTotalHoursProperty()) + " h, Tint (" +
+                       std::to_string(s.tint.getRProperty()) + "," + std::to_string(s.tint.getGProperty()) + "," + std::to_string(s.tint.getBProperty()) + "," + std::to_string(s.tint.getAProperty()) + ")",
+                   s.open && s.openedBy == "the Custom step" && s.wing == Wing::East && s.opening.getTicksProperty() == 342000000000LL && s.tint == Color(10, 20, 30, 255));
+        checks.Add("a nested reference-type member and a null one", "Curator {\"Ada\", 12} through ReflectiveSharedTypeReader; Deputy null (index 0)",
+                   s.curator ? "Curator {\"" + s.curator->name + "\", " + std::to_string(s.curator->years) + "}" + (s.deputy ? ", Deputy set" : ", Deputy null") : "Curator null",
+                   s.curator && s.curator->name == "Ada" && s.curator->years == 12 && s.deputy == nullptr);
+    });
+    checks.ExpectThrow<std::logic_error>("Register() of a declaration with a SharedResourceField", "std::logic_error (the deferred fixup needs RegisterShared's stable object)",
+                                         [] { Content::ReflectiveTypeReaderBuilder<ExhibitSettings>("Museum.Workshop.SharedSettings").SharedResourceField(&ExhibitSettings::deputy).Register(); });
+    RemoveReflective();
+    checks.ExpectThrow<Content::ContentLoadException>("reflective.xnb with its readers removed", "ContentLoadException (XNA: the type table must resolve in full, TypeReaderNotFound)", [&] {
+        Content::ContentManager manager(&services.game->getServicesProperty(), services.contentRoot);
+        (void)manager.Load<ExhibitSettings>("Workshop/reflective");
+    });
+}
+
 }  // namespace
 
 namespace Workshop {
@@ -517,6 +625,8 @@ void TypeWriterChecks(Checks& checks, Services& services)
     checks.ExpectThrow<ContentLoadException>("no reader registered for the file's reader name", "ContentLoadException (XNA: TypeReaderNotFound)", [&] { (void)Load(services, bytes, "specimen"); });
     checks.Add("ContentTypeReaderManager after RemoveTypeCreatorEXT", "the three readers are no longer registered",
                Content::ContentTypeReaderManager::IsRegistered(kSpecimenReader) ? "still registered" : "removed", !Content::ContentTypeReaderManager::IsRegistered(kSpecimenReader) && !Content::ContentTypeReaderManager::IsRegistered(kLabelReader));
+
+    checks.Group("ReflectiveTypeReader", [&] { ReflectiveChecks(checks, services); });
 }
 
 }  // namespace Workshop

@@ -1,0 +1,14 @@
+{
+  "description": "ContentTypeSerializerAttribute and its use to register a ContentTypeSerializer (C07)",
+  "requires": "MUSEUM_PIPELINE",
+  "script": "goto:wk-cnbloader;wait:30;press:Run the checks again;wait:20;stats;quit",
+  "expect": [
+    "wk-cnbloader ContentTypeSerializerAttribute::XnaTypeName, TypeId, IsDefaultAttribute: PASS",
+    "wk-cnbloader two ContentTypeSerializerAttribute instances: Equals, Match: FAIL",
+    "wk-cnbloader AddTypeSerializer, then FindTypeSerializer(\"Museum.Workshop.Seismogram\"): PASS"
+  ],
+  "forbid": [
+    ": the group itself: FAIL",
+    "the check run itself: FAIL"
+  ]
+}

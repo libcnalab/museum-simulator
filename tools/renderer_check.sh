@@ -44,7 +44,7 @@ for r in "${renderers[@]}"; do
     # The museum cannot tell which driver draws; Mesa's EGL and the Vulkan loader can: keep what they chose.
     EGL_LOG_LEVEL=debug VK_LOADER_DEBUG=driver CNA_GRAPHICS_RENDERER=$r MUSEUM_LOG=$out/$name.device-run.log \
       tools/run.sh "wait:5;quit" > /dev/null 2>&1
-    grep -E "libEGL debug: (using driver|pci id)|Loading driver|Found ICD|ICD .*(chosen|added)|on adapter" "$out/$name.device-run.log" \
+    grep -E "libEGL debug: (using driver|pci id)|Loading driver|Found ICD|ICD .*(chosen|added)|on adapter|\[WebGPU\] Adapter:" "$out/$name.device-run.log" \
       | sort -u > "$out/$name.device"
     rm -f "$out/$name.device-run.log" "$out/$name.device-run.log.lock"
   fi
@@ -56,6 +56,10 @@ for r in "${renderers[@]}"; do
     sed "s/^/             /" "$out/$name.validation-errors" >&2
   fi
   [ "$validation_rc" -ne 0 ] && status=1
+  count() { echo "$summary" | grep -oE "[0-9]+ $1" | grep -oE '^[0-9]+' || echo 0; }
+  failures=$(count fail)
+  [ "$validation_rc" -ne 0 ] || [ "$rc" -ne 0 ] && failures=$((failures > 0 ? failures : 1))
+  python3 tools/record_profile.py "renderer-$name" --passed "$(count pass)" --failed "$failures" --skipped "$(count skip)" --note "$(count info) informational" || true
   [ "$rc" -ne 0 ] && status=1
 done
 echo "per-renderer results: $out/<RENDERER>[-gpu].checks"

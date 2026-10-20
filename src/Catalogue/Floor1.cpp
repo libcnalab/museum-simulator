@@ -246,7 +246,7 @@ WingSpec AppWing()
         Lab("app-gametime", "GameTime and Frame Rate", "Time-based versus frame-based movement, with an artificial slowdown and a frame-time graph", "applab", "gametime",
             {"GameTime.ElapsedGameTime", "GameTime.TotalGameTime", "Game.ResetElapsedTime", "Game.SuppressDraw", "Game.InactiveSleepTime"}),
         Lab("app-device", "Device and Renderer Report", "The live GraphicsDevice, adapter, GraphicsCapability list and renderer capability profile", "applab", "device",
-            {"GraphicsDevice", "GraphicsAdapter", "GraphicsCapability", "RendererCapabilityProfile", "PresentationParameters"}),
+            {"GraphicsDevice", "GraphicsAdapter", "GraphicsCapability", "RendererCapabilityProfile", "PresentationParameters", "CNA::AssemblyTitleAttributeEXT", "CNA::GetAssemblyTitleEXT", "CNA::ProjectGraphicsProfileEXT", "CNA::GetProjectGraphicsProfileEXT"}),
         Lab("app-viewport", "Back Buffer, Viewport and Fullscreen", "GraphicsDeviceManager.ApplyChanges: resolution, fullscreen and vertical sync at run time", "applab", "viewport",
             {"GraphicsDeviceManager", "PresentationParameters", "PresentInterval", "GraphicsDeviceStatus", "GraphicsDeviceManager.DeviceReset", "GraphicsDeviceManager.DeviceResetting", "GraphicsDevice.DeviceLost", "GraphicsDevice.Present", "GraphicsDevice.VertexTextures", "GraphicsDeviceManager.PreparingDeviceSettings", "Viewport", "Viewport.MinDepth", "Viewport.MaxDepth", "Viewport.Project", "GameWindow.ClientBounds"}),
         Lab("app-content", "Content Lifetime", "ContentManager.Load, caching, Unload and ContentLoadException with your own manager", "applab", "content",

@@ -9,6 +9,7 @@
 //     profile, processor parameters).
 // The build result is then checked: dependencies, deployment files, the nested assets with XNA's generated names, the log, and the
 // compiled .xnb loaded back through a ContentManager with the game's reader. Sources are copied into the build tree first.
+// Finally XNA's PipelineComponentScanner lists the room's registered components (names, attributes, types, processor parameters).
 #ifdef MUSEUM_PIPELINE
 
 #include <algorithm>
@@ -38,6 +39,7 @@
 #include "Microsoft/Xna/Framework/Content/Pipeline/ExternalReference.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/Graphics/StockMaterials.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/Graphics/TextureContent.hpp"
+#include "Microsoft/Xna/Framework/Content/Pipeline/PipelineComponentScanner.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/PipelineException.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/ProcessorParameter.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/Processors/ProcessorEnums.hpp"
@@ -453,6 +455,69 @@ void ProcessorContextChecks(Checks& checks, Services& services)
         checks.Add("the compiled plaque, loaded back", "the plaque", What(e), false);
     }
     (void)Content::ContentTypeReaderManager::RemoveTypeCreatorEXT("Museum.Workshop.PlaqueReader");
+
+    // The components the room registered, as XNA's PipelineComponentScanner lists them. CNA loads no assemblies: the names Update takes are
+    // the catalogs the components were registered under ("Museum.Workshop" here, as the last argument of RegisterXnaImporter/Processor).
+    // XNA's contract (PipelineComponentScanner.Update): true when the component set was (re)scanned, false when the same list is
+    // already up to date; a list naming something unloadable records an error.
+    checks.Group("PipelineComponentScanner", [&] {
+        Xna::PipelineComponentScanner scanner(registry);
+        const bool first = scanner.Update({"Museum.Workshop"});
+        const std::vector<std::string> importers = scanner.getImporterNamesProperty();
+        const std::vector<std::string> processors = scanner.getProcessorNamesProperty();
+        const auto has = [](const std::vector<std::string>& scanned, const std::string& name) { return std::find(scanned.begin(), scanned.end(), name) != scanned.end(); };
+        checks.Add("PipelineComponentScanner(registry).Update({\"Museum.Workshop\"})", "true; importer LabelImporter; processors LabelProcessor and PlaqueProcessor; no errors",
+                   std::string(first ? "true" : "false") + "; importers " + std::to_string(importers.size()) + ", processors " + std::to_string(processors.size()) + ", errors " + std::to_string(scanner.getErrorsProperty().size()),
+                   first && has(importers, "LabelImporter") && has(processors, "LabelProcessor") && has(processors, "PlaqueProcessor") && scanner.getErrorsProperty().empty());
+        std::string all;
+        for (const auto& n : importers) all += (all.empty() ? "" : " ") + n;
+        all += " |";
+        for (const auto& n : processors) all += " " + n;
+        checks.Info("the scanned component names", "-", all);
+        const auto importer = scanner.getImporterAttributesProperty().find("LabelImporter");
+        const bool attribute = importer != scanner.getImporterAttributesProperty().end();
+        const std::vector<std::string> extensions = attribute ? importer->second.getFileExtensionsProperty() : std::vector<std::string>{};
+        checks.Add("ImporterAttributes[\"LabelImporter\"]", "extensions [.label], DefaultProcessor LabelProcessor, DisplayName \"Label - Museum Workshop\" (its ContentImporterAttribute)",
+                   attribute ? (extensions.empty() ? std::string("no extension") : extensions[0]) + ", " + importer->second.getDefaultProcessorProperty() + ", \"" + importer->second.getDisplayNameProperty() + "\"" : "missing",
+                   attribute && extensions == std::vector<std::string>{".label"} && importer->second.getDefaultProcessorProperty() == "LabelProcessor" && importer->second.getDisplayNameProperty() == "Label - Museum Workshop");
+        const auto output = scanner.getImporterOutputTypesProperty().find("LabelImporter");
+        const auto input = scanner.getProcessorInputTypesProperty().find("PlaqueProcessor");
+        const auto produced = scanner.getProcessorOutputTypesProperty().find("PlaqueProcessor");
+        const bool types = output != scanner.getImporterOutputTypesProperty().end() && input != scanner.getProcessorInputTypesProperty().end() && produced != scanner.getProcessorOutputTypesProperty().end();
+        checks.Add("ImporterOutputTypes, ProcessorInputTypes, ProcessorOutputTypes", "LabelImporter -> Museum.Workshop.LabelSource; PlaqueProcessor: Museum.Workshop.LabelSource -> Museum.Workshop.PlaqueContent",
+                   types ? output->second + "; " + input->second + " -> " + produced->second : "missing",
+                   types && output->second == "Museum.Workshop.LabelSource" && input->second == "Museum.Workshop.LabelSource" && produced->second == "Museum.Workshop.PlaqueContent");
+        const auto display = scanner.getProcessorAttributesProperty().find("PlaqueProcessor");
+        checks.Add("ProcessorAttributes[\"PlaqueProcessor\"].DisplayName", "Plaque - Museum Workshop", display != scanner.getProcessorAttributesProperty().end() ? display->second.getDisplayNameProperty() : "missing",
+                   display != scanner.getProcessorAttributesProperty().end() && display->second.getDisplayNameProperty() == "Plaque - Museum Workshop");
+        const auto parameters = scanner.getProcessorParametersProperty().find("PlaqueProcessor");
+        std::string edition = "missing";
+        bool editionOk = false, materialOk = false;
+        if (parameters != scanner.getProcessorParametersProperty().end())
+            for (int i = 0; i < parameters->second.getCountProperty(); ++i) {
+                const Xna::ProcessorParameter& p = parameters->second[i];
+                if (p.getPropertyNameProperty() == "Edition") {
+                    edition = p.getPropertyTypeProperty() + ", \"" + p.getDisplayNameProperty() + "\", \"" + p.getDescriptionProperty() + "\"";
+                    editionOk = p.getPropertyTypeProperty() == "System.Int32" && p.getDisplayNameProperty() == "Edition" && p.getDescriptionProperty() == "Which edition of the plaque to build." && !p.getIsEnumProperty();
+                }
+                if (p.getPropertyNameProperty() == "MaterialTexture") materialOk = p.getPropertyTypeProperty() == "System.String";
+            }
+        checks.Add("ProcessorParameters[\"PlaqueProcessor\"]", "Edition: System.Int32, \"Edition\", \"Which edition of the plaque to build.\"; MaterialTexture: System.String", edition + (materialOk ? "; MaterialTexture System.String" : "; no MaterialTexture"),
+                   editionOk && materialOk);
+        const bool second = scanner.Update({"Museum.Workshop"});
+        checks.Add("Update with the same list again", "false (XNA: AlreadyUpToDate)", second ? "true" : "false", !second);
+        const bool third = scanner.Update({"Museum.Workshop", "No.Such.Catalog"});
+        std::string errors;
+        for (const auto& e : scanner.getErrorsProperty()) errors += (errors.empty() ? "" : " | ") + e;
+        checks.Add("Update naming a catalog that does not exist", "true; one error naming No.Such.Catalog (XNA: an unloadable assembly is reported in Errors); LabelImporter still found",
+                   std::string(third ? "true" : "false") + "; " + std::to_string(scanner.getErrorsProperty().size()) + " error(s): " + Checks::Short(errors, 120),
+                   third && scanner.getErrorsProperty().size() == 1 && errors.find("No.Such.Catalog") != std::string::npos && scanner.getImporterAttributesProperty().count("LabelImporter") == 1);
+        Xna::PipelineComponentScanner detached;
+        const bool none = detached.Update({});
+        checks.Add("a scanner with no registry: Update({})", "nothing found (CNA documents: Update finds nothing until a registry is attached)",
+                   std::to_string(detached.getImporterNamesProperty().size()) + " importers, " + std::to_string(detached.getProcessorNamesProperty().size()) + " processors (Update answered " + (none ? "true" : "false") + ")",
+                   detached.getImporterNamesProperty().empty() && detached.getProcessorNamesProperty().empty());
+    });
 
     // Outside a coordinator there is nothing to build with: CNA's context says so instead of pretending.
     checks.Group("a context without a coordinator", [&] {

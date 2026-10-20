@@ -45,6 +45,8 @@
 #include "Microsoft/Xna/Framework/Graphics/BasicEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/ColorWriteChannels.hpp"
 #include "Microsoft/Xna/Framework/Graphics/CompareFunction.hpp"
+#include "Microsoft/Xna/Framework/Graphics/PbrEffect.hpp"
+#include "Microsoft/Xna/Framework/Graphics/StencilOperation.hpp"
 #include "Microsoft/Xna/Framework/Graphics/CubeMapFace.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DualTextureEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DynamicVertexBuffer.hpp"
@@ -685,6 +687,53 @@ private:
             const auto img = pass(DepthStencilState::None, 0.3f, red, 0.6f, green);
             Add("DepthStencilState.None", "later (green) wins: no depth test", Rgb(img->At(32, 32)), Dist(img->At(32, 32), 0, 255, 0) < 3, img);
         }
+        {   // stencil: a quad over the left half writes the stencil, a full quad is then drawn only where the test holds
+            if (!stencilTarget_) stencilTarget_ = std::make_unique<RenderTarget2D>(d, kSize, kSize, false, SurfaceFormat::Color, DepthFormat::Depth24Stencil8);
+            RenderTarget2D& st = *stencilTarget_;
+            const auto stencilRun = [&](StencilOperation write, int writes, CompareFunction test, int reference) {
+                RenderStates::UnbindTextures(d);
+                d.SetRenderTarget(&st);
+                d.setViewportProperty(Viewport(0, 0, kSize, kSize));
+                d.setBlendStateProperty(BlendState::Opaque);
+                d.setRasterizerStateProperty(RasterizerState::CullNone);
+                d.Clear(ClearOptions::Target | ClearOptions::DepthBuffer | ClearOptions::Stencil, clearC, 1.0f, 0);
+                DepthStencilState mark;
+                mark.setDepthBufferEnableProperty(false);
+                mark.setStencilEnableProperty(true);
+                mark.setStencilFunctionProperty(CompareFunction::Always);
+                mark.setStencilPassProperty(write);
+                mark.setReferenceStencilProperty(1);
+                d.setDepthStencilStateProperty(mark);
+                for (int i = 0; i < writes; ++i) DrawClip(d, Quad(0, 0, 32, 64, 0.5f, red));
+                DepthStencilState only;
+                only.setDepthBufferEnableProperty(false);
+                only.setStencilEnableProperty(true);
+                only.setStencilFunctionProperty(test);
+                only.setStencilPassProperty(StencilOperation::Keep);
+                only.setReferenceStencilProperty(reference);
+                d.setDepthStencilStateProperty(only);
+                DrawClip(d, Quad(0, 0, 64, 64, 0.5f, green));
+                d.setDepthStencilStateProperty(DepthStencilState::Default);
+                d.SetRenderTarget(nullptr);
+                Image img;
+                img.px.resize(static_cast<std::size_t>(kSize * kSize));
+                try {
+                    st.GetData(img.px.data(), static_cast<int>(img.px.size()));
+                } catch (const std::exception& e) {
+                    Museum::Log("validate", "readback failed: %s", e.what());
+                    readback_ = false;
+                    return std::optional<Image>();
+                }
+                return std::optional<Image>(img);
+            };
+            const auto halves = [](const Image& img) { return Rgb(img.At(16, 32)) + " | " + Rgb(img.At(48, 32)); };
+            if (const auto img = stencilRun(StencilOperation::Replace, 1, CompareFunction::Equal, 1))
+                Add("Stencil: Replace 1 on the left, then Equal 1", "left green, right black", halves(*img), Dist(img->At(16, 32), 0, 255, 0) < 3 && Dist(img->At(48, 32), 0, 0, 0) < 3, img);
+            if (const auto img = stencilRun(StencilOperation::Replace, 1, CompareFunction::NotEqual, 1))
+                Add("Stencil: Replace 1 on the left, then NotEqual 1", "left red, right green", halves(*img), Dist(img->At(16, 32), 255, 0, 0) < 3 && Dist(img->At(48, 32), 0, 255, 0) < 3, img);
+            if (const auto img = stencilRun(StencilOperation::Increment, 2, CompareFunction::Equal, 2))
+                Add("Stencil: Increment twice on the left, then Equal 2", "left green, right black", halves(*img), Dist(img->At(16, 32), 0, 255, 0) < 3 && Dist(img->At(48, 32), 0, 0, 0) < 3, img);
+        }
         {   // precision, informational: how close can two surfaces be and still be told apart under a typical
             // projection (near 0.1, far 1000) at 100 m with this renderer's depth buffer?
             const Matrix proj = Matrix::CreatePerspectiveFieldOfView(MathHelper::PiOver2, 1.0f, 0.1f, 1000.0f);
@@ -788,6 +837,60 @@ private:
             }
             const auto img = End(d, rt);
             Add("Linear fog halfway (red object, blue fog)", "about 128,0,128 +-20", Rgb(img->At(32, 32)), Dist(img->At(32, 32), 128, 0, 128) <= 20, img);
+        }
+        // PbrEffect (CNA extension): the same face-on quad, one directional light along -Z, no ambient.
+        const auto pbr = [&](const Vector3& base, float metallic, float roughness, const Vector3& emissive) -> std::optional<Image> {
+            Begin(d, rt, clearC);
+            PbrEffect fx(d);
+            fx.setLightingEnabledProperty(true);
+            fx.setAmbientLightColorProperty(Vector3(0, 0, 0));
+            fx.setDiffuseColorProperty(base);
+            fx.setMetallicFactorProperty(metallic);
+            fx.setRoughnessFactorProperty(roughness);
+            fx.setEmissiveFactorProperty(emissive);
+            fx.setTextureProperty(S().whiteTexture);   // base colour = factor x texture; white keeps the factor
+            for (int i = 0; i < 3; ++i) {
+                DirectionalLight& light = i == 0 ? fx.getDirectionalLight0Property() : (i == 1 ? fx.getDirectionalLight1Property() : fx.getDirectionalLight2Property());
+                light.setEnabledProperty(i == 0);
+                light.setDirectionProperty(Vector3(0, 0, -1));
+                light.setDiffuseColorProperty(Vector3(1, 1, 1));
+                light.setSpecularColorProperty(Vector3(1, 1, 1));
+            }
+            // A real camera this time: PBR shading depends on the view direction, so the eye sits 2 units in front of the
+            // quad (N.V = 1) and the light comes from behind it (N.L = 1).
+            fx.setWorldProperty(Matrix::getIdentityProperty());
+            fx.setViewProperty(Matrix::CreateLookAt(Vector3(0, 0, 2), Vector3(0, 0, 0), Vector3::Up));
+            fx.setProjectionProperty(Matrix::CreatePerspectiveFieldOfView(MathHelper::PiOver4, 1.0f, 0.1f, 10.0f));
+            const Vector3 n(0, 0, 1);
+            const std::vector<VertexPositionNormalTexture> quad = {
+                VertexPositionNormalTexture(Vector3(-1, 1, 0), n, Vector2(0, 0)), VertexPositionNormalTexture(Vector3(1, 1, 0), n, Vector2(1, 0)), VertexPositionNormalTexture(Vector3(1, -1, 0), n, Vector2(1, 1)),
+                VertexPositionNormalTexture(Vector3(-1, 1, 0), n, Vector2(0, 0)), VertexPositionNormalTexture(Vector3(1, -1, 0), n, Vector2(1, 1)), VertexPositionNormalTexture(Vector3(-1, -1, 0), n, Vector2(0, 1))};
+            for (auto& pass : fx.getCurrentTechniqueProperty()->getPassesProperty()) {
+                pass.Apply();
+                d.DrawUserPrimitives(PrimitiveType::TriangleList, quad.data(), 0, 2);
+            }
+            return End(d, rt);
+        };
+        try {
+            if (const auto img = pbr(Vector3(0, 0, 0), 0.0f, 1.0f, Vector3(0, 1, 0))) {
+                const Color c = img->At(32, 32);
+                Add("PbrEffect: black base, EmissiveFactor (0,1,0)", "green from the emission: G > 240 and G exceeds R and B by > 150", Rgb(c),
+                    c.getGProperty() > 240 && c.getGProperty() - std::max(c.getRProperty(), c.getBProperty()) > 150, img);
+            }
+            if (const auto img = pbr(Vector3(1, 0, 0), 0.0f, 1.0f, Vector3(0, 0, 0))) {
+                const Color c = img->At(32, 32);
+                Add("PbrEffect: red dielectric, rough, lit along -Z", "red dominates: R > 40 and R > 3 x G and 3 x B", Rgb(c),
+                    c.getRProperty() > 40 && c.getRProperty() > 3 * c.getGProperty() && c.getRProperty() > 3 * c.getBProperty(), img);
+            }
+            const auto dielectric = pbr(Vector3(0.8f, 0.8f, 0.8f), 0.0f, 0.5f, Vector3(0, 0, 0));
+            const auto metal = pbr(Vector3(0.8f, 0.8f, 0.8f), 1.0f, 0.5f, Vector3(0, 0, 0));
+            if (dielectric && metal) {
+                const Color a = dielectric->At(32, 32), b = metal->At(32, 32);
+                Add("PbrEffect: MetallicFactor 0 against 1 (grey base)", "the two shade differently (some channel differs by > 10)", Rgb(a) + " against " + Rgb(b),
+                    std::abs(a.getRProperty() - b.getRProperty()) > 10 || std::abs(a.getGProperty() - b.getGProperty()) > 10 || std::abs(a.getBProperty() - b.getBProperty()) > 10, metal);
+            }
+        } catch (const std::exception& e) {
+            Add("PbrEffect", "drawn or refused as this renderer declares", std::string("refused: ") + std::string(e.what()).substr(0, 60), true, std::nullopt, true);
         }
     }
 
@@ -1535,7 +1638,7 @@ private:
     std::string renderer_ = "-";
     bool needRun_ = false, readback_ = true;
     std::unique_ptr<BasicEffect> fx_;
-    std::unique_ptr<RenderTarget2D> plainTarget_, depthTarget_;
+    std::unique_ptr<RenderTarget2D> plainTarget_, depthTarget_, stencilTarget_;
     std::vector<Result> results_;
 };
 

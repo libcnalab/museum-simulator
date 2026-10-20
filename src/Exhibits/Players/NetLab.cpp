@@ -115,7 +115,7 @@ public:
             p.AddButton("Guide.ShowSignIn: an account for PlayerMatch", [this] { try { Microsoft::Xna::Framework::GamerServices::Guide::ShowSignIn(1, true); Museum::Log("online", "ShowSignIn(1, true) opened"); } catch (const std::exception& e) { status_ = std::string(e.what()).substr(0, 50); } });
             p.AddChoice("Local gamers in a new session (maxLocalGamers)", {"2", "1"}, 0, [this](int v) { localGamers_ = v == 1 ? 1 : 2; });
             p.AddToggle("Deliver packets: a SystemLink session (visible on your network)", false, [this](bool v) { SetTransport(v); });
-            p.AddSlider("SimulatedLatency (ms, on arriving packets)", 0.0f, 500.0f, 0.0f, [this](float v) { latencyMs_ = v; ApplyImpairment(); }, "%.0f", 10.0f);
+            p.AddSlider("SimulatedLatency (ms, on packets this museum sends)", 0.0f, 500.0f, 0.0f, [this](float v) { latencyMs_ = v; ApplyImpairment(); }, "%.0f", 10.0f);
             p.AddSlider("SimulatedPacketLoss", 0.0f, 0.5f, 0.0f, [this](float v) { loss_ = v; ApplyImpairment(); }, "%.2f", 0.05f);
             p.AddSlider("SessionProperties[0] (game mode)", 0.0f, 9.0f, static_cast<float>(gameMode_), [this](float v) { gameMode_ = static_cast<int>(v); ApplySessionSettings(); }, "%.0f", 1.0f);
             p.AddToggle("AllowJoinInProgress", false, [this](bool v) { joinInProgress_ = v; ApplySessionSettings(); });
@@ -126,6 +126,7 @@ public:
             p.AddReadout("Find", [this] { return found_; });
             p.AddToggle("Over the account service (PlayerMatch), not SystemLink", false, [this](bool v) { online_ = v; if (host_ != nullptr) { SetTransport(false); SetTransport(true); } });
             p.AddSlider("Packets per second", 2.0f, 60.0f, rate_, [this](float v) { rate_ = v; }, "%.0f", 1.0f);
+            p.AddButton("Burst: 100 packets with each SendDataOptions once another museum joined", [this] { burstArmed_ = true; burstArmedAt_ = -1.0f; Log("burst armed: sent 2 s after a remote gamer is in the session"); });
             p.AddReadout("Transport", [this] { return transportStatus_; });
         }
 #else
@@ -207,7 +208,7 @@ private:
         if (mode_ == Mode::Packets)
             return {"Everything a game sends is bytes. PacketWriter writes XNA's types (Vector3, Quaternion, Matrix, strings...) in a fixed order; PacketReader must read them in", "the same order. The packet below is rebuilt whenever you change a field; its size is what every send costs on the wire, before headers."};
         return {"A Local session begins with one signed-in profile; AddLocalGamer admits the second and raises GamerJoined. It runs the lobby (StartGame, EndGame, IsReady...) but delivers no packets, as in XNA. A SystemLink session delivers them,",
-                "and announces itself on your network, so it stays off until you switch it on. Only one session can exist per process; SimulatedLatency and SimulatedPacketLoss act on packets that arrive from another machine: join a second museum (BeginFind, BeginJoin) and raise them to see packets thin out and arrive late."};
+                "and announces itself on your network, so it stays off until you switch it on. Only one session can exist per process; SimulatedLatency and SimulatedPacketLoss act on the packets this machine sends, as in XNA (reliable ones are resent, never lost): join a second museum (BeginFind, BeginJoin) and raise them there to see what arrives here thin out and come late."};
     }
 
 #ifdef MUSEUM_NETWORKING
@@ -450,7 +451,8 @@ private:
         }
     }
 
-    // Both act on packets that arrive from another machine; the in-memory delivery between the two local profiles skips them.
+    // Both act on the packets this machine sends (XNA's NetworkSimulator sits in SendData); the in-memory delivery between the two
+    // local profiles skips them.
     void ApplyImpairment()
     {
         NetworkSession* n = Primary();
@@ -658,6 +660,11 @@ private:
             Log(std::string("HostChanged: ") + (e.getOldHostProperty() != nullptr ? e.getOldHostProperty()->getGamertagProperty() : "?") + " -> " + (e.getNewHostProperty() != nullptr ? e.getNewHostProperty()->getGamertagProperty() : "?"));
         });
         hostLeft_ = host_->GamerLeft.Add([this](System::Object*, const GamerLeftEventArgs&) { Log("GamerLeft"); });
+        hostJoined_ = host_->GamerJoined.Add([this](System::Object*, const GamerJoinedEventArgs& e) {
+            Log("GamerJoined: " + (e.getGamerProperty() != nullptr ? e.getGamerProperty()->getGamertagProperty() : std::string("?")) + (e.getGamerProperty() != nullptr && e.getGamerProperty()->getIsLocalProperty() ? " (local)" : " (remote)"));
+        });
+        hostStarted_ = host_->GameStarted.Add([this](System::Object*, const GameStartedEventArgs&) { Log("GameStarted"); });
+        hostEndedGame_ = host_->GameEnded.Add([this](System::Object*, const GameEndedEventArgs&) { Log("GameEnded"); });
         hostHooked_ = true;
     }
     void UnhookHost()
@@ -667,6 +674,9 @@ private:
             host_->SessionEnded.Remove(hostEnded_);
             host_->HostChanged.Remove(hostChanged_);
             host_->GamerLeft.Remove(hostLeft_);
+            host_->GamerJoined.Remove(hostJoined_);
+            host_->GameStarted.Remove(hostStarted_);
+            host_->GameEnded.Remove(hostEndedGame_);
         } catch (const std::exception&) {}
         hostHooked_ = false;
     }
@@ -720,7 +730,7 @@ private:
             found_ = "joined";
             ApplyImpairment();
             Log("Joined: " + std::to_string(host_->getAllGamersProperty().getCountProperty()) + " gamer(s) in the session; this machine sees AllowHostMigration " +
-                (host_->getAllowHostMigrationProperty() ? "true" : "false") + ", AllowJoinInProgress " + (host_->getAllowJoinInProgressProperty() ? "true" : "false"));
+                (host_->getAllowHostMigrationProperty() ? "true" : "false") + ", AllowJoinInProgress " + (host_->getAllowJoinInProgressProperty() ? "true" : "false") + ", state " + StateName(host_->getSessionStateProperty()));
             if (wantReady_) SetReady(true);
         } catch (const NetworkSessionJoinException& e) {
             delete join_;
@@ -756,10 +766,28 @@ private:
         if (host_ == nullptr || phase_ != Phase::Connected) return;
         try {
             host_->Update();
+            if (burstLastAt_ >= 0.0f && time_ - burstLastAt_ > 3.0f) ReportBurst();
             if (host_->getLocalGamersProperty().getCountProperty() < 1) return;
             // Two local gamers (the offline profiles) talk to each other; one account online talks to whoever else is in the session.
             LocalNetworkGamer* sender = host_->getLocalGamersProperty()[0];
             LocalNetworkGamer* guest = host_->getLocalGamersProperty().getCountProperty() > 1 ? host_->getLocalGamersProperty()[1] : sender;
+            if (burstArmed_ && HasRemoteGamers()) {
+                if (burstArmedAt_ < 0.0f) burstArmedAt_ = time_;
+                if (time_ - burstArmedAt_ >= 2.0f) {
+                    burstArmed_ = false;
+                    static constexpr SendDataOptions kOptions[4] = {SendDataOptions::None, SendDataOptions::Reliable, SendDataOptions::InOrder, SendDataOptions::ReliableInOrder};
+                    for (int o = 0; o < 4; ++o)
+                        for (int i = 0; i < kBurstCount; ++i) {
+                            PacketWriter w;
+                            w.Write(kBurstMagic);
+                            w.Write(o);
+                            w.Write(i);
+                            sender->SendData(w, kOptions[o]);
+                        }
+                    Log("burst sent: 4 x " + std::to_string(kBurstCount) + " packets (None, Reliable, InOrder, ReliableInOrder) with SimulatedPacketLoss " + LossText() +
+                        ", SimulatedLatency " + std::to_string(static_cast<int>(latencyMs_)) + " ms");
+                }
+            }
             sendClock_ += dt * rate_;
             while (sendClock_ >= 1.0f) {
                 sendClock_ -= 1.0f;
@@ -784,6 +812,18 @@ private:
                 NetworkGamer* from = nullptr;
                 guest->ReceiveData(r, from);
                 const int seq = r.ReadInt32();
+                if (seq == kBurstMagic) {
+                    const int option = r.ReadInt32(), index = r.ReadInt32();
+                    if (from == nullptr || from->getIsLocalProperty() || option < 0 || option > 3 || index < 0 || index >= kBurstCount) continue;
+                    BurstTally& t = burst_[static_cast<std::size_t>(option)];
+                    if (t.seen[static_cast<std::size_t>(index)]) ++t.duplicates;
+                    else { t.seen[static_cast<std::size_t>(index)] = true; ++t.received; }
+                    if (index < t.last) ++t.outOfOrder;
+                    t.last = std::max(t.last, index);
+                    burstLastAt_ = time_;
+                    burstFrom_ = from->getGamertagProperty();
+                    continue;
+                }
                 const float sentAt = r.ReadSingle();
                 const Vector2 p(r.ReadSingle(), r.ReadSingle());
                 if (from != nullptr && !from->getIsLocalProperty()) {
@@ -803,6 +843,27 @@ private:
         } catch (const std::exception& e) {
             status_ = std::string("session error: ") + std::string(e.what()).substr(0, 50);
         }
+    }
+
+    [[nodiscard]] std::string LossText() const
+    {
+        char buffer[16];
+        std::snprintf(buffer, sizeof buffer, "%.2f", static_cast<double>(loss_));
+        return buffer;
+    }
+    // What arrived of a burst, per option, once no burst packet came for three seconds.
+    void ReportBurst()
+    {
+        static const char* const names[4] = {"None", "Reliable", "InOrder", "ReliableInOrder"};
+        std::string line = "burst received from " + burstFrom_ + ":";
+        for (int o = 0; o < 4; ++o) {
+            const BurstTally& t = burst_[static_cast<std::size_t>(o)];
+            line += std::string(o ? ";" : "") + " " + names[o] + " " + std::to_string(t.received) + "/" + std::to_string(kBurstCount) + " (" + std::to_string(t.outOfOrder) + " out of order, " +
+                    std::to_string(t.duplicates) + " duplicates)";
+        }
+        Log(line);
+        burst_ = {};
+        burstLastAt_ = -1.0f;
     }
 
     template <typename Rect, typename Text>
@@ -891,7 +952,18 @@ private:
     int localGamers_ = 2;
     std::string status_ = "-";
     int gameMode_ = 3, searchMode_ = 0, remoteReceived_ = 0;
-    std::size_t hostEnded_ = 0, hostChanged_ = 0, hostLeft_ = 0;
+    std::size_t hostEnded_ = 0, hostChanged_ = 0, hostLeft_ = 0, hostJoined_ = 0, hostStarted_ = 0, hostEndedGame_ = 0;
+    // The burst (backlog N06): 100 numbered packets per SendDataOptions value, judged by the museum that receives them.
+    static constexpr int kBurstMagic = -0x42525354;   // first int32 of a burst packet; the streamed packets start with a sequence >= 0
+    static constexpr int kBurstCount = 100;
+    bool burstArmed_ = false;
+    float burstArmedAt_ = -1.0f, burstLastAt_ = -1.0f;
+    struct BurstTally {
+        int received = 0, duplicates = 0, outOfOrder = 0, last = -1;
+        std::vector<bool> seen = std::vector<bool>(kBurstCount, false);
+    };
+    std::array<BurstTally, 4> burst_{};
+    std::string burstFrom_;
     bool hostHooked_ = false;
     bool online_ = false, inviteAccepted_ = false, inviteSubscribed_ = false, joinInvited_ = false;
     std::size_t inviteToken_ = 0;

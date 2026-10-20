@@ -101,6 +101,9 @@ def main() -> int:
         for problem in problems:
             print(f"        {problem}")
     print(f"summary: {counts['PASS']} passed, {counts['FAIL']} failed, {counts['SKIP']} skipped")
+    if not sys.argv[1:]:   # only the whole set is a profile result
+        subprocess.run([sys.executable, str(ROOT / "tools" / "record_profile.py"), "scenarios", "--passed", str(counts["PASS"]),
+                        "--failed", str(counts["FAIL"]), "--skipped", str(counts["SKIP"])], check=False)
     return 1 if counts["FAIL"] else 0
 
 

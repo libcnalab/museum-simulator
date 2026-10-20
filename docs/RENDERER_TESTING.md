@@ -23,7 +23,8 @@ shows): `tools/renderer_check.sh OPENGLES3 OPENGL33` 97 PASS, 0 FAIL, 2 INFO, 1 
 `tools/reference.sh compare` within 1 % of the llvmpipe references for every view (worst `formats` 0.59 %).
 From `build-probe` with `VK_ICD_FILENAMES=.../radeon_icd.json`: SDL_GPU on RADV 97/0/2/1, FNA3D on radeonsi 75 PASS,
 0 FAIL, 2 INFO, 23 SKIP (formats FNA3D cannot create). WEBGPU does not start offscreen (its surface needs a native
-window; `docs/CNA_FINDINGS.md`), so WEBGPU on the GPU needs a real display or a GPU-backed compositor.
+window; `docs/CNA_FINDINGS.md`); `MUSEUM_GPU=weston` runs it in a private headless Weston that renders on the GPU:
+"AMD Radeon 780M (RADV PHOENIX), Vulkan backend", 76 PASS, 0 FAIL, 2 INFO, 22 SKIP.
 
 The second group needs CNA's optional dependencies from the shared checkouts (nothing is downloaded):
 

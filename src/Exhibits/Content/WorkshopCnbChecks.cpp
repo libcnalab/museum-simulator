@@ -4,7 +4,7 @@
 // registers a loader with CnbLoaderRegistry::Register that decodes it with CnbDocument and CnbByteReader, and loads it through an
 // ordinary ContentManager. The documented refusals are checked, the registration is removed and re-added, and it is removed for good
 // when the visitor leaves the room. The XML half: a ContentTypeSerializer of the game's own registered with the IntermediateSerializer,
-// writing a compact text form of one member, round-tripped exactly.
+// writing a compact text form of one member, round-tripped exactly, registered with a ContentTypeSerializerAttribute.
 #ifdef MUSEUM_PIPELINE
 
 #include <any>
@@ -16,6 +16,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <typeinfo>
 #include <utility>
 #include <vector>
 
@@ -34,6 +35,7 @@
 #include "Microsoft/Xna/Framework/Content/Pipeline/ContentItem.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/InvalidContentException.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/Serialization/Intermediate/ContentTypeSerializer.hpp"
+#include "Microsoft/Xna/Framework/Content/Pipeline/Serialization/Intermediate/ContentTypeSerializerAttribute.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/Serialization/Intermediate/IntermediateReader.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/Serialization/Intermediate/IntermediateSerializer.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/Serialization/Intermediate/IntermediateWriter.hpp"
@@ -297,11 +299,23 @@ void CnbLoaderChecks(Checks& checks, Services& services)
     checks.Group("ContentTypeSerializer", [&] {
         // The registry is process-wide and has no removal (XNA finds serializers by reflection and never forgets one either), so the
         // serializer is registered once per process.
+        // XNA marks the class [ContentTypeSerializer]; CNA takes an instance of that attribute where XNA reads it by reflection.
         static const bool registered = [] {
-            (void)Intermediate::IntermediateSerializer::AddTypeSerializer<SeismogramSerializer>();
+            const Intermediate::ContentTypeSerializerAttribute marker;
+            (void)Intermediate::IntermediateSerializer::AddTypeSerializer<SeismogramSerializer>(marker);
             return true;
         }();
         (void)registered;
+        // ContentTypeSerializerAttribute (XNA 4.0: a sealed System.Attribute with no fields). .NET's Attribute.Equals compares the type and
+        // every instance field, so two instances of a field-less attribute are equal, and Match defaults to Equals; TypeId is the type.
+        const Intermediate::ContentTypeSerializerAttribute a, b;
+        const System::Attribute& base = a;
+        checks.Add("ContentTypeSerializerAttribute::XnaTypeName, TypeId, IsDefaultAttribute", "Microsoft.Xna.Framework.Content.Pipeline.Serialization.Intermediate.ContentTypeSerializerAttribute; its own type; false",
+                   std::string(Intermediate::ContentTypeSerializerAttribute::XnaTypeName) + "; " + (base.getTypeIdProperty() == typeid(Intermediate::ContentTypeSerializerAttribute) ? "its own type" : "another type") + "; " +
+                       Yes(base.getIsDefaultAttributeProperty()),
+                   Intermediate::ContentTypeSerializerAttribute::XnaTypeName == "Microsoft.Xna.Framework.Content.Pipeline.Serialization.Intermediate.ContentTypeSerializerAttribute" &&
+                       base.getTypeIdProperty() == typeid(Intermediate::ContentTypeSerializerAttribute) && !base.getIsDefaultAttributeProperty());
+        checks.Add("two ContentTypeSerializerAttribute instances: Equals, Match", "true, true (.NET Attribute.Equals: same type, no fields to differ)", Yes(a.Equals(b)) + ", " + Yes(a.Match(b)), a.Equals(b) && a.Match(b));
         Intermediate::ContentTypeSerializerBase* found = Intermediate::IntermediateSerializer::FindTypeSerializer(std::string(SeismogramContent::XnaTypeName));
         checks.Add("AddTypeSerializer, then FindTypeSerializer(\"Museum.Workshop.Seismogram\")", "the room's SeismogramSerializer",
                    dynamic_cast<SeismogramSerializer*>(found) != nullptr ? "SeismogramSerializer" : (found != nullptr ? "another serializer" : "null"), dynamic_cast<SeismogramSerializer*>(found) != nullptr);

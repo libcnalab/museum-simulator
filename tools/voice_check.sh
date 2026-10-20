@@ -73,5 +73,7 @@ else:
         peak = float(np.fft.rfftfreq(len(window), 1.0 / rate)[int(np.argmax(spectrum))])
         report(abs(peak - 300.0) <= 6.0, f"the talker's 300 Hz tone came out of the listener: dominant {peak:.1f} Hz, RMS {float(energy[loud]):.3f}")
 print(f"summary: {passed} passed, {failed} failed (logs and audio: {d})")
+import subprocess
+subprocess.run([sys.executable, "tools/record_profile.py", "voice", "--passed", str(passed), "--failed", str(failed)], check=False)
 sys.exit(1 if failed else 0)
 PY

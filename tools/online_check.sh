@@ -44,9 +44,9 @@ Xvfb :$display -screen 0 1920x1080x24 > /dev/null 2>&1 & xvfb=$!
 export DISPLAY=:$display
 sleep 1
 kill -0 $xvfb 2> /dev/null || { xvfb=; echo "FAIL: Xvfb :$display did not start"; exit 1; }
-script="goto:gs-leaderboards;wait:20;e;wait:20;press:Guide.ShowSignIn=1;wait:1200;press:add 10 to=1;wait:900;goto:gs-players;wait:200;quit"
+script="goto:gs-leaderboards;wait:20;e;wait:20;press:Guide.ShowSignIn=1;wait:1200;press:add 10 to=1;wait:900;press:Log the board from the top;wait:60;goto:on-friends;wait:200;press:Log the friends;wait:60;goto:gs-players;wait:200;quit"
 timeout -k 15 "${MUSEUM_TIMEOUT:-300}" "$bin" --script "$script" --fixed-step 0.02 --no-audio > "$log" 2>&1 & museum=$!
-fail() { echo "FAIL: $1 (log: $log)"; exit 1; }
+fail() { echo "FAIL: $1 (log: $log)"; python3 tools/record_profile.py online --passed 0 --failed 1 --note "$1" || true; exit 1; }
 wait_for() { for _ in $(seq 1 240); do grep -q "$1" "$log" && return 0; kill -0 $museum 2> /dev/null || return 1; sleep 0.5; done; return 1; }
 wait_for "ShowSignIn(1, true) opened" || fail "the sign-in page never opened"
 sleep 2
@@ -62,4 +62,8 @@ rating=$(sqlite3 "$dir/service.sqlite3" "select e.rating from leaderboard_entrie
 earned=$(sqlite3 "$dir/service.sqlite3" "select count(*) from earned e join users u on u.id=e.user_id where u.gamertag='Visitor'")
 [ "$rating" = 10 ] || fail "the service holds rating '${rating:-none}' for Visitor, expected 10"
 [ "${earned:-0}" -ge 1 ] || fail "the service holds no achievement for Visitor"
-echo "ok: signed in through the Guide, rated 10 on the service's board, $earned achievement(s) earned"
+# What the museum read back from the service: the seeded board with Visitor's new rating in its place, and the friendship.
+grep -q "\[museum\]\[online\] leaderboard from the top: 1\. Curator 120; 2\. Archivist 80; 3\. Visitor 10 (total 3)" "$log" || fail "the board read back from the service: $(grep 'leaderboard from the top' "$log" | head -1 | cut -c1-200)"
+grep -q "\[museum\]\[online\] friends of Visitor: 1: Curator (online" "$log" || fail "the friend list read from the service: $(grep 'online\] friends' "$log" | head -1 | cut -c1-200)"
+echo "ok: signed in through the Guide, rated 10 on the service's board, $earned achievement(s) earned; the board read back ranks Curator 120, Archivist 80, Visitor 10 and the service lists Curator as Visitor's friend"
+python3 tools/record_profile.py online --passed 1 --failed 0 || true

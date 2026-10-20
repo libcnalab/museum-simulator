@@ -33,10 +33,12 @@ run() {   # run RENDERER N TAG -> prints "peak_kb textures exhibit_errors"
       for (i = 1; i <= NF; ++i) {
         if ($i == "textures") textures = $(i + 1)
         if ($i == "exhibit" && $(i + 1) == "errors") errors = $(i + 2)
+        if ($i == "script" && $(i + 1) == "errors") scripted = $(i + 2)
       }
     }
     /Maximum resident set size/ { peak = $NF }
-    END { if (peak != "" && textures != "" && errors != "") print peak, textures, errors }
+    # A script error (a room the tour could not reach) counts as an error too: the tour did not measure what it says.
+    END { if (peak != "" && textures != "" && errors != "") print peak, textures, errors + scripted }
   ' "$log")
   if [ -z "${peak:-}" ] || [ -z "${textures:-}" ] || [ -z "${errors:-}" ]; then
     echo "leak check $tag run $tours has no final stats or peak memory (log: $log)" >&2

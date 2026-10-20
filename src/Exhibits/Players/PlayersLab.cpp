@@ -165,6 +165,7 @@ public:
                 p.AddToggle("Read around the first gamer (pivot)", false, [this](bool v) { pivot_ = v; dirty_ = true; });
                 p.AddButton("LeaderboardReader.PageDown", [this] { Page(true); });
                 p.AddButton("LeaderboardReader.PageUp", [this] { Page(false); });
+                p.AddButton("Log the board from the top (LeaderboardReader.Read)", [this] { LogBoard(); });
                 p.AddReadout("PageStart / TotalLeaderboardSize", [this] { return std::to_string(pageStart_) + " / " + std::to_string(total_); });
                 p.AddReadout("CanPageDown / CanPageUp", [this] { return YesNo(canDown_) + " / " + YesNo(canUp_); });
                 p.AddReadout("Final Write*Leaderboard events", [this] { return leaderboardEvents_; });
@@ -457,6 +458,20 @@ private:
         } catch (const std::exception& e) {
             boardError_ = std::string(e.what()).substr(0, 60);
         }
+    }
+    // A scripted run reads the ranking from the log: a fresh read from the top, one line with every entry of the first page.
+    void LogBoard()
+    {
+        const bool pivot = pivot_;
+        const int size = pageSize_;
+        pivot_ = false;
+        pageSize_ = 10;
+        ReadBoard(true);
+        pivot_ = pivot;
+        pageSize_ = size;
+        std::string line;
+        for (const auto& row : rows_) line += (line.empty() ? "" : "; ") + std::to_string(row.rank) + ". " + row.tag + " " + std::to_string(row.rating);
+        Museum::Log("online", "leaderboard from the top: %s (total %d)%s", line.empty() ? "empty" : line.c_str(), total_, boardError_.empty() ? "" : (" error: " + boardError_).c_str());
     }
     // A new LeaderboardReader.Read starts at the top (or around the pivot); paging moves the same reader.
     void ReadBoard(bool fresh)

@@ -146,6 +146,7 @@ fi
 if has "medialib] library: 3 / 2 / 2 / 2 songs/albums/artists/genres, 1 playlist(s), 4 / 2"; then ok "MediaLibrary indexed exactly the fixture: 3 songs, 2 albums, 2 artists, 2 genres, 1 playlist, 4 pictures in 2 albums"
 else bad "MediaLibrary counts: $(line 'medialib] library:')"; fi
 has "song #1 Sunrise - Museum Quartet, Opening Hours, Ambient, 1.2 s" && ok "song tags and duration read: Sunrise" || bad "song tags: $(line 'medialib: song')"
+grep -q "medialib\] source .*, MediaSourceType LocalDevice" "$log" && ok "the default library's source is a LocalDevice: $(line 'MediaSourceType' | sed 's/.*medialib\] //')" || bad "media source: $(line 'medialib] source')"
 has "playlist Favourites: Sunrise, The Archive" && ok "the .m3u playlist resolved to its two songs" || bad "playlist: $(line 'playlist ')"
 if has "SavePicture: museum-swatch 2x2"; then
   find "$dir/home/Pictures" -newer "$dir/fakebin/zenity" -type f | grep -q . && ok "SavePicture wrote a 2x2 picture into the isolated Pictures folder" || bad "SavePicture reported success but no new file is under $dir/home/Pictures"
@@ -199,4 +200,5 @@ has "send to http://127.0.0.1:9/notify: refused" && ok "sending to an address no
 [ ! -e "$HOME/Pictures/museum-swatch.bmp" ] && ok "nothing was written into the real home folder" || bad "a picture appeared in the real $HOME/Pictures"
 
 echo "summary: $pass passed, $fail failed, $unavailable unavailable (log: $log)"
+python3 tools/record_profile.py devices --passed $pass --failed $fail --unavailable $unavailable || true
 [ $fail = 0 ]

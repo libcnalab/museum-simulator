@@ -1,14 +1,17 @@
 /*
  * The museum's native C client: a C17 translation unit that talks to CNA only through its exported C ABI
- * (CNA/C/*.h, the cna_c_api library), never through C++. It covers the value and handle families that need no
+ * (the CNA/C headers, the cna_c_api library), never through C++. It covers the value and handle families that need no
  * game of their own (the museum already runs one): the ABI version, result codes and thread-local error
  * diagnostics, vectors, matrices, quaternions, colours, half floats, and a curve handle's whole lifetime
- * including what a stale handle returns. Every check is reported through a callback; the museum's C++ room
- * draws and logs them.
+ * including what a stale handle returns; then the other game-less families in CProbe*.c (values and geometry, core
+ * extensions, .cnb and the type-reader registry, input values, sensor readings and devices, gamer and net values).
+ * Every check is reported through a callback; the museum's C++ room draws and logs them. Families that need a game
+ * created from C run in the separate C game probe (src/CApi/GameProbe/), one game per process.
  *
  * Compiled only when MUSEUM_C_API is ON (it needs CNA_BUILD_C_API).
  */
 #include "CApi/NativeCProbe.h"
+#include "CApi/CProbe.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -138,5 +141,17 @@ int museum_c_api_run(MuseumCCheck report, void* user)
     snprintf(got, sizeof got, "result %u, \"%.80s\"", (unsigned)nullOut, message);
     CHECK("cna_vector3_dot(..., NULL)", "CNA_RESULT_INVALID_ARGUMENT", nullOut == CNA_RESULT_INVALID_ARGUMENT);
 #undef CHECK
-    return failures;
+
+    /* The other families that need no game of their own (CProbe*.c). */
+    CProbe probe;
+    memset(&probe, 0, sizeof probe);
+    probe.report = report;
+    probe.user = user;
+    museum_c_probe_values(&probe);
+    museum_c_probe_core(&probe);
+    museum_c_probe_content(&probe);
+    museum_c_probe_input(&probe);
+    museum_c_probe_platform(&probe);
+    museum_c_probe_gamer(&probe);
+    return failures + probe.failures;
 }

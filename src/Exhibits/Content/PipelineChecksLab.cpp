@@ -17,6 +17,16 @@
 //   gltf         CNA's glTF import on small files written for the room: UV sets, texture transforms, specular/ior, sparse
 //                accessors, morph targets, and a refused required extension.
 //   xml          System::Xml::Serialization::XmlSerializer round trips of XNA values through CNA's adapters.
+//   routes       CNA's own build routes (.cnj, .wav, .mp3, .wmv, .gltf, .fxb, .xnb, .xml) through ContentPipeline, each output loaded
+//                back or decoded and compared with its source.
+//   incremental  the per-asset build configuration, the incremental manifest and its fingerprints, a failing dependency,
+//                CompileCnjToCnb, the headless source imports and .cnb chunk compression.
+//   tasks        the MSBuild-task surface of XNA's pipeline that a museum can link: TaskItem, a game's own ContentTask,
+//                BuildXact's validation, XnaComponentNames, and the build-tool options of CNA's compiler.
+//   animation    XImporter's AnimationContent on a small .x file, AnimationChannel's ordering rules, and the vertex collections
+//                (BoneWeight, BoneWeightCollection, IndexCollection, PositionCollection).
+//   contentproject  an XNA .contentproj read and built with BuildContent (incremental builds, GetLastOutputs, CleanContent), and the
+//                cna-content coordinator (RunContentCompiler, RegisterBuiltInContentPipeline); needs cna_content_compiler.
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -49,12 +59,14 @@ using namespace Microsoft::Xna::Framework::Graphics;
 
 namespace {
 
-enum class Mode { MeshHelper, Processor, TypeWriter, Material, Importers, CnbLoader, Gltf, Xml };
+enum class Mode { MeshHelper, Processor, TypeWriter, Material, Importers, CnbLoader, Gltf, Xml, Routes, Incremental, Tasks, Animation, ContentProject };
 
 Mode ParseMode(const std::string& name)
 {
     static const std::pair<const char*, Mode> modes[] = {{"meshhelper", Mode::MeshHelper}, {"processor", Mode::Processor}, {"typewriter", Mode::TypeWriter}, {"material", Mode::Material},
-                                                         {"importers", Mode::Importers},   {"cnbloader", Mode::CnbLoader}, {"gltf", Mode::Gltf},             {"xml", Mode::Xml}};
+                                                         {"importers", Mode::Importers},   {"cnbloader", Mode::CnbLoader}, {"gltf", Mode::Gltf},             {"xml", Mode::Xml},
+                                                         {"routes", Mode::Routes},         {"incremental", Mode::Incremental}, {"tasks", Mode::Tasks},       {"animation", Mode::Animation},
+                                                         {"contentproject", Mode::ContentProject}};
     for (const auto& [key, mode] : modes)
         if (name == key) return mode;
     return Mode::MeshHelper;
@@ -93,6 +105,21 @@ const ModeText& TextFor(Mode mode)
         {"XmlSerializer, checked", "XmlSerializer and XNA values",
          {"A game saves settings with System.Xml.Serialization.XmlSerializer. CNA states the member lists of XNA's value types once (XmlSerializationEXT),",
           "so a Vector3, a Matrix or a Keys value round-trips exactly. The room serializes a settings record and compares every value it reads back."}},
+        {"Build routes, built and loaded", "CNA's build routes",
+         {"CNA builds each kind of source through one route: an importer, a processor and a writer. Here every route the engine ships runs on a tiny",
+          "source, and what it wrote is loaded back by a ContentManager (or decoded) and compared with the source. A refused route says why."}},
+        {"Incremental builds, checked", "Manifest and fingerprints",
+         {"An incremental build keeps a manifest: for every asset, what it was built from and a fingerprint of all of it. The room builds two assets,",
+          "writes and re-reads the manifest, changes one source, and checks that exactly that asset's fingerprint moves. Then compression and compiling."}},
+        {"XNA's build tasks", "BuildXact, TaskItem, component names",
+         {"XNA's content project is built by MSBuild tasks. A task item is a path with metadata; a task logs and answers true or false. The room runs",
+          "a task of its own, BuildXact's validation, and the table that turns XNA component names into CNA's. BuildContent itself is not linked here."}},
+        {"Imported animation, checked", "AnimationContent",
+         {"An exporter's animation arrives as AnimationContent on the node it moves: one channel per bone, keyframes always sorted by time. The room",
+          "imports a small .x file, checks every keyframe, then exercises the channel and the vertex collections (bone weights, indices, positions)."}},
+        {"A content project, built and cleaned", "BuildContent and CleanContent",
+         {"XNA builds a .contentproj with its BuildContent task: what it built, what it rebuilt, and a clean that removes only its own files. The room",
+          "builds the workshop's project twice, changes one source, rebuilds, cleans, and runs CNA's own command-line coordinator inside the game."}},
     };
     return texts[static_cast<int>(mode)];
 }
@@ -206,6 +233,15 @@ private:
                 case Mode::Importers: Workshop::ImporterChecks(checks_, S()); return;
                 case Mode::CnbLoader: Workshop::CnbLoaderChecks(checks_, S()); return;
                 case Mode::Gltf: Workshop::GltfImportChecks(checks_, S()); return;
+                case Mode::Routes: Workshop::BuildRouteChecks(checks_, S()); return;
+                case Mode::Incremental: Workshop::IncrementalBuildChecks(checks_, S()); return;
+                case Mode::Tasks: Workshop::BuildTaskChecks(checks_, S()); return;
+                case Mode::Animation: Workshop::AnimationChecks(checks_, S()); return;
+#ifdef MUSEUM_CONTENT_COMPILER
+                case Mode::ContentProject: Workshop::ContentProjectChecks(checks_, S()); return;
+#else
+                case Mode::ContentProject: checks_.Info("BuildContent and the coordinator", "cna_content_compiler linked (MUSEUM_CONTENT_COMPILER)", "not linked in this build"); return;
+#endif
 #else
                 default: checks_.Info("content pipeline", "MUSEUM_PIPELINE=ON", "not compiled in"); return;
 #endif

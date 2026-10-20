@@ -32,11 +32,11 @@ All images are real frames from the running museum (`tools/readme_shots.sh`), no
 ```
 floors:          10
 wings:           38
-exhibit rooms:   315  (7 outdoors)
-walkable cells:  392  (rooms, galleries, concourses, halls, elevators, stairs)
+exhibit rooms:   320  (7 outdoors)
+walkable cells:  397  (rooms, galleries, concourses, halls, elevators, stairs)
 exhibit kinds:   78
-origin:          240 XNA 4.0, 73 CNA extension, 2 application
-API names:       1776
+origin:          243 XNA 4.0, 75 CNA extension, 2 application
+API names:       2903
   floor 0  12 rooms  Lobby and Introductory Tour
   floor 1  55 rooms  Fundamentals
   floor 2  23 rooms  Two-Dimensional Rendering
@@ -45,7 +45,7 @@ API names:       1776
   floor 5  24 rooms  Render State and Render Targets
   floor 6  39 rooms  Models, Animation and Particles
   floor 7  28 rooms  Audio and Input
-  floor 8  57 rooms  Content, Platform and CNA
+  floor 8  62 rooms  Content, Platform and CNA
   floor 9  25 rooms  Performance and Validation
 ```
 <!-- END COUNTS -->
@@ -66,7 +66,9 @@ The numbers above are generated from the museum's own catalogue (`tools/gen_docs
 | 9 | Performance lab, renderer validation, reference scenes, the observation deck |
 
 Maps and indexes: [docs/MUSEUM_MAP.md](docs/MUSEUM_MAP.md) (every room), [docs/CNA_COVERAGE.md](docs/CNA_COVERAGE.md)
-(what CNA covers and what does not), [docs/REFERENCE_VIEWS.md](docs/REFERENCE_VIEWS.md).
+(what CNA covers and what does not), [docs/REFERENCE_VIEWS.md](docs/REFERENCE_VIEWS.md). How to verify it:
+[docs/VERIFICATION.md](docs/VERIFICATION.md) (automatic profiles) and [docs/HARDWARE_CHECKLIST.md](docs/HARDWARE_CHECKLIST.md)
+(manual, hardware); CNA defects the museum found: [docs/CNA_FINDINGS.md](docs/CNA_FINDINGS.md).
 
 ## Build
 
