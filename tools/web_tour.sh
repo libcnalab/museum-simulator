@@ -85,22 +85,22 @@ done
 wait "$browser" 2>/dev/null || true
 # The museum's own lines, as the console carried them.
 grep -aE 'CONSOLE.*MUSEUM_(OUT|ERR|ABORT|EXIT|PAGE_ERROR)' "$log" | sed -E 's/^.*CONSOLE[^"]*"//; s/", source.*$//' > "$out/museum.log" || true
-stats=$(grep -a '\[museum\]\[stats\]' "$out/museum.log" | tail -1 || true)
+stats=$(grep -a '\[museum\]\[stats\]' "$out/museum.log" | sed -n "$p" || true)
 visited=$(echo "$stats" | grep -oE 'visited [0-9]+' | grep -oE '[0-9]+' || echo 0)
 problems=()
 grep -aq 'MUSEUM_EXIT 0' "$out/museum.log" || problems+=("the page did not report exit 0 ($(grep -a 'MUSEUM_EXIT\|MUSEUM_ABORT' "$out/museum.log" | tail -1))")
 echo "$stats" | grep -q 'exhibit errors 0 .*script errors 0' || problems+=("errors in the stats line: ${stats: -60}")
 [ "${visited:-0}" -ge "${#rooms[@]}" ] || problems+=("visited ${visited:-0} of ${#rooms[@]} rooms")
 if grep -aqE 'MUSEUM_(ABORT|PAGE_ERROR)|WebGL context.*lost|\[museum\]\[(exhibit|draw|script)-error\]' "$out/museum.log"; then
-  problems+=("$(grep -aE 'MUSEUM_(ABORT|PAGE_ERROR)|context.*lost|-error\]' "$out/museum.log" | head -1 | cut -c1-160)")
+  problems+=("$(grep -aE 'MUSEUM_(ABORT|PAGE_ERROR)|context.*lost|-error\]' "$out/museum.log" | sed -n 1p | cut -c1-160)")
 fi
 # A WebGPU validation error during the tour (the device lost at exit is the normal shutdown) is a failure too.
 webgpu_errors=$(grep -ac 'CNA WebGPU uncaptured error' "$out/museum.log" || true)
-[ "${webgpu_errors:-0}" = 0 ] || problems+=("$webgpu_errors WebGPU validation error(s), first: $(grep -a 'uncaptured error' "$out/museum.log" | head -1 | cut -c1-160)")
-grep -aq "$expect_renderer" "$out/museum.log" || problems+=("the page did not run on $renderer: $(grep -a 'on adapter\|passed over' "$out/museum.log" | head -2 | tr '\n' ' ')")
+[ "${webgpu_errors:-0}" = 0 ] || problems+=("$webgpu_errors WebGPU validation error(s), first: $(grep -a 'uncaptured error' "$out/museum.log" | sed -n 1p | cut -c1-160)")
+grep -aq "$expect_renderer" "$out/museum.log" || problems+=("the page did not run on $renderer: $(grep -a 'on adapter\|passed over' "$out/museum.log" | sed -n 1,2p | tr '\n' ' ')")
 validate_fail=$(grep -acE '\[museum\]\[validate\] .*: FAIL' "$out/museum.log" || true)
 validate_pass=$(grep -acE '\[museum\]\[validate\] .*: PASS' "$out/museum.log" || true)
-[ "${validate_fail:-0}" = 0 ] || problems+=("$validate_fail renderer self-check(s) failed: $(grep -aE '\[validate\] .*: FAIL' "$out/museum.log" | head -1 | cut -c1-140)")
+[ "${validate_fail:-0}" = 0 ] || problems+=("$validate_fail renderer self-check(s) failed: $(grep -aE '\[validate\] .*: FAIL' "$out/museum.log" | sed -n 1p | cut -c1-140)")
 
 [ ${#skipped[@]} -gt 0 ] && echo "left out on purpose: ${skipped[*]}"
 echo "$renderer tour: ${#rooms[@]} rooms, visited ${visited:-0}; renderer self-checks $validate_pass PASS, ${validate_fail:-0} FAIL (log: $out/museum.log)"

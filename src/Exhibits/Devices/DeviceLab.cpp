@@ -646,6 +646,8 @@ private:
 
     [[nodiscard]] static std::string DesktopText()
     {
+        // getCurrentDesktopOS throws on a platform that is not a desktop (documented), for example the browser build.
+        if (CNA::getCurrentPlatform() != CNA::TargetPlatform::Desktop) return "none: this platform is not a desktop";
         switch (CNA::getCurrentDesktopOS()) {
             case CNA::DesktopOS::Windows: return "Windows";
             case CNA::DesktopOS::Linux: return "Linux";

@@ -597,7 +597,7 @@ private:
 #ifdef __EMSCRIPTEN__
         // Browser WebGPU: asking the device for these lists makes CNA create an rgba16unorm texture the device was not given
         // the feature for, and the JavaScript exception ends the program (docs/CNA_FINDINGS.md). The room says so instead.
-        if (dev.GetGraphicsRendererType() == CNA::GraphicsRendererType::WEBGPU) {
+        if (dev.GetGraphicsRendererType() == CNA::GraphicsRendererType::WebGPU) {
             SignSpec note;
             note.leftAlign = true;
             note.pixelWidth = 900;

@@ -71,7 +71,16 @@ public:
     void RenderOffscreen(const DrawContext&) override
     {
         if (!screen_) return;
-        screen_->RenderCustom(Background(), [this](Microsoft::Xna::Framework::Graphics::SpriteBatch& sb, int, int) { DrawScreen(sb); });
+        screen_->RenderCustom(Background(), [this](Microsoft::Xna::Framework::Graphics::SpriteBatch& sb, int, int) {
+            try {
+                DrawScreen(sb);
+            } catch (...) {
+                // A screen that threw between Begin and End must not leave the shared SpriteBatch begun: every later Begin
+                // in the museum (signs, other screens) would fail. End it if it is begun, then report the original error.
+                try { sb.End(); } catch (...) {}
+                throw;
+            }
+        });
     }
 
     void DrawOpaque(const DrawContext& ctx) override

@@ -93,7 +93,11 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
 - **Also on browser WebGPU:** every run reports one validation error at start-up, `CNA WebGPU uncaptured error (2):
   Destroyed texture [Texture (unlabeled 1280x720 px, TextureFormat::BGRA8Unorm)] used in a submit` (the canvas texture of
   the first frame is used after the canvas was reconfigured); `tools/web_tour.sh` counts it as a failure.
-- **Museum handling:** in a browser WebGPU build `app-device` does not query the capability lists and says why.
+- **Museum handling:** in a browser WebGPU build `app-device` does not query the capability lists and says why. The
+  browser tour (`MUSEUM_WEB_RENDERER=WEBGPU tools/web_tour.sh`) then reached 162 of 320 rooms with 0 exhibit errors until
+  the same exception ended the page near `rt-mrt` (a render target in Rgba64); the start-up validation error was reported
+  18 times on the way. Any room that creates an Rgba64 texture ends the browser WebGPU page, so the full browser tour
+  waits for this fix.
 
 ### HapticDevice's inline default constructor cannot be compiled outside CNA (CNA-DEMOS-ISSUE-009)
 - **Where:** `modules/input/include/CNA/Input/HapticDevice.hpp`: `CNAEXT HapticDevice() = default;` with a
