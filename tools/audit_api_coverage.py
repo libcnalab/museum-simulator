@@ -1545,8 +1545,10 @@ def main() -> int:
         arguments.json_output.write_text(rendered_json, encoding="utf-8")
         print(f"created build cache {arguments.json_output}")
     if arguments.json_output.read_text(encoding="utf-8") != rendered_json:
-        print("coverage evidence JSON is stale: run tools/audit_api_coverage.py --write", file=sys.stderr)
-        return 1
+        # The JSON is an untracked build cache derived from the same inputs as the summary checked above (which must
+        # match); after a rebuild of the binary it is refreshed, as when it is missing, instead of failing the check.
+        arguments.json_output.write_text(rendered_json, encoding="utf-8")
+        print(f"refreshed build cache {arguments.json_output}")
     print(
         f"museum coverage audit is current: {evidence['counts']['claims']} claims, "
         f"{evidence['counts']['catalogLinkedDeclarations']} declaration links"
