@@ -320,6 +320,11 @@ private:
     // A source and a resource leave the provider's view when their registrations end, and come back when renewed.
     void Reregister()
     {
+        if (Diag::GetBuildMode() == Diag::Mode::Off) {
+            // CNA_DIAGNOSTICS=OFF compiles the provider out: no source or resource is tracked, so there is nothing to follow.
+            Museum::Log("diagnostics", "re-registration: diagnostics are compiled out (CNA_DIAGNOSTICS=OFF), nothing is tracked");
+            return;
+        }
         const auto listed = [this] {
             const Diag::Snapshot snap = Diag::GetProvider().CaptureSnapshot();
             bool resource = false;

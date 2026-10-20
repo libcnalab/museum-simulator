@@ -81,6 +81,20 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
 - **Needed change:** implement vertex-stage sampling (and the float vertex-texture formats) on both, or make HiDef device
   creation report the missing feature; the room logs both as SKIP with these messages.
 
+### Browser WebGPU ends the program on a texture format the device was not given
+- **What happens:** in the browser build (WEBGPU through emdawnwebgpu, Chrome 155 on the machine's GPU), entering
+  `app-device` (which queries the device's capabilities and its renderer capability profile) ends the program with
+  `exit 0`, without `Game.Exiting`; the console says `Uncaught (in promise) TypeError: Failed to execute 'createTexture' on
+  'GPUDevice': Use of the 'rgba16unorm' texture format requires the 'texture-formats-tier1' feature to be enabled`
+  (`MUSEUM_WEB_RENDERER=WEBGPU tools/web_tour.sh app-device`). The native WEBGPU renderer runs the same room cleanly.
+- **Needed change:** request `texture-formats-tier1` when the adapter offers it, and otherwise refuse `Rgba64` (and the
+  other tier-1 formats) with a C++ exception instead of creating the texture; a JavaScript exception must not end the
+  program as a successful exit.
+- **Also on browser WebGPU:** every run reports one validation error at start-up, `CNA WebGPU uncaptured error (2):
+  Destroyed texture [Texture (unlabeled 1280x720 px, TextureFormat::BGRA8Unorm)] used in a submit` (the canvas texture of
+  the first frame is used after the canvas was reconfigured); `tools/web_tour.sh` counts it as a failure.
+- **Museum handling:** in a browser WebGPU build `app-device` does not query the capability lists and says why.
+
 ### HapticDevice's inline default constructor cannot be compiled outside CNA (CNA-DEMOS-ISSUE-009)
 - **Where:** `modules/input/include/CNA/Input/HapticDevice.hpp`: `CNAEXT HapticDevice() = default;` with a
   `std::unique_ptr<CNA::Platform::IPlatformHapticDevice>` member whose type no public header completes.

@@ -34,6 +34,7 @@ kill -0 "$server_pid" 2>/dev/null || { echo "error: the HTTP server did not star
 # WebGL context of a two-renderer build).
 env -u DISPLAY -u WAYLAND_DISPLAY timeout 45 "$chrome" --headless=new --no-sandbox --disable-gpu-sandbox \
   --enable-webgl --enable-unsafe-swiftshader --use-angle=swiftshader --use-gl=angle \
+  --disable-background-networking --disable-component-update --disable-extensions --disable-sync --no-first-run \
   --user-data-dir="$profile" --enable-logging=stderr --v=1 \
   "http://127.0.0.1:$port/cna-3d-museum.html?smoke=1" >"$log" 2>&1 || true
 

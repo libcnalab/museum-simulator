@@ -86,6 +86,8 @@ def main() -> int:
         return 2
     cache = (ROOT / build_dir / "CMakeCache.txt").read_text(errors="replace")
     features = {match.group(1): match.group(2).upper() in ("ON", "1", "TRUE", "YES") for match in re.finditer(r"^([A-Z0-9_]+):BOOL=(\S*)$", cache, re.MULTILINE)}
+    # String switches such as MUSEUM_VIDEO (OFF, AUTO, ON): AUTO counts as on (the room says so when the library is missing).
+    features.update({match.group(1): match.group(2).upper() in ("ON", "AUTO") for match in re.finditer(r"^(MUSEUM_[A-Z0-9_]+):STRING=(\S*)$", cache, re.MULTILINE)})
     names = sys.argv[1:] or sorted(path.stem for path in SCENARIOS.glob("*.json"))
     counts = {"PASS": 0, "FAIL": 0, "SKIP": 0}
     for name in names:

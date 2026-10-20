@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# The whole museum in a browser (WEBGL2): every room visited and every control operated, as tools/tour.sh -f 3 -p does
-# natively, through web/shell.html's ?script= parameter, in headless Chrome with SwiftShader.
+# The whole museum in a browser (WEBGL2): every room visited (the renderer self-check rooms run their checks), and with
+# MUSEUM_WEB_PRESSALL=1 every control operated as tools/tour.sh -f 3 -p does natively, through web/shell.html's ?script=
+# parameter, in headless Chrome with background throttling off.
 #
-#   tools/web_tour.sh            exit 0 when the tour finished cleanly; needs tools/build_web.sh first
+#   tools/web_tour.sh [room ...]   exit 0 when the tour finished cleanly; needs tools/build_web.sh first
 #
 # It passes only when the page reported exit 0, the final stats line has 0 exhibit and 0 script errors and every room
 # was visited, no renderer self-check failed, and nothing aborted, threw on the page or lost the WebGL context.
@@ -22,9 +23,23 @@ native=${MUSEUM_BIN:-build/bin/cna-3d-museum}
 [ -x "$native" ] || { echo "error: $native (for the room list) is not built" >&2; exit 2; }
 command -v "$chrome" >/dev/null 2>&1 || { echo "error: browser '$chrome' not found" >&2; exit 2; }
 
-mapfile -t rooms < <("$native" --list-rooms)
+if [ $# -gt 0 ]; then rooms=("$@"); else mapfile -t rooms < <("$native" --list-rooms); fi
+# MUSEUM_WEB_SKIP="room ..." leaves rooms out (named in the result, never silently): for a renderer defect that ends the page.
+skipped=()
+if [ -n "${MUSEUM_WEB_SKIP:-}" ]; then
+  kept=()
+  for k in "${rooms[@]}"; do
+    if [[ " $MUSEUM_WEB_SKIP " == *" $k "* ]]; then skipped+=("$k"); else kept+=("$k"); fi
+  done
+  rooms=("${kept[@]}")
+fi
 script=""
-for k in "${rooms[@]}"; do script+="goto:$k;wait:3;pressall;wait:4;"; done
+# Every room is visited (the rv-* rooms run their self-checks on arrival). Operating every control too, as the native
+# press-all tour does, takes hours at the frame rate of a headless browser: MUSEUM_WEB_PRESSALL=1 asks for it.
+for k in "${rooms[@]}"; do
+  script+="goto:$k;wait:10;"
+  [ "${MUSEUM_WEB_PRESSALL:-0}" = 1 ] && script+="pressall;wait:4;"
+done
 script+="stats;quit"
 query=$(python3 -I -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$script")
 renderer=${MUSEUM_WEB_RENDERER:-WEBGL2}
@@ -57,10 +72,17 @@ done
 kill -0 "$server_pid" 2>/dev/null || { echo "error: the HTTP server did not start on port $port (MUSEUM_WEB_PORT)" >&2; exit 2; }
 
 env -u DISPLAY -u WAYLAND_DISPLAY timeout -k 15 "${MUSEUM_WEB_TIMEOUT:-3600}" "$chrome" --headless=new --no-sandbox --disable-gpu-sandbox \
-  "${gpu_flags[@]}" \
+  "${gpu_flags[@]}" --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows \
+  --disable-background-networking --disable-component-update --disable-extensions --disable-sync --no-first-run \
   --user-data-dir="$profile" --enable-logging=stderr --v=1 \
-  "http://127.0.0.1:$port/cna-3d-museum.html?script=$query" >"$log" 2>&1 || true
-
+  "http://127.0.0.1:$port/cna-3d-museum.html?script=$query" >"$log" 2>&1 &
+browser=$!
+# Headless Chrome keeps running after the page's program exits: close it as soon as the page says so.
+while kill -0 "$browser" 2>/dev/null; do
+  if grep -aqE 'MUSEUM_(EXIT|ABORT)' "$log" 2>/dev/null; then sleep 2; kill "$browser" 2>/dev/null; break; fi
+  sleep 2
+done
+wait "$browser" 2>/dev/null || true
 # The museum's own lines, as the console carried them.
 grep -aE 'CONSOLE.*MUSEUM_(OUT|ERR|ABORT|EXIT|PAGE_ERROR)' "$log" | sed -E 's/^.*CONSOLE[^"]*"//; s/", source.*$//' > "$out/museum.log" || true
 stats=$(grep -a '\[museum\]\[stats\]' "$out/museum.log" | tail -1 || true)
@@ -80,10 +102,11 @@ validate_fail=$(grep -acE '\[museum\]\[validate\] .*: FAIL' "$out/museum.log" ||
 validate_pass=$(grep -acE '\[museum\]\[validate\] .*: PASS' "$out/museum.log" || true)
 [ "${validate_fail:-0}" = 0 ] || problems+=("$validate_fail renderer self-check(s) failed: $(grep -aE '\[validate\] .*: FAIL' "$out/museum.log" | head -1 | cut -c1-140)")
 
+[ ${#skipped[@]} -gt 0 ] && echo "left out on purpose: ${skipped[*]}"
 echo "$renderer tour: ${#rooms[@]} rooms, visited ${visited:-0}; renderer self-checks $validate_pass PASS, ${validate_fail:-0} FAIL (log: $out/museum.log)"
 if [ ${#problems[@]} -eq 0 ]; then
   echo "$renderer BROWSER TOUR: PASS"
-  BUILD_DIR=$build_dir python3 tools/record_profile.py "$profile_name" --passed 1 --failed 0 --binary "$build_dir/bin/cna-3d-museum.wasm" --library "$build_dir/bin/cna-3d-museum.wasm" --note "$validate_pass self-checks PASS" || true
+  BUILD_DIR=$build_dir python3 tools/record_profile.py "$profile_name" --passed 1 --failed 0 --binary "$build_dir/bin/cna-3d-museum.wasm" --library "$build_dir/bin/cna-3d-museum.wasm" --not-run ${#skipped[@]} --note "$validate_pass self-checks PASS${skipped:+; left out: ${skipped[*]}}" || true
 else
   printf 'FAIL  %s\n' "${problems[@]}"
   echo "$renderer BROWSER TOUR: FAIL"

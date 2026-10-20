@@ -11,5 +11,6 @@
   "forbid": [
     ": FAIL (",
     "picture follows PlayPosition: SKIP"
-  ]
+  ],
+  "requires": "MUSEUM_VIDEO"
 }

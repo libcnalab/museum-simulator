@@ -87,10 +87,12 @@ public:
 #endif
     }
 
+#ifdef MUSEUM_PIPELINE
     void Update(const UpdateContext& ctx) override
     {
         if (ctx.nearby && spin_) time_ += ctx.dt;
     }
+#endif
 
     void DrawOpaque(const DrawContext& ctx) override
     {

@@ -128,8 +128,10 @@ public:
                      "may switch to a compressed codec. Here both versions are shown and can be heard; SongProcessor, for music files, keeps only the file name and duration because songs stream from disk."});
     }
 
+#ifdef MUSEUM_PIPELINE
     ~AudioPipelineLab() override { StopAll(); }
     void OnLeave() override { StopAll(); }
+#endif
 
 protected:
     void DrawScreen(SpriteBatch& sb) override

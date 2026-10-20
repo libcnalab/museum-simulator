@@ -1,16 +1,17 @@
 {
-  "description": "CNA::Diagnostics: a bounded recording reports what it dropped, resources follow their handles, and the instrumentation macros do what the compile-time level promises",
+  "description": "CNA::Diagnostics: a bounded recording, resources following their handles and the instrumentation macros, each as the compile-time level promises (FULL, STATS or OFF)",
   "script": "goto:pl-diagnostics;wait:20;press:SetRuntimeMode(Full)=1;wait:10;press:Overflow;wait:5;press:Unregister the source;wait:5;press:Instrumentation macros;wait:5;press:SetRuntimeMode(Full)=0;wait:5;stats;quit",
   "expectRegex": [
-    "\\[museum\\]\\[diagnostics\\] overflow: StartRecording\\(16\\) kept [0-9]+ events and reports [1-9][0-9]* dropped",
+    "\\[museum\\]\\[diagnostics\\] overflow: (StartRecording\\(16\\) kept [0-9]+ events and reports [1-9][0-9]* dropped|not attempted, runtime level (Off|Stats))",
     "pl-diagnostics CNA_DIAGNOSTICS_COUNTER_ADD\\(\"Museum/MacroCounter\", 3\\) at level [0-2]: PASS",
     "pl-diagnostics CNA_DIAGNOSTICS_GAUGE_SET 40 then GAUGE_ADD 2 at level [0-2]: PASS",
     "pl-diagnostics CNA_DIAGNOSTICS_FRAME_COUNTER_ADD registers a per-frame counter at level [0-2]: PASS",
-    "pl-diagnostics CNA_PROFILE_SCOPE\\(\"Museum/MacroScope\"\\) in the trace at level [0-2]: PASS",
-    "pl-diagnostics CNA_DIAGNOSTICS_EVENT\\(\"Museum/MacroEvent\"\\) in the trace at level [0-2]: PASS"
+    "pl-diagnostics (CNA_PROFILE_SCOPE\\(\"Museum/MacroScope\"\\) in the trace at level [1-2]: PASS|CNA_PROFILE_SCOPE and CNA_DIAGNOSTICS_EVENT: SKIP \\(they reach a trace only at runtime level Full)",
+    "pl-diagnostics (CNA_DIAGNOSTICS_EVENT\\(\"Museum/MacroEvent\"\\) in the trace at level [1-2]: PASS|CNA_PROFILE_SCOPE and CNA_DIAGNOSTICS_EVENT: SKIP)",
+    "\\[museum\\]\\[diagnostics\\] re-registration: (after Reset the resource is gone; registered again it is listed|diagnostics are compiled out \\(CNA_DIAGNOSTICS=OFF\\), nothing is tracked)"
   ],
-  "expect": [
-    "[museum][diagnostics] re-registration: after Reset the resource is gone; registered again it is listed"
-  ],
-  "forbid": [": FAIL ("]
+  "expect": [],
+  "forbid": [
+    ": FAIL ("
+  ]
 }

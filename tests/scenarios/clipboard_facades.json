@@ -6,5 +6,8 @@
     "in-text Input::Clipboard.SetTextEXT, read by Devices::Clipboard.Text: PASS",
     "[museum][input] clipboard restored on leave (it held no text)"
   ],
-  "forbid": [": FAIL ("]
+  "forbid": [
+    ": FAIL ("
+  ],
+  "requires": "CNA_DEVICES"
 }
