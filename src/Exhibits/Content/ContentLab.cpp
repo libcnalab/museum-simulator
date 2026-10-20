@@ -10,6 +10,7 @@
 #include <exception>
 #include <fstream>
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -34,6 +35,13 @@
 #include "Microsoft/Xna/Framework/Quaternion.hpp"
 #include "Microsoft/Xna/Framework/Storage/StorageContainer.hpp"
 #include "Microsoft/Xna/Framework/Storage/StorageDevice.hpp"
+#include "Microsoft/Xna/Framework/Storage/StorageDeviceNotConnectedException.hpp"
+#include "System/ArgumentNullException.hpp"
+#include "System/ArgumentOutOfRangeException.hpp"
+#include "System/InvalidOperationException.hpp"
+#include "System/IO/FileNotFoundException.hpp"
+#include "System/IO/IOException.hpp"
+#include "System/ObjectDisposedException.hpp"
 #include "Microsoft/Xna/Framework/TitleContainer.hpp"
 #include "System/IO/FileStream.hpp"
 #include "System/IO/Stream.hpp"
@@ -247,6 +255,7 @@ public:
                 p.AddButton("DeleteDirectory(\"slots\")", [this] { DirectoryOp(3); });
                 p.AddButton("Read a title file (OpenStream)", [this] { ReadTitleFile(); });
                 p.AddButton("StorageDevice.DeleteContainer(\"MuseumLab\")", [this] { DeleteWholeContainer(); });
+                p.AddButton("Error paths and async results, checked against XNA 4.0", [this] { StorageContracts(); });
                 p.AddReadout("Container", [this] { return container_ ? container_->getDisplayNameProperty() : std::string("not open"); });
                 p.AddReadout("StorageDevice.IsConnected", [this] { return device_ ? (device_->getIsConnectedProperty() ? std::string("true") : std::string("false")) : std::string("open the device first"); });
                 p.AddReadout("StorageDevice.DeviceChanged events", [this] { return std::to_string(storageChanged_) + " since this room loaded"; });
@@ -742,17 +751,27 @@ private:
         Row row;
         row.name = "StorageDevice";
         try {
-            Storage::StorageDevice::SetAppNameEXT("cna-3d-museum");
+            try {
+                Storage::StorageDevice::SetAppNameEXT("cna-3d-museum");
+            } catch (const Storage::StorageDeviceNotConnectedException&) {
+                // The name is set; the missing root is reported again by the calls below, which is where XNA reports it.
+            }
             std::unique_ptr<System::IAsyncResult> sel = Storage::StorageDevice::BeginShowSelector(nullptr, nullptr);
             device_ = Storage::StorageDevice::EndShowSelector(sel.get());
+            Museum::Log("storage", "device selected: IsConnected %s", device_->getIsConnectedProperty() ? "true" : "false");
             std::unique_ptr<System::IAsyncResult> open = device_->BeginOpenContainer("MuseumLab", nullptr, nullptr);
             container_ = device_->EndOpenContainer(open.get());
             row.detail = "root " + Storage::StorageDevice::GetStorageRootEXT() + "  connected " + (device_->getIsConnectedProperty() ? "yes" : "no") + "  free " + Fmt(static_cast<double>(device_->getFreeSpaceProperty()) / 1.0e9, "%.1f") + " of " + Fmt(static_cast<double>(device_->getTotalSpaceProperty()) / 1.0e9, "%.1f") + " GB";
             row.status = 0;
+        } catch (const Storage::StorageDeviceNotConnectedException& e) {
+            // The storage root cannot be created (no writable per-user data folder): XNA's "device not connected".
+            row.detail = std::string("StorageDeviceNotConnectedException: ") + e.what();
+            row.status = 1;
         } catch (const std::exception& e) {
             row.detail = std::string("storage unavailable: ") + e.what();
             row.status = 2;
         }
+        Museum::Log("storage", "open the container: %s", row.detail.c_str());
         rows_.push_back(std::move(row));
     }
     void WriteSave()
@@ -868,6 +887,109 @@ private:
             row.detail = e.what();
             row.status = 2;
         }
+        rows_.push_back(std::move(row));
+    }
+    // What the caller sees when it does something wrong, compared with XNA 4.0's own StorageDevice/StorageContainer
+    // (each expectation is what the XNA code does). Runs in its own container, removed afterwards; every result is a
+    // "[museum][check] ct-storage ..." line.
+    static std::string Thrown(const std::function<void()>& op)
+    {
+        try {
+            op();
+        } catch (const System::ObjectDisposedException&) {
+            return "ObjectDisposedException";
+        } catch (const System::InvalidOperationException&) {
+            return "InvalidOperationException";
+        } catch (const System::ArgumentNullException&) {
+            return "ArgumentNullException";
+        } catch (const System::ArgumentOutOfRangeException&) {
+            return "ArgumentOutOfRangeException";
+        } catch (const System::ArgumentException&) {
+            return "ArgumentException";
+        } catch (const System::IO::FileNotFoundException&) {
+            return "FileNotFoundException";
+        } catch (const System::IO::IOException&) {
+            return "IOException";
+        } catch (const Storage::StorageDeviceNotConnectedException&) {
+            return "StorageDeviceNotConnectedException";
+        } catch (const std::filesystem::filesystem_error&) {
+            return "std::filesystem::filesystem_error";
+        } catch (const std::exception& e) {
+            return std::string("std::exception (") + e.what() + ")";
+        }
+        return "no exception";
+    }
+    void StorageContracts()
+    {
+        int passed = 0, failed = 0;
+        const auto check = [&](const std::string& name, const std::string& expected, const std::string& got) {
+            const bool pass = expected == got;
+            (pass ? passed : failed)++;
+            Museum::Log("check", "%s %s: %s (expected %s, got %s)", R().key.c_str(), name.c_str(), pass ? "PASS" : "FAIL", expected.c_str(), got.c_str());
+        };
+        using Storage::StorageDevice;
+        try {
+            StorageDevice::SetAppNameEXT("cna-3d-museum");
+            // Asynchronous results: the callback runs once with the result, which carries the caller's state.
+            int marker = 0, calls = 0;
+            const System::IAsyncResult* seen = nullptr;
+            std::unique_ptr<System::IAsyncResult> sel = StorageDevice::BeginShowSelector([&](System::IAsyncResult* r) { ++calls; seen = r; }, &marker);
+            void* const* state = std::any_cast<void*>(&sel->getAsyncStateProperty());
+            check("BeginShowSelector(callback, state)", "callback once with the result, IsCompleted true, AsyncState the caller's",
+                  std::string(calls == 1 && seen == sel.get() ? "callback once with the result" : "callback " + std::to_string(calls) + " time(s)") + ", IsCompleted " +
+                      (sel->getIsCompletedProperty() ? "true" : "false") + ", AsyncState " + (state != nullptr && *state == &marker ? "the caller's" : "different"));
+            std::unique_ptr<StorageDevice> device = StorageDevice::EndShowSelector(sel.get());
+            check("EndShowSelector twice on one result", "InvalidOperationException", Thrown([&] { (void)StorageDevice::EndShowSelector(sel.get()); }));
+            check("BeginShowSelector(sizeInBytes -1, ...)", "ArgumentOutOfRangeException", Thrown([&] { (void)StorageDevice::BeginShowSelector(-1, 0, nullptr, nullptr); }));
+            calls = 0;
+            std::unique_ptr<System::IAsyncResult> open = device->BeginOpenContainer("MuseumLabContracts", [&](System::IAsyncResult*) { ++calls; }, &marker);
+            state = std::any_cast<void*>(&open->getAsyncStateProperty());
+            check("BeginOpenContainer(name, callback, state)", "callback once, AsyncState the caller's",
+                  std::string(calls == 1 ? "callback once" : "callback " + std::to_string(calls) + " time(s)") + ", AsyncState " + (state != nullptr && *state == &marker ? "the caller's" : "different"));
+            check("EndShowSelector(a BeginOpenContainer result)", "ArgumentNullException", Thrown([&] { (void)StorageDevice::EndShowSelector(open.get()); }));
+            check("EndOpenContainer(a BeginShowSelector result)", "ArgumentNullException", Thrown([&] {
+                      std::unique_ptr<System::IAsyncResult> other = StorageDevice::BeginShowSelector(nullptr, nullptr);
+                      (void)device->EndOpenContainer(other.get());
+                  }));
+            std::unique_ptr<StorageDevice> second = StorageDevice::EndShowSelector(StorageDevice::BeginShowSelector(nullptr, nullptr).get());
+            check("EndOpenContainer on another device than BeginOpenContainer's", "ArgumentException", Thrown([&] { (void)second->EndOpenContainer(open.get()); }));
+            check("EndOpenContainer(BeginOpenContainer(\"\"))", "ArgumentNullException", Thrown([&] { (void)device->EndOpenContainer(device->BeginOpenContainer("", nullptr, nullptr).get()); }));
+            std::unique_ptr<Storage::StorageContainer> box = device->EndOpenContainer(open.get());
+            check("EndOpenContainer twice on one result", "InvalidOperationException", Thrown([&] { (void)device->EndOpenContainer(open.get()); }));
+            // Paths: empty names, and anything that leaves the container.
+            check("CreateFile(\"\")", "ArgumentNullException", Thrown([&] { (void)box->CreateFile(""); }));
+            check("FileExists(\"\")", "ArgumentNullException", Thrown([&] { (void)box->FileExists(""); }));
+            check("CreateFile(\"../escape.sav\")", "ArgumentException", Thrown([&] { (void)box->CreateFile("../escape.sav"); }));
+            check("CreateFile(\"/tmp/absolute.sav\")", "ArgumentException", Thrown([&] { (void)box->CreateFile("/tmp/absolute.sav"); }));
+            // Files and directories that are not there, or not empty.
+            check("OpenFile(\"missing.sav\", FileMode.Open)", "FileNotFoundException", Thrown([&] { (void)box->OpenFile("missing.sav", System::IO::FileMode::Open); }));
+            check("DeleteFile(\"missing.sav\")", "no exception", Thrown([&] { box->DeleteFile("missing.sav"); }));
+            box->CreateDirectory("full");
+            box->CreateFile("full/a.sav")->Close();
+            check("DeleteDirectory of a directory with a file in it", "IOException", Thrown([&] { box->DeleteDirectory("full"); }));
+            box->DeleteFile("full/a.sav");
+            check("DeleteDirectory once it is empty", "no exception", Thrown([&] { box->DeleteDirectory("full"); }));
+            // Disposal: Disposing once, IsDisposed, and every member refuses afterwards.
+            int disposing = 0;
+            box->Disposing.Add([&](System::Object*, const System::EventArgs&) { ++disposing; });
+            box->Dispose();
+            box->Dispose();
+            check("Dispose twice", "Disposing raised once, IsDisposed true",
+                  "Disposing raised " + std::string(disposing == 1 ? "once" : std::to_string(disposing) + " time(s)") + ", IsDisposed " + (box->getIsDisposedProperty() ? "true" : "false"));
+            check("FileExists after Dispose", "ObjectDisposedException", Thrown([&] { (void)box->FileExists("lab.sav"); }));
+            check("CreateFile after Dispose", "ObjectDisposedException", Thrown([&] { (void)box->CreateFile("after.sav"); }));
+            check("GetFileNames after Dispose", "ObjectDisposedException", Thrown([&] { (void)box->GetFileNames(); }));
+            box.reset();
+            check("DeleteContainer(\"../escape\") (CNA keeps it inside the storage root)", "ArgumentException", Thrown([&] { device->DeleteContainer("../escape"); }));
+            device->DeleteContainer("MuseumLabContracts");
+        } catch (const std::exception& e) {
+            Museum::Log("check", "%s storage contracts: FAIL (expected every step to run, got %s)", R().key.c_str(), e.what());
+            ++failed;
+        }
+        Row row;
+        row.name = "Error paths and async results";
+        row.detail = std::to_string(passed) + " as in XNA 4.0, " + std::to_string(failed) + " different (the log lists each)";
+        row.status = failed == 0 ? 0 : 1;
         rows_.push_back(std::move(row));
     }
     void DeleteSave()

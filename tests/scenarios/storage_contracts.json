@@ -1,0 +1,30 @@
+{
+  "description": "StorageDevice/StorageContainer error paths and async results against XNA 4.0, in an isolated data folder",
+  "env": {"MUSEUM_DATA_HOME": "{dir}/data"},
+  "script": "goto:ct-storage;wait:30;press:Open the storage container;wait:5;press:Error paths and async results;wait:10;press:StorageDevice.DeleteContainer;wait:5;stats;quit",
+  "expectRegex": ["\\[museum\\]\\[storage\\] open the container: root .*/storage_contracts\\.d/data/cna-3d-museum  connected yes"],
+  "expect": [
+    "ct-storage BeginShowSelector(callback, state): PASS",
+    "ct-storage BeginOpenContainer(name, callback, state): PASS",
+    "ct-storage CreateFile(\"../escape.sav\"): PASS",
+    "ct-storage CreateFile(\"/tmp/absolute.sav\"): PASS",
+    "ct-storage OpenFile(\"missing.sav\", FileMode.Open): PASS",
+    "ct-storage DeleteFile(\"missing.sav\"): PASS",
+    "ct-storage DeleteDirectory once it is empty: PASS",
+    "ct-storage Dispose twice: PASS",
+    "ct-storage DeleteContainer(\"../escape\") (CNA keeps it inside the storage root): PASS",
+    "ct-storage EndShowSelector twice on one result: FAIL (expected InvalidOperationException, got no exception)",
+    "ct-storage BeginShowSelector(sizeInBytes -1, ...): FAIL (expected ArgumentOutOfRangeException, got no exception)",
+    "ct-storage EndShowSelector(a BeginOpenContainer result): FAIL (expected ArgumentNullException, got ArgumentException)",
+    "ct-storage EndOpenContainer(a BeginShowSelector result): FAIL (expected ArgumentNullException, got ArgumentException)",
+    "ct-storage EndOpenContainer on another device than BeginOpenContainer's: FAIL (expected ArgumentException, got no exception)",
+    "ct-storage EndOpenContainer(BeginOpenContainer(\"\")): FAIL (expected ArgumentNullException, got ArgumentException)",
+    "ct-storage EndOpenContainer twice on one result: FAIL (expected InvalidOperationException, got no exception)",
+    "ct-storage CreateFile(\"\"): FAIL (expected ArgumentNullException, got ArgumentException)",
+    "ct-storage FileExists(\"\"): FAIL (expected ArgumentNullException, got ArgumentException)",
+    "ct-storage DeleteDirectory of a directory with a file in it: FAIL (expected IOException, got std::filesystem::filesystem_error)",
+    "ct-storage FileExists after Dispose: FAIL (expected ObjectDisposedException, got no exception)",
+    "ct-storage CreateFile after Dispose: FAIL (expected ObjectDisposedException, got no exception)",
+    "ct-storage GetFileNames after Dispose: FAIL (expected ObjectDisposedException, got no exception)"
+  ]
+}

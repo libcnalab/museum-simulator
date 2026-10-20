@@ -38,18 +38,19 @@ museum_headless() {
   fi
   local audio=dummy
   [ "${MUSEUM_AUDIO:-dummy}" = real ] && audio=
-  # Test runs keep CNA's local gamer profiles and achievements in the build tree, never in the user's own store.
+  # Test runs keep CNA's local gamer profiles, achievements and saved data (StorageDevice, under XDG_DATA_HOME) in the build
+  # tree, never in the user's own store; MUSEUM_DATA_HOME picks another folder.
   # Software rendering (Mesa llvmpipe/lavapipe) otherwise spreads one museum over every core: keep it to three (MUSEUM_RENDER_THREADS).
   local status
   if [ -n "$gpu" ]; then
     # Offscreen: there is no window anywhere, so nothing reaches the live desktop, and the GPU renders for real.
     env -u WAYLAND_DISPLAY -u DISPLAY -u LIBGL_ALWAYS_SOFTWARE SDL_VIDEODRIVER=offscreen ${audio:+SDL_AUDIODRIVER=$audio} \
-      CNA_GAMER_SERVICES_PROFILES_DIR="${CNA_GAMER_SERVICES_PROFILES_DIR:-$root/${BUILD_DIR:-build}/gamer-profiles}" \
+      CNA_GAMER_SERVICES_PROFILES_DIR="${CNA_GAMER_SERVICES_PROFILES_DIR:-$root/${BUILD_DIR:-build}/gamer-profiles}" XDG_DATA_HOME="${MUSEUM_DATA_HOME:-$root/${BUILD_DIR:-build}/data-home}" \
       timeout -k 15 "${MUSEUM_TIMEOUT:-300}" "$bin" "$@" > "$log" 2>&1
     status=$?
   else
     env -u WAYLAND_DISPLAY SDL_VIDEODRIVER=x11 ${audio:+SDL_AUDIODRIVER=$audio} LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS="${LP_NUM_THREADS:-${MUSEUM_RENDER_THREADS:-3}}" \
-      CNA_GAMER_SERVICES_PROFILES_DIR="${CNA_GAMER_SERVICES_PROFILES_DIR:-$root/${BUILD_DIR:-build}/gamer-profiles}" \
+      CNA_GAMER_SERVICES_PROFILES_DIR="${CNA_GAMER_SERVICES_PROFILES_DIR:-$root/${BUILD_DIR:-build}/gamer-profiles}" XDG_DATA_HOME="${MUSEUM_DATA_HOME:-$root/${BUILD_DIR:-build}/data-home}" \
       timeout -k 15 "${MUSEUM_TIMEOUT:-300}" \
       xvfb-run -a -e "$log.xvfb" -s "-screen 0 ${MUSEUM_SCREEN:-1920x1080x24}" "$bin" "$@" > "$log" 2>&1
     status=$?

@@ -52,7 +52,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 ## Generated: API names claimed by rooms
 
 <!-- BEGIN COVERAGE -->
-1771 distinct API names are claimed by at least one room.
+1776 distinct API names are claimed by at least one room.
 
 | API | Rooms |
 |---|---|
@@ -1151,6 +1151,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | ModelMeshPart.Effect | `model-effects`, `wk-gltf` |
 | ModelMeshPart.NumVertices | `wk-gltf` |
 | ModelMeshPart.PrimitiveTypeEXT | `model-load` |
+| ModelMeshPart.SamplerStateEXT | `model-sampler` |
 | ModelMeshPart.SamplerStatesEXT | `model-load`, `model-sampler` |
 | ModelMeshPart.Tag | `model-morph`, `wk-gltf` |
 | ModelMeshPart.VertexBuffer | `wk-gltf` |
@@ -1566,9 +1567,12 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | StorageContainer.DeleteFile | `ct-storage` |
 | StorageContainer.DirectoryExists | `ct-storage` |
 | StorageContainer.DisplayName | `ct-storage` |
+| StorageContainer.Dispose | `ct-storage` |
+| StorageContainer.Disposing | `ct-storage` |
 | StorageContainer.FileExists | `ct-storage` |
 | StorageContainer.GetDirectoryNames | `ct-storage` |
 | StorageContainer.GetFileNames | `ct-storage` |
+| StorageContainer.IsDisposed | `ct-storage` |
 | StorageContainer.OpenFile | `ct-storage` |
 | StorageDevice | `ct-storage` |
 | StorageDevice.BeginOpenContainer | `ct-storage` |
@@ -1582,6 +1586,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | StorageDevice.IsConnected | `ct-storage` |
 | StorageDevice.SetAppNameEXT | `ct-storage` |
 | StorageDevice.TotalSpace | `ct-storage` |
+| StorageDeviceNotConnectedException | `ct-storage` |
 | SurfaceFormat | `tex-formats`, `rt-formats`, `rv-formats` |
 | SurfaceFormat.Dxt1 | `ct-formats` |
 | SurfaceFormat.Single | `tex-volume` |

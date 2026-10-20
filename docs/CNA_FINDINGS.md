@@ -84,6 +84,33 @@ are named in the code where they are used and listed here; nothing is hidden beh
   surface for that) and present by readback, or report the renderer unavailable through the fallback history so the
   application can pick another; today the device creation exception is the only signal.
 
+### StorageDevice and StorageContainer skip XNA's argument, state and disposal checks
+Measured by the `ct-storage` button "Error paths and async results, checked against XNA 4.0" (scenario
+`tests/scenarios/storage_contracts.json`); each expectation is the code in `../xna4-decomp/.../Microsoft.Xna.Framework.Storage`:
+- `EndShowSelector` / `EndOpenContainer` called twice on one result: XNA `InvalidOperationException` (CannotEndTwice), CNA
+  returns a second device/container.
+- `BeginShowSelector(sizeInBytes < 0, ...)`: XNA `ArgumentOutOfRangeException`, CNA accepts it.
+- `EndOpenContainer` on another device than the one whose `BeginOpenContainer` produced the result: XNA `ArgumentException`,
+  CNA opens the container.
+- A result from the other Begin method, an empty display name, and empty paths (`CreateFile("")`, `FileExists("")`): XNA
+  `ArgumentNullException`, CNA the base `ArgumentException` (code catching `ArgumentNullException` misses it).
+- `DeleteDirectory` of a non-empty directory: XNA `IOException`, CNA lets `std::filesystem::filesystem_error` escape.
+- Every member after `Dispose`: XNA `ObjectDisposedException` (`VerifyNotDisposed`), CNA keeps working (it even creates files).
+- **Needed change:** a `VerifyNotDisposed()` at the top of each container member, an end-once flag on both result types,
+  the device check in `EndOpenContainer`, the size check, `ArgumentNullException` for null/empty names, and IOException
+  for the directory case. Agreeing already: async callbacks and `AsyncState`, path containment, `FileNotFoundException`,
+  `DeleteFile` of a missing file, `Disposing` raised once.
+
+### StorageDevice.SetAppNameEXT throws when no storage root can be created
+- **What happens:** `SetAppNameEXT` stores the name and then resolves and creates the root at once (for the isolated
+  storage override); with no writable per-user data folder it throws `StorageDeviceNotConnectedException`. Called
+  unguarded at start-up (as the museum did), it ends the program before any game code runs. Later storage calls throw the
+  same exception, which is the XNA place for it; local GamerServices achievements then fail with the same message.
+- **Needed change (suggestion):** resolve the root lazily (the isolated-storage override too), so that only the calls that
+  need the folder report the missing device.
+- **Museum handling:** `main` and `ct-storage` catch it; scenario `storage_not_connected` checks `IsConnected false` and
+  the exception from `EndOpenContainer`.
+
 ### Content pipeline divergences found by the Pipeline Workshop (wk-* rooms; each is a FAIL check there)
 1. **Nested build names collide** (wk-processor): `Convert(material, "MaterialProcessor")` builds `plaque.png` as
    `plaque_0`; a later `BuildAsset(plaque.png, "TextureProcessor")` with other parameters fails with

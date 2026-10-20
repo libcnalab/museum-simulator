@@ -7,16 +7,16 @@ Implementation, execution and correctness counts rise only from recorded evidenc
 The complete per-claim and per-declaration matrix
 is generated in `build/api-audit/coverage-evidence.json`.
 
-Museum catalogue SHA-256: `092e3ac002c3c75fdcfd13af2ff40deabcd928aa56180bce87b489660daca226`; exhibit sources SHA-256: `82a95806ad056e3dd596f1fb85a2b2850c3f552c724ba8a649aec58d8edaa526`
+Museum catalogue SHA-256: `6a96552c57cc49f55c218bfe4e14fbad18681166ae1fcb0fc2cf0143e3da168c`; exhibit sources SHA-256: `fa835334e60c724322d91047ac08c343d8fe7134d8f06d28f508b25434d5b795`
 
-CNA revision: `41305f5bab7cce308d4103e84242cbe5f130f2b4` (`v0.1.0-496-g41305f5ba-dirty`)
+CNA revision: `999f0e67fa1b9921acfbdeb6ebb042142e229a92` (`v0.1.0-498-g999f0e67f-dirty`)
 
-Claims: **1771**; exact declaration matches: **1315**; member/overload families: **446**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
+Claims: **1776**; exact declaration matches: **1320**; member/overload families: **446**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
 
-Public declarations: **19851**; linked by at least one catalogue name: **2601**; implementation-verified: **2085**; executed: **0**; correctness-verified: **0**.
+Public declarations: **19851**; linked by at least one catalogue name: **2606**; implementation-verified: **2090**; executed: **0**; correctness-verified: **0**.
 
 Implementation source located through the exhibit registry for **315 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
-Reviewed implementation records: **2556**; fully implementation-verified claims: **1437**. Reviewed claim-room pairs: **2444** of **2444**; fully verified pairs: **1937**.
+Reviewed implementation records: **2561**; fully implementation-verified claims: **1442**. Reviewed claim-room pairs: **2449** of **2449**; fully verified pairs: **1942**.
 Execution runs: **0 current** of **2 recorded**; execution records: **2**; fully executed claims: **0**; executed claim-room pairs: **0**.
 Correctness oracles: **5**; fully correctness-verified claims: **0**; correctness-verified claim-room pairs: **0**.
 
@@ -32,7 +32,7 @@ Correctness oracles: **5**; fully correctness-verified claims: **0**; correctnes
 | `devices-ext` | 84 | 37 | 47 |
 | `diagnostics` | 224 | 31 | 193 |
 | `gamer-services` | 690 | 120 | 570 |
-| `graphics` | 2912 | 779 | 2133 |
+| `graphics` | 2912 | 780 | 2132 |
 | `graphics-ext` | 106 | 16 | 90 |
 | `input` | 897 | 166 | 731 |
 | `inspector` | 189 | 19 | 170 |
@@ -51,7 +51,7 @@ Correctness oracles: **5**; fully correctness-verified claims: **0**; correctnes
 | `renderers/stub` | 0 | 0 | 0 |
 | `renderers/webgpu` | 0 | 0 | 0 |
 | `runtime` | 322 | 65 | 257 |
-| `storage` | 44 | 30 | 14 |
+| `storage` | 44 | 34 | 10 |
 
 ## Implementation review progress
 
@@ -129,7 +129,7 @@ Only rooms with at least one reviewed pair are listed.
 | `ct-processor` | 9 | 6 | 0 | 0 | 0 | 15 |
 | `ct-reader` | 16 | 0 | 0 | 0 | 0 | 16 |
 | `ct-resource` | 5 | 0 | 0 | 0 | 0 | 5 |
-| `ct-storage` | 21 | 3 | 0 | 0 | 0 | 24 |
+| `ct-storage` | 25 | 3 | 0 | 0 | 0 | 28 |
 | `curve-barycentric` | 0 | 1 | 0 | 0 | 0 | 1 |
 | `curve-class` | 7 | 6 | 0 | 0 | 0 | 13 |
 | `curve-easing` | 4 | 0 | 0 | 0 | 0 | 4 |
@@ -229,7 +229,7 @@ Only rooms with at least one reviewed pair are listed.
 | `model-pbr` | 1 | 3 | 0 | 0 | 0 | 4 |
 | `model-report` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `model-rigid` | 4 | 0 | 0 | 0 | 0 | 4 |
-| `model-sampler` | 6 | 0 | 0 | 0 | 0 | 6 |
+| `model-sampler` | 7 | 0 | 0 | 0 | 0 | 7 |
 | `model-skinext` | 10 | 0 | 0 | 0 | 0 | 10 |
 | `model-skinfx` | 7 | 1 | 0 | 0 | 0 | 8 |
 | `model-skinned` | 4 | 0 | 0 | 0 | 0 | 4 |
@@ -398,13 +398,13 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 
 ## Public API areas
 
-**456** public headers (9782 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
+**457** public headers (9789 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
 `audit/area_classification.json` (first match wins; the check fails for an unclassified header or a stale rule):
 
 | Status | Headers | Declarations | Meaning |
 |---|---:|---:|---|
 | gap | 83 | 7208 | Application-facing API that the museum should demonstrate but does not yet; the backlog task that covers it is named. |
-| supporting | 132 | 2149 | Reached implicitly (exceptions, event arguments, option types, helper traits) by a demonstrated feature, or meaningful only inside a named gap. |
+| supporting | 131 | 2142 | Reached implicitly (exceptions, event arguments, option types, helper traits) by a demonstrated feature, or meaningful only inside a named gap. |
 | not-applicable | 22 | 712 | Not application API for this museum (bootstrap, backend contracts, build-time internals); the reason is stated. |
 
 | Area | Status | Backlog | Headers | Declarations | Reason |
@@ -457,7 +457,6 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 | Platform input SPI | supporting | - | 9 | 592 | Platform contracts and key enums behind Keyboard/Mouse/GamePad/Joysticks/Sensors/TextInputEXT; pl-platform reaches IPlatform::GetKeyboard etc. and the input rooms demonstrate the facades. |
 | Raw joysticks | supporting | - | 5 | 47 | Value types returned by Joysticks.GetJoysticksEXT/GetCapabilitiesEXT/GetStateEXT, which in-joystick claims. |
 | Renderer capabilities | supporting | - | 2 | 13 | DisplayColorSpace and ShaderDialectEXT are the parameter/return types of SetDisplayColorSpaceEXT and GetShaderDialectEXT, which PlatformLab/CnaExtLab/TargetLab call. |
-| Storage | supporting | - | 1 | 7 | Thrown when a StorageDevice disconnects; StorageDevice itself is used (Progress, ContentLab), the disconnect/error scenario is gap M06. |
 | Texture processing | supporting | - | 4 | 64 | S3TC encoder behind TextureProcessor DxtCompressed, which ProcessorLab selects and verifies (Dxt1/3/5 levels). (+1 more rule(s)) |
 | Audio backend SPI | not-applicable | - | 2 | 52 | Pure-virtual audio output/recording device contracts implemented by CNA's audio backends; applications reach audio only through SoundEffect/DynamicSoundEffectInstance/Microphone, which the audio rooms already use. |
 | Build-time markers | not-applicable | - | 1 | 1 | Defines only the CNAEXT documentation macro (or [[deprecated]] under CNA_STRICT_XNA_API); it has no runtime behaviour to show. |

@@ -1,0 +1,13 @@
+{
+  "description": "ModelMeshPart's sampler setter on a cached glTF model: read back, the drawn difference, and the restore on leave",
+  "script": "goto:model-sampler;wait:30;press:Left quad: ModelMeshPart.SetSamplerStateEXT(0, ...)=1;wait:10;press:Left quad: ModelMeshPart.SetSamplerStateEXT(0, ...)=2;wait:10;press:Left quad: ModelMeshPart.SetSamplerStateEXT(0, ...)=0;wait:10;press:Left quad: ModelMeshPart.SetSamplerStateEXT(0, ...)=1;wait:10;goto:model-load;wait:20;stats;quit",
+  "expect": [
+    "model-sampler ModelMeshPart.SetSamplerStateEXT(0, Point Clamp/Clamp) read back: PASS",
+    "model-sampler left quad drawn with the part's sampler (Point Clamp/Clamp): PASS",
+    "model-sampler ModelMeshPart.SetSamplerStateEXT(0, Linear Mirror/Mirror) read back: PASS",
+    "model-sampler left quad drawn with the part's sampler (Linear Mirror/Mirror): PASS",
+    "model-sampler left quad drawn with the part's sampler (LinearMipPoint Wrap/Wrap): PASS (expected identical to the file's sampler, got 0 of",
+    "model-sampler cached model's part sampler restored on leave: PASS (expected LinearMipPoint Wrap/Wrap, got LinearMipPoint Wrap/Wrap)"
+  ],
+  "forbid": [": FAIL ("]
+}

@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 #include <exception>
+#include <memory>
+#include <optional>
 #include <string>
 
 #include "Diagnostics/Log.hpp"
@@ -22,6 +24,7 @@
 #include "Microsoft/Xna/Framework/Graphics/AlphaModeEXT.hpp"
 #include "Microsoft/Xna/Framework/Graphics/IEffectMatrices.hpp"
 #include "Microsoft/Xna/Framework/Graphics/PbrEffect.hpp"
+#include "Microsoft/Xna/Framework/Graphics/RenderTarget2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SamplerState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/TextureAddressMode.hpp"
 #include "Microsoft/Xna/Framework/Graphics/TextureFilter.hpp"
@@ -53,7 +56,11 @@ const char* kNames[] = {"cube", "sphere", "torus", "cone", "star", "knot", "vase
 
 class ModelLab final : public Exhibit {
 public:
-    ~ModelLab() override { RestoreOriginalEffects(); }
+    ~ModelLab() override
+    {
+        RestoreSampler();
+        RestoreOriginalEffects();
+    }
     ModelLab(const RoomDef& room, Services& services) : Exhibit(room, services), mode_(ParseMode(room.params.Get("mode"))), gizmos_(services)
     {
         name_ = room.params.Get("model", mode_ == Mode::Rigid ? "robot" : (mode_ == Mode::Skinned ? "tentacle" : (mode_ == Mode::Morph ? "morph" : (mode_ == Mode::Variants ? "variants" : (mode_ == Mode::Wrap ? "wrapquads" : "knot")))));
@@ -123,6 +130,12 @@ public:
                 p.AddReadout("Middle quad: part sampler (slot 0)", [this] { return SamplerOf(1); });
                 p.AddReadout("Right quad: part sampler (slot 0)", [this] { return SamplerOf(2); });
                 p.AddReadout("What happens if it is not applied", [] { return std::string("every quad draws with the device's LinearWrap"); });
+                // The part's own sampler can be changed (CNA extension setter). The model is the content manager's cached
+                // asset, so the file's sampler is put back when the visitor leaves or the room unloads.
+                panel_ = &p;
+                overrideRow_ = p.AddChoice("Left quad: ModelMeshPart.SetSamplerStateEXT(0, ...)", {"as the file says", "PointClamp", "LinearMirror"}, 0,
+                                           [this](int v) { SetLeftSampler(v); });
+                p.AddReadout("Setter check", [this] { return samplerCheck_; });
                 break;
             case Mode::Material:
                 p.AddChoice("Base colour texture", {"brick", "coin (has alpha)", "checker"}, 0, [this](int v) { texture_ = v; });
@@ -229,6 +242,11 @@ public:
         }
     }
 
+    void RenderOffscreen(const DrawContext& ctx) override
+    {
+        if (comparePending_) CompareLeftQuad(ctx.device);
+    }
+
     void DrawOpaque(const DrawContext& ctx) override
     {
         if (!model_) return;
@@ -294,8 +312,140 @@ private:
         overrides_.clear();
     }
 
+    void OnLeave() override
+    {
+        if (!originalSampler_) return;
+        RestoreSampler();
+        if (panel_ != nullptr) panel_->SetChoice(overrideRow_, 0);
+    }
+
+    // Puts sampler choice V (0 = the file's own) on the left quad's part through the setter, then asks RenderOffscreen to
+    // compare that quad drawn with the file's sampler and with the part's current one.
+    void SetLeftSampler(int v)
+    {
+        ModelMeshPart* part = LeftPart();
+        if (part == nullptr) return;
+        if (!originalSampler_) originalSampler_ = part->getSamplerStatesEXTProperty()[0];
+        SamplerState chosen(v == 1 ? SamplerState::PointClamp : *originalSampler_);
+        if (v == 2) {
+            chosen.setFilterProperty(TextureFilter::Linear);
+            chosen.setAddressUProperty(TextureAddressMode::Mirror);
+            chosen.setAddressVProperty(TextureAddressMode::Mirror);
+            chosen.setAddressWProperty(TextureAddressMode::Mirror);
+        }
+        part->setSamplerStateEXTProperty(0, chosen);
+        const bool stored = SameSampler(part->getSamplerStatesEXTProperty()[0], chosen);
+        Museum::Log("check", "%s ModelMeshPart.SetSamplerStateEXT(0, %s) read back: %s (expected the getter returns the value set, got %s)", R().key.c_str(),
+                    SamplerName(chosen).c_str(), stored ? "PASS" : "FAIL", SamplerName(part->getSamplerStatesEXTProperty()[0]).c_str());
+        compareChoice_ = v;
+        comparePending_ = true;
+    }
+
+    void RestoreSampler()
+    {
+        ModelMeshPart* part = LeftPart();
+        if (part == nullptr || !originalSampler_) return;
+        part->setSamplerStateEXTProperty(0, *originalSampler_);
+        const bool restored = SameSampler(part->getSamplerStatesEXTProperty()[0], *originalSampler_);
+        Museum::Log("check", "%s cached model's part sampler restored on leave: %s (expected %s, got %s)", R().key.c_str(), restored ? "PASS" : "FAIL",
+                    SamplerName(*originalSampler_).c_str(), SamplerName(part->getSamplerStatesEXTProperty()[0]).c_str());
+        originalSampler_.reset();
+        comparePending_ = false;
+    }
+
+    [[nodiscard]] ModelMeshPart* LeftPart() const
+    {
+        if (mode_ != Mode::Wrap || !model_ || model_->getMeshesProperty().getCountProperty() == 0 || model_->getMeshesProperty()[0]->getMeshPartsProperty().getCountProperty() == 0) return nullptr;
+        return model_->getMeshesProperty()[0]->getMeshPartsProperty()[0];
+    }
+
+    static bool SameSampler(const SamplerState& a, const SamplerState& b)
+    {
+        return a.getFilterProperty() == b.getFilterProperty() && a.getAddressUProperty() == b.getAddressUProperty() && a.getAddressVProperty() == b.getAddressVProperty() &&
+               a.getAddressWProperty() == b.getAddressWProperty();
+    }
+
+    static std::string SamplerName(const SamplerState& s)
+    {
+        const auto address = [](TextureAddressMode m) { return m == TextureAddressMode::Wrap ? "Wrap" : m == TextureAddressMode::Clamp ? "Clamp" : "Mirror"; };
+        static const char* const filters[] = {"Linear", "Point", "Anisotropic", "LinearMipPoint", "PointMipLinear", "MinLinearMagPointMipLinear",
+                                              "MinLinearMagPointMipPoint", "MinPointMagLinearMipLinear", "MinPointMagLinearMipPoint"};
+        const int f = static_cast<int>(s.getFilterProperty());
+        return std::string(f >= 0 && f < 9 ? filters[f] : "other filter") + " " + address(s.getAddressUProperty()) + "/" + address(s.getAddressVProperty());
+    }
+
+    // Draws the left quad alone, face on, into a small target with the given sampler on slot 0 and reads it back.
+    std::optional<std::vector<Color>> DrawLeftQuad(GraphicsDevice& d, const SamplerState& sampler)
+    {
+        constexpr int kSize = 64;
+        if (!compareTarget_) compareTarget_ = std::make_unique<RenderTarget2D>(d, kSize, kSize, false, SurfaceFormat::Color, DepthFormat::None);
+        ModelMesh* quad = model_->getMeshesProperty()[0];
+        std::vector<Matrix> quadBones(static_cast<std::size_t>(model_->getBonesProperty().getCountProperty()));
+        model_->CopyAbsoluteBoneTransformsTo(quadBones);
+        const ModelBone* parent = quad->getParentBoneProperty();
+        const Matrix bone = parent != nullptr ? quadBones[static_cast<std::size_t>(parent->getIndexProperty())] : Matrix::getIdentityProperty();
+        const BoundingSphere sphere = quad->getBoundingSphereProperty().Transform(bone);
+        const float r = std::max(0.01f, sphere.Radius);
+        const Matrix view = Matrix::CreateLookAt(sphere.Center + Vector3(0, 0, r * 3.0f), sphere.Center, Vector3::Up);
+        const Matrix projection = Matrix::CreateOrthographic(r * 1.5f, r * 1.5f, r * 0.1f, r * 6.0f);
+        RenderStates::UnbindTextures(d);
+        d.SetRenderTarget(compareTarget_.get());
+        d.setViewportProperty(Viewport(0, 0, kSize, kSize));
+        d.setBlendStateProperty(BlendState::Opaque);
+        d.setDepthStencilStateProperty(DepthStencilState::None);
+        d.setRasterizerStateProperty(RasterizerState::CullNone);
+        d.Clear(Color::Black);
+        ModelMeshPart* part = quad->getMeshPartsProperty()[0];
+        if (auto* matrices = dynamic_cast<IEffectMatrices*>(part->getEffectProperty())) {
+            matrices->setWorldProperty(bone);
+            matrices->setViewProperty(view);
+            matrices->setProjectionProperty(projection);
+        }
+        auto& slots = d.getSamplerStatesProperty();
+        slots[0] = sampler;
+        std::optional<std::vector<Color>> pixels;
+        try {
+            quad->Draw();
+            d.SetRenderTarget(nullptr);
+            pixels.emplace(static_cast<std::size_t>(kSize * kSize));
+            compareTarget_->GetData(pixels->data(), static_cast<int>(pixels->size()));
+        } catch (const std::exception& e) {
+            d.SetRenderTarget(nullptr);
+            samplerCheck_ = std::string("not compared: ") + std::string(e.what()).substr(0, 60);
+            pixels.reset();
+        }
+        slots[0] = SamplerState::LinearWrap;
+        return pixels;
+    }
+
+    void CompareLeftQuad(GraphicsDevice& d)
+    {
+        comparePending_ = false;
+        ModelMeshPart* part = LeftPart();
+        if (part == nullptr || !originalSampler_) return;
+        const auto file = DrawLeftQuad(d, *originalSampler_);
+        const auto current = DrawLeftQuad(d, part->getSamplerStatesEXTProperty()[0]);
+        if (!file || !current) {
+            Museum::Log("check", "%s left quad drawn with the part's sampler: SKIP (%s)", R().key.c_str(), samplerCheck_.c_str());
+            return;
+        }
+        int differ = 0, lit = 0;
+        for (std::size_t i = 0; i < file->size(); ++i) {
+            const Color a = (*file)[i], b = (*current)[i];
+            const int ar = a.getRProperty(), ag = a.getGProperty(), ab = a.getBProperty();
+            lit += (ar + ag + ab) > 30 ? 1 : 0;
+            differ += (std::abs(ar - b.getRProperty()) > 24 || std::abs(ag - b.getGProperty()) > 24 || std::abs(ab - b.getBProperty()) > 24) ? 1 : 0;
+        }
+        const bool same = compareChoice_ == 0;
+        const bool pass = lit > 200 && (same ? differ == 0 : differ * 20 > lit);
+        samplerCheck_ = std::to_string(differ) + " of " + std::to_string(lit) + " lit pixels differ from the file's sampler";
+        Museum::Log("check", "%s left quad drawn with the part's sampler (%s): %s (expected %s, got %s)", R().key.c_str(), SamplerName(part->getSamplerStatesEXTProperty()[0]).c_str(),
+                    pass ? "PASS" : "FAIL", same ? "identical to the file's sampler" : "more than 5 % of the quad differs from the file's Wrap", samplerCheck_.c_str());
+    }
+
     void Reload()
     {
+        RestoreSampler();
         RestoreOriginalEffects();
         model_.reset();
         clip_ = nullptr;
@@ -710,6 +860,12 @@ private:
         }
     }
     std::string bindPoseText_ = "-", roundTrip_ = "press the button";
+    ControlPanel* panel_ = nullptr;
+    int overrideRow_ = 0, compareChoice_ = 0;
+    bool comparePending_ = false;
+    std::optional<SamplerState> originalSampler_;   // the file's sampler of the left quad while the setter has replaced it
+    std::unique_ptr<RenderTarget2D> compareTarget_;
+    std::string samplerCheck_ = "choose a sampler";
     std::unique_ptr<AnimationPlayer> player_;
     std::vector<Effect*> originals_;
     std::vector<std::unique_ptr<BasicEffect>> overrides_;

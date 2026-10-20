@@ -9,7 +9,9 @@ Each tests/scenarios/<name>.json describes one scenario:
      "expectRegex": ["regular expression", ...],                 # optional
      "forbid": ["substring that must not occur", ...],           # optional
      "renderers": ["OPENGLES3"],                                 # optional, default: the build's default
-     "requires": "MUSEUM_INSPECTOR"}                             # optional: a CMake switch that must be ON in the build tree
+     "requires": "MUSEUM_INSPECTOR",                             # optional: a CMake switch that must be ON in the build tree
+     "env": {"MUSEUM_DATA_HOME": "{dir}/blocked/data"},             # optional: extra environment; {dir} is a fresh directory
+     "touch": ["blocked"]}                                       # optional: empty regular files created in {dir} first
 
 The museum always runs on a private virtual display (tools/run.sh). A scenario passes only when the museum exited
 0, reached its stats step with no exhibit or script errors, and every expectation held. A scenario whose required
@@ -24,6 +26,7 @@ import json
 import os
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 
@@ -39,6 +42,13 @@ def run_scenario(name: str, spec: dict, build_dir: str) -> tuple[str, list[str]]
         tag = f"{name}{'-' + renderer if renderer else ''}"
         log = out_dir / f"{tag}.log"
         env = dict(os.environ, BUILD_DIR=build_dir, MUSEUM_LOG=str(log), MUSEUM_TIMEOUT=str(spec.get("timeout", 240)))
+        if "env" in spec or "touch" in spec:
+            scratch = out_dir / f"{tag}.d"
+            shutil.rmtree(scratch, ignore_errors=True)
+            scratch.mkdir()
+            for name_ in spec.get("touch", []):
+                (scratch / name_).touch()
+            env.update({key: value.replace("{dir}", str(scratch)) for key, value in spec.get("env", {}).items()})
         if renderer:
             env["CNA_GRAPHICS_RENDERER"] = renderer
         completed = subprocess.run([str(ROOT / "tools" / "run.sh"), spec["script"], "--no-audio"], cwd=ROOT, env=env,

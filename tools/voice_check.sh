@@ -31,7 +31,7 @@ launch() {   # launch NAME SCRIPT [extra env...]
   mkdir -p "$dir/$name-profiles"
   env -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 \
     SDL_AUDIO_DRIVER=disk SDL_AUDIO_DISK_OUTPUT_FILE="$dir/$name-output.raw" SDL_AUDIO_DISK_INPUT_FILE="$dir/microphone.raw" "$@" \
-    CNA_GAMER_SERVICES_PROFILES_DIR="$dir/$name-profiles" timeout -k 15 "${MUSEUM_TIMEOUT:-240}" \
+    CNA_GAMER_SERVICES_PROFILES_DIR="$dir/$name-profiles" XDG_DATA_HOME="$dir/$name-data" timeout -k 15 "${MUSEUM_TIMEOUT:-240}" \
     xvfb-run -a -s "-screen 0 1280x720x24" "$bin" --script "$script" --fixed-step 0.02 > "$dir/$name.log" 2>&1 &
   pids+=($!)
 }

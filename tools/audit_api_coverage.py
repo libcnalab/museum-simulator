@@ -266,13 +266,21 @@ def resolve_execution_evidence(
             raise RuntimeError(f"execution run {run_id} log rooms do not match metadata")
         if interaction == "per-room-coverage":
             swept = sum(1 for segment in segments if "pressall" in segment)
-            pressed = re.findall(
-                r"^\[museum\]\[script\] pressall: ([1-9][0-9]*) panel\(s\) exercised$",
-                log,
-                re.MULTILINE,
-            )
-            if len(pressed) != swept:
-                raise RuntimeError(f"execution run {run_id} lacks a successful pressall for every swept room")
+            # Each swept room's sweep is logged once; a room whose sweep found no panel at all is only a visit and must
+            # be declared as such in roomsWithoutControls.
+            sweeps: list[tuple[str, int]] = []
+            current_room = None
+            for line in log.splitlines():
+                goto = re.match(r"^\[museum\]\[script\] goto (\S+)$", line)
+                if goto:
+                    current_room = goto.group(1)
+                swept_line = re.match(r"^\[museum\]\[script\] pressall: ([0-9]+) panel\(s\) exercised$", line)
+                if swept_line:
+                    sweeps.append((current_room, int(swept_line.group(1))))
+            if len(sweeps) != swept:
+                raise RuntimeError(f"execution run {run_id} lacks a pressall result for every swept room")
+            if sorted(room for room, panels in sweeps if panels == 0) != sorted(raw.get("roomsWithoutControls", [])):
+                raise RuntimeError(f"execution run {run_id} roomsWithoutControls does not match the rooms whose sweep found no panel")
         elif interaction == "pressall":
             pressed = re.findall(
                 r"^\[museum\]\[script\] pressall: ([1-9][0-9]*) panel\(s\) exercised$",

@@ -5382,6 +5382,46 @@
       "note": "MenuReader::Read reads the XNB format version; the value is shown in the reader-context row."
     },
     {
+      "id": "ct-storage-container-dispose",
+      "claim": "StorageContainer.Dispose",
+      "room": "ct-storage",
+      "kind": "direct-call",
+      "symbols": ["CPP-0E5F93DB51F9"],
+      "path": [{"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "box->Dispose();\n            box->Dispose();"}],
+      "conditions": ["runtime:ct-storage-room-loaded", "runtime:contracts-button-pressed", "runtime:storage-root-writable"],
+      "note": "The contract checks dispose the container twice and expect Disposing once."
+    },
+    {
+      "id": "ct-storage-container-is-disposed",
+      "claim": "StorageContainer.IsDisposed",
+      "room": "ct-storage",
+      "kind": "direct-read",
+      "symbols": ["CPP-3A2BAF7DD7B9"],
+      "path": [{"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "box->getIsDisposedProperty()"}],
+      "conditions": ["runtime:ct-storage-room-loaded", "runtime:contracts-button-pressed", "runtime:storage-root-writable"],
+      "note": "IsDisposed is read after the double Dispose and must be true."
+    },
+    {
+      "id": "ct-storage-container-disposing",
+      "claim": "StorageContainer.Disposing",
+      "room": "ct-storage",
+      "kind": "direct-call",
+      "symbols": ["CPP-292C9161EB31"],
+      "path": [{"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "box->Disposing.Add("}],
+      "conditions": ["runtime:ct-storage-room-loaded", "runtime:contracts-button-pressed", "runtime:storage-root-writable"],
+      "note": "A handler counts Disposing events; the check expects exactly one for two Dispose calls."
+    },
+    {
+      "id": "ct-storage-not-connected",
+      "claim": "StorageDeviceNotConnectedException",
+      "room": "ct-storage",
+      "kind": "direct-use",
+      "symbols": ["CPP-4E3993FEA587"],
+      "path": [{"source": "src/Exhibits/Content/ContentLab.cpp", "anchor": "catch (const Storage::StorageDeviceNotConnectedException& e)"}],
+      "conditions": ["runtime:ct-storage-room-loaded", "runtime:open-storage-button-pressed", "runtime:storage-root-not-writable"],
+      "note": "OpenStorage catches the exception CNA raises when the storage root cannot be created and logs it (scenario storage_not_connected)."
+    },
+    {
       "id": "ct-storage-begin-open-container",
       "claim": "StorageDevice.BeginOpenContainer",
       "room": "ct-storage",
@@ -11440,6 +11480,16 @@
       "path": [{"source": "src/Exhibits/Models/ModelLab.cpp", "anchor": "applySamplers_ ? part->getSamplerStatesEXTProperty()[0]"}],
       "conditions": ["runtime:model-loaded", "runtime:sampler-room-drawn", "runtime:apply-samplers-toggle-on"],
       "note": "The part's imported slot-0 sampler is read and copied onto the device before the draw."
+    },
+    {
+      "id": "model-sampler-part-sampler-setter",
+      "claim": "ModelMeshPart.SamplerStateEXT",
+      "room": "model-sampler",
+      "kind": "direct-call",
+      "symbols": ["CPP-4A8EEBA887D2"],
+      "path": [{"source": "src/Exhibits/Models/ModelLab.cpp", "anchor": "part->setSamplerStateEXTProperty(0, chosen);"}],
+      "conditions": ["runtime:model-loaded", "runtime:override-choice-pressed"],
+      "note": "The override choice replaces the left quad part's slot-0 sampler; the getter is checked, the quad is drawn into a render target with the file's and the new sampler and compared, and the cached model's sampler is restored on leave."
     },
     {
       "id": "model-sampler-sampler-state",

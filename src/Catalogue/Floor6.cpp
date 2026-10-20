@@ -78,7 +78,7 @@ WingSpec ModelWing()
         mo("model-material", "PBR Material Maps", "Base colour, normal and emissive maps, a texture transform and the three alpha modes on one PbrEffect", "material", {"PbrEffect.NormalMap", "PbrEffect.EmissiveMap", "TextureTransformEXT", "AlphaModeEXT", "PbrEffect.AlphaCutoffEXT"}, "sphere"),
         [&] {
             RoomSpec r = mo("model-sampler", "Sampler States from a glTF File", "Three quads with UVs from 0 to 2: the glTF sampler (repeat, clamp, mirror) travels on each ModelMeshPart and the application puts it on the device", "wrap",
-                            {"ModelMeshPart.SamplerStatesEXT", "ModelMesh.Draw", "Model.CopyAbsoluteBoneTransformsTo", "GraphicsDevice.SamplerStates", "SamplerState", "TextureAddressMode"});
+                            {"ModelMeshPart.SamplerStatesEXT", "ModelMeshPart.SamplerStateEXT", "ModelMesh.Draw", "Model.CopyAbsoluteBoneTransformsTo", "GraphicsDevice.SamplerStates", "SamplerState", "TextureAddressMode"});
             r.origin = ApiOrigin::CnaExtension;
             return r;
         }(),

@@ -31,7 +31,7 @@ case $? in
   *) echo "FAIL: the service is built but did not start: $(tail -1 "$dir/start.log")"; exit 1 ;;
 esac
 eval "$(tools/online_stack.sh env)"
-export CNA_GAMER_SERVICES_PROFILES_DIR=$dir/check-profiles CNA_GAMER_SERVICES_CREDENTIALS_DIR=$dir/check-credentials SDL_AUDIODRIVER=dummy SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1
+export XDG_DATA_HOME=$dir/check-data CNA_GAMER_SERVICES_PROFILES_DIR=$dir/check-profiles CNA_GAMER_SERVICES_CREDENTIALS_DIR=$dir/check-credentials SDL_AUDIODRIVER=dummy SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1
 export LP_NUM_THREADS=${LP_NUM_THREADS:-${MUSEUM_RENDER_THREADS:-3}}
 # SDL prefers a live Wayland display over DISPLAY when both are inherited. This check must stay on
 # its private Xvfb display so xdotool targets the Guide window it just opened.

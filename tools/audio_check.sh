@@ -19,7 +19,7 @@ mkdir -p "$dir"
 record() {   # record NAME SCRIPT: one museum run whose audio output goes to $dir/NAME.raw (format: SDL's line in the log)
   env -u WAYLAND_DISPLAY SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=3 \
     SDL_AUDIO_DRIVER=disk SDL_AUDIO_DISK_OUTPUT_FILE="$dir/$1.raw" \
-    CNA_GAMER_SERVICES_PROFILES_DIR="$dir/profiles" timeout -k 15 "${MUSEUM_TIMEOUT:-200}" \
+    CNA_GAMER_SERVICES_PROFILES_DIR="$dir/profiles" XDG_DATA_HOME="$dir/data" timeout -k 15 "${MUSEUM_TIMEOUT:-200}" \
     xvfb-run -a -s "-screen 0 1280x720x24" "$bin" --script "$2" --fixed-step 0.02 > "$dir/$1.log" 2>&1
   echo $?
 }

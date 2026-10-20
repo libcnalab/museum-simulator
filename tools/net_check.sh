@@ -24,7 +24,7 @@ trap cleanup EXIT
 launch() {   # launch NAME SCRIPT
   mkdir -p "$dir/$1-profiles"
   env -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS SDL_VIDEODRIVER=x11 SDL_AUDIODRIVER=dummy LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 \
-    CNA_GAMER_SERVICES_PROFILES_DIR="$dir/$1-profiles" timeout -k 15 "${MUSEUM_TIMEOUT:-240}" \
+    CNA_GAMER_SERVICES_PROFILES_DIR="$dir/$1-profiles" XDG_DATA_HOME="$dir/$1-data" timeout -k 15 "${MUSEUM_TIMEOUT:-240}" \
     xvfb-run -a -s "-screen 0 1280x720x24" "$bin" --script "$2" --fixed-step 0.02 --no-audio > "$dir/$1.log" 2>&1 &
   pids+=($!)
 }

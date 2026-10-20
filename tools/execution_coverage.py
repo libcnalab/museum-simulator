@@ -146,9 +146,30 @@ def room_failure(status: int, log_text: str) -> str | None:
         if marker in log_text:
             line = next(line for line in log_text.splitlines() if marker in line)
             return line[:200]
-    if not re.search(r"^\[museum\]\[script\] (pressall: [1-9][0-9]* panel\(s\) exercised|press '[^']+': done)$", log_text, re.MULTILINE):
+    # A room whose sweep finds no panel is a visit (recorded as such in roomsWithoutControls); otherwise a control must
+    # have been operated.
+    if not re.search(r"^\[museum\]\[script\] (pressall: [0-9]+ panel\(s\) exercised|press '[^']+': done)$", log_text, re.MULTILINE):
         return "no control was operated"
     return None
+
+
+def without_controls(log_text: str) -> bool:
+    return re.search(r"^\[museum\]\[script\] pressall: 0 panel\(s\) exercised$", log_text, re.MULTILINE) is not None
+
+
+def source_hashes() -> dict[str, str]:
+    """Every file the museum binary is built from, as it is now."""
+    files = [path for path in (ROOT / "src").rglob("*") if path.is_file()] + [ROOT / "CMakeLists.txt"]
+    return {path.relative_to(ROOT).as_posix(): sha256_bytes(path.read_bytes()) for path in sorted(files)}
+
+
+def require_current_binary(build_dir: pathlib.Path) -> None:
+    """The binary must be what the working tree builds now: the line numbers are read against these sources."""
+    if not (build_dir / "build.ninja").is_file():
+        raise RuntimeError(f"{build_dir} is not a Ninja tree; cannot prove the binary matches the sources")
+    dry = subprocess.run(["ninja", "-C", str(build_dir), "-n", "cna-3d-museum"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, check=False)
+    if dry.returncode != 0 or "no work to do" not in dry.stdout:
+        raise RuntimeError(f"{build_dir}/bin/cna-3d-museum is older than the sources; rebuild it first")
 
 
 def museum_lines(text: str) -> list[str]:
@@ -175,12 +196,20 @@ def run(arguments: argparse.Namespace) -> int:
     rooms = arguments.rooms or subprocess.run(
         [str(binary), "--list-rooms"], stdout=subprocess.PIPE, text=True, check=True
     ).stdout.split()
+    require_current_binary(build_dir)
+    # Provenance is taken before the first room runs and checked again at the end, so edits made during a long run
+    # cannot be recorded as the sources of this binary.
+    sources_at_start = source_hashes()
+    museum_revision = git("rev-parse", "HEAD")
+    museum_dirty = bool(git("status", "--porcelain", "--", "src", "CMakeLists.txt"))
+    cna_revision = git("rev-parse", "HEAD", cwd=ROOT.parent / "cna")
     museum_sha = sha256_bytes(binary.read_bytes())
     cna_sha = sha256_bytes(library.read_bytes())
     work = build_dir / "execution-coverage" / arguments.id
     work.mkdir(parents=True, exist_ok=True)
     per_room: dict[str, dict[str, str]] = {}
     passed: list[str] = []
+    no_controls: list[str] = []
     failed: dict[str, str] = {}
     script_parts: list[str] = []
     log_lines: list[str] = []
@@ -205,18 +234,24 @@ def run(arguments: argparse.Namespace) -> int:
         lines = collect_lines(build_dir)
         per_room[room] = {path: ranges(numbers) for path, numbers in lines.items()}
         passed.append(room)
+        if without_controls(text):
+            no_controls.append(room)
         script_parts.append(script)
         log_lines.extend(museum_lines(text))
         print(f"[{index}/{len(rooms)}] {room}: ok, {sum(len(v) for v in lines.values())} lines", flush=True)
     reset_counters(build_dir)
     if not passed:
         raise RuntimeError("no room completed cleanly")
+    changed = sorted(path for path, digest in source_hashes().items() if sources_at_start.get(path) != digest)
+    changed += sorted(path for path in sources_at_start if not (ROOT / path).is_file())
+    if changed or sha256_bytes(binary.read_bytes()) != museum_sha or sha256_bytes(library.read_bytes()) != cna_sha:
+        raise RuntimeError("the sources or binaries changed during the run (" + ", ".join(changed[:5] or ["binary"]) + "); nothing was recorded")
     sources = sorted({path for coverage in per_room.values() for path in coverage})
     lines_payload = {
         "schema": LINES_SCHEMA,
         "buildDir": arguments.build_dir,
         "renderer": arguments.renderer,
-        "sources": {path: sha256_bytes((ROOT / path).read_bytes()) for path in sources},
+        "sources": {path: sources_at_start[path] for path in sources},
         "rooms": per_room,
     }
     runs_dir = ROOT / "audit" / "runs"
@@ -234,7 +269,8 @@ def run(arguments: argparse.Namespace) -> int:
         "id": arguments.id,
         "recordedAt": datetime.datetime.now().astimezone().replace(microsecond=0).isoformat(),
         "renderer": arguments.renderer,
-        "platform": f"{platform.system()} {platform.release()} {platform.machine()}, private virtual display",
+        "platform": f"{platform.system()} {platform.release()} {platform.machine()}, "
+                    + ("physical GPU, no display (SDL offscreen)" if os.environ.get("MUSEUM_GPU") else "private virtual display"),
         "command": f"tools/execution_coverage.py run --id {arguments.id} --build-dir {arguments.build_dir} "
                    f"--renderer {arguments.renderer} --frames {arguments.frames}" + (" --scenarios" if arguments.scenarios else "")
                    + ("" if not arguments.rooms else " " + " ".join(arguments.rooms)),
@@ -249,12 +285,13 @@ def run(arguments: argparse.Namespace) -> int:
         },
         "interaction": "per-room-coverage",
         "buildDir": arguments.build_dir,
-        "museumRevision": git("rev-parse", "HEAD"),
-        "museumDirty": bool(git("status", "--porcelain", "--", "src", "CMakeLists.txt")),
-        "cnaRevision": git("rev-parse", "HEAD", cwd=ROOT.parent / "cna"),
+        "museumRevision": museum_revision,
+        "museumDirty": museum_dirty,
+        "cnaRevision": cna_revision,
         "museumBinarySha256": museum_sha,
         "cnaBinarySha256": cna_sha,
         "rooms": passed,
+        "roomsWithoutControls": no_controls,
         "scenarioRooms": sorted(room for room in passed if room in scenarios),
         "failedRooms": failed,
         "script": {"path": script_path.relative_to(ROOT).as_posix(), "sha256": sha256_bytes(script_path.read_bytes())},

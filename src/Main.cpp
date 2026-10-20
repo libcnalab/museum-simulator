@@ -53,7 +53,13 @@ int main(int argc, char** argv)
         // StorageDevice also backs GamerServices' local achievements and leaderboards. Set the
         // title name before either subsystem can initialize so their root never depends on which
         // exhibit (or whether progress persistence) happened to open storage first.
-        Microsoft::Xna::Framework::Storage::StorageDevice::SetAppNameEXT("cna-3d-museum");
+        // CNA resolves (and creates) the storage root right here; without a writable per-user data folder that throws
+        // StorageDeviceNotConnectedException after the name is set. The museum runs on without saved data then.
+        try {
+            Microsoft::Xna::Framework::Storage::StorageDevice::SetAppNameEXT("cna-3d-museum");
+        } catch (const std::exception& e) {
+            std::fprintf(stderr, "[museum][storage] no storage root, saved data is off: %s\n", e.what());
+        }
 #ifdef MUSEUM_NETWORKING
         // Two local offline profiles are signed in at start-up (unless the caller chose others): the networking rooms need two local
         // gamers to talk to each other. They live in CNA's own profile store, never in the museum's files.

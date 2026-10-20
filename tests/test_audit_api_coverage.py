@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import gzip
 import importlib.util
+import json
 import pathlib
 import sys
 import tempfile
@@ -443,6 +445,37 @@ class AuditApiCoverageTests(unittest.TestCase):
                         MODULE.resolve_execution_evidence(
                             root, manifest, implementation, "museum", "cna"
                         )
+
+    def test_per_room_run_declares_rooms_whose_sweep_found_no_panel(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = pathlib.Path(temporary)
+            (root / "audit").mkdir()
+            script_path = root / "audit" / "run.script"
+            log_path = root / "audit" / "run.log"
+            lines_path = root / "audit" / "run.lines.json.gz"
+            script_path.write_text("goto:a;pressall;stats;quit;goto:b;pressall;stats;quit\n", encoding="utf-8")
+            log_path.write_text(
+                "[museum][script] goto a\n[museum][script] pressall: 2 panel(s) exercised\n[museum][stats] exhibit errors 0\n"
+                "[museum][script] goto b\n[museum][script] pressall: 0 panel(s) exercised\n[museum][stats] exhibit errors 0\n",
+                encoding="utf-8",
+            )
+            lines_path.write_bytes(gzip.compress(json.dumps(
+                {"schema": MODULE.LINE_COVERAGE_SCHEMA, "sources": {}, "rooms": {"a": {}, "b": {}}}).encode()))
+            run = {
+                "id": "run", "rooms": ["a", "b"], "interaction": "per-room-coverage", "roomsWithoutControls": ["b"],
+                "museumBinarySha256": "museum", "cnaBinarySha256": "cna",
+                "script": {"path": "audit/run.script", "sha256": MODULE.sha256_file(script_path)},
+                "log": {"path": "audit/run.log", "sha256": MODULE.sha256_file(log_path)},
+                "lineCoverage": {"path": "audit/run.lines.json.gz", "sha256": MODULE.sha256_file(lines_path)},
+            }
+            manifest = {"runs": [run], "records": [], "oracles": []}
+            runs, _, _, _ = MODULE.resolve_execution_evidence(root, manifest, [], "museum", "cna")
+            self.assertEqual(runs[0]["id"], "run")
+            for declared in ([], ["a"], ["a", "b"]):
+                with self.subTest(declared=declared):
+                    run["roomsWithoutControls"] = declared
+                    with self.assertRaisesRegex(RuntimeError, "roomsWithoutControls"):
+                        MODULE.resolve_execution_evidence(root, manifest, [], "museum", "cna")
 
     def test_every_unclaimed_header_needs_one_current_area_rule(self):
         inventory = {"symbols": [

@@ -152,6 +152,36 @@ if has "SavePicture: museum-swatch 2x2"; then
 else bad "SavePicture: $(line 'SavePicture')"; fi
 has "disposed: IsDisposed true" && ok "MediaLibrary.Dispose sets IsDisposed" || bad "Dispose: $(line 'disposed:')"
 
+# Media library across changes, in a second museum process whose HOME starts empty: an empty library, then the fixture
+# copied in, then one song removed and a picture album added, then SavePicture. Each change is made only after the
+# museum logged the previous read (the script waits long enough; this loop waits for the log line), so no read races it.
+media=$dir/media-home
+mkdir -p "$media"
+media_log=$dir/media.log
+read_library="press:Read my media library;wait:400"
+env -u DBUS_SESSION_BUS_ADDRESS -u WAYLAND_DISPLAY DISPLAY=:$display HOME="$media" XDG_CONFIG_HOME="$media/.config" \
+  SDL_VIDEODRIVER=x11 SDL_AUDIODRIVER=dummy LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS="${LP_NUM_THREADS:-3}" CNA_GAMER_SERVICES_PROFILES_DIR="$dir/gamer-profiles" \
+  timeout -k 10 "${MUSEUM_TIMEOUT:-300}" "$bin" --script "goto:dev-medialib;wait:30;$read_library;$read_library;$read_library;press:SavePicture;wait:10;press:Read my media library;wait:20;stats;quit" \
+  --fixed-step 0.02 --no-audio > "$media_log" 2>&1 & museum=$!
+reads() { grep -c "medialib\] library:\|medialib\] MediaLibrary refused" "$media_log" 2> /dev/null; }
+await_read() {   # await_read N: until the museum logged its Nth read (or exited)
+  while [ "$(reads)" -lt "$1" ] && kill -0 $museum 2> /dev/null; do sleep 0.2; done
+}
+await_read 1
+cp -r Content/MediaLibrary/. "$media/"
+await_read 2
+rm "$media/Music/03-the-archive.flac"
+mkdir -p "$media/Pictures/Rooms"
+cp Content/MediaLibrary/Pictures/Exhibits/brick.png "$media/Pictures/Rooms/lobby.png"
+wait $museum; media_status=$?; museum=
+mapfile -t libs < <(grep -o "medialib\] library: .*\|medialib\] MediaLibrary refused.*" "$media_log" | sed 's/medialib\] //')
+[ $media_status = 0 ] && grep -q "\[museum\]\[stats\].* exhibit errors 0 .*script errors 0" "$media_log" && ok "second media process ran cleanly" || bad "media process: exit $media_status, $(grep 'stats\]\|exhibit-error' "$media_log" | head -2)"
+[ "${libs[0]:-}" = "library: 0 / 0 / 0 / 0 songs/albums/artists/genres, 0 playlist(s), 0 / 0" ] && ok "an empty home gives an empty library: ${libs[0]}" || bad "empty library: ${libs[0]:-no read}"
+[ "${libs[1]:-}" = "library: 3 / 2 / 2 / 2 songs/albums/artists/genres, 1 playlist(s), 4 / 2" ] && ok "after the fixture was copied in, a new read sees it all: ${libs[1]}" || bad "second read: ${libs[1]:-no read}"
+[ "${libs[2]:-}" = "library: 2 / 1 / 1 / 1 songs/albums/artists/genres, 1 playlist(s), 5 / 3" ] && ok "a removed song and a new picture album show in the next read: ${libs[2]}" || bad "third read: ${libs[2]:-no read}"
+grep -q "playlist Favourites: Sunrise (1.2 s)" "$media_log" && ok "the playlist entry whose file is gone is left out" || bad "playlist after removal: $(grep 'medialib\] playlist' "$media_log" | tail -1)"
+[ "${libs[3]:-}" = "library: 2 / 1 / 1 / 1 songs/albums/artists/genres, 1 playlist(s), 6 / 4" ] && ok "a picture saved with SavePicture is in the next read: ${libs[3]}" || bad "read after SavePicture: ${libs[3]:-no read}"
+
 # Window and identity.
 has "window: MinimizeEXT and RestoreEXT returned" && ok "GameWindow.MinimizeEXT/RestoreEXT returned" || bad "minimise/restore: $(line 'window:')"
 has "emulated: ContentLost raised 1 time(s), IsContentLost yes" && ok "emulated content loss raised ContentLost once and set IsContentLost" || bad "content loss: $(line 'emulated')"
