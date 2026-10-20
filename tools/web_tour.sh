@@ -85,7 +85,7 @@ done
 wait "$browser" 2>/dev/null || true
 # The museum's own lines, as the console carried them.
 grep -aE 'CONSOLE.*MUSEUM_(OUT|ERR|ABORT|EXIT|PAGE_ERROR)' "$log" | sed -E 's/^.*CONSOLE[^"]*"//; s/", source.*$//' > "$out/museum.log" || true
-stats=$(grep -a '\[museum\]\[stats\]' "$out/museum.log" | sed -n "$p" || true)
+stats=$(grep -a '\[museum\]\[stats\]' "$out/museum.log" | sed -n '$p' || true)
 visited=$(echo "$stats" | grep -oE 'visited [0-9]+' | grep -oE '[0-9]+' || echo 0)
 problems=()
 grep -aq 'MUSEUM_EXIT 0' "$out/museum.log" || problems+=("the page did not report exit 0 ($(grep -a 'MUSEUM_EXIT\|MUSEUM_ABORT' "$out/museum.log" | tail -1))")
