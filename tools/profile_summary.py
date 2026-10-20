@@ -34,14 +34,20 @@ PROFILES = [
     ("renderer-SDL_GPU-gpu", "build-probe", "MUSEUM_GPU=1 BUILD_DIR=build-probe VK_ICD_FILENAMES=.../radeon_icd.json tools/renderer_check.sh SDL_GPU"),
     ("renderer-FNA3D-gpu", "build-probe", "MUSEUM_GPU=1 BUILD_DIR=build-probe tools/renderer_check.sh FNA3D"),
     ("renderer-WEBGPU-gpu", "build-probe", "MUSEUM_GPU=weston BUILD_DIR=build-probe VK_ICD_FILENAMES=.../radeon_icd.json tools/renderer_check.sh WEBGPU"),
+    ("renderer-HEADLESS", "build-probe", "BUILD_DIR=build-probe tools/renderer_check.sh HEADLESS  (no readback: one SKIP per room)"),
     ("devices", "build", "tools/devices_check.sh"),
     ("audio", "build", "tools/audio_check.sh"),
     ("voice", "build", "tools/voice_check.sh"),
     ("net", "build", "tools/net_check.sh"),
     ("online", "build", "tools/online_check.sh"),
+    ("online-party", "build", "tools/online_party_check.sh  (three accounts: invitation, private slot, party, sign-out)"),
     ("web-webgl2", "build-consumer", "tools/web_smoke.sh"),
     ("web-webgl2-tour", "build-consumer", "tools/web_tour.sh  (every room and control in headless Chrome)"),
     ("web-webgpu-tour", "build-consumer", "MUSEUM_WEB_RENDERER=WEBGPU tools/web_tour.sh  (browser WebGPU on the GPU)"),
+    ("web-webgl2-scenarios", "build-consumer", "tools/web_scenarios.py  (the functional scenarios in the page)"),
+    ("android-tour", "build-consumer", "MUSEUM_ANDROID_SKIP=model-sampler tools/android_run.sh  (x86_64 emulator, tools/build_android.sh first)"),
+    ("wine-software-tour", "build-consumer/windows", "tools/wine_tour.sh -p  (MinGW build under Wine, SOFTWARE)"),
+    ("wine-directx9-tour", "build-consumer/windows", "CNA_GRAPHICS_RENDERER=DIRECTX9 tools/wine_tour.sh -p  (Wine's Direct3D 9)"),
 ]
 
 
