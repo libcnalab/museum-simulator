@@ -6,7 +6,9 @@
 #
 # It passes only when the page reported exit 0, the final stats line has 0 exhibit and 0 script errors and every room
 # was visited, no renderer self-check failed, and nothing aborted, threw on the page or lost the WebGL context.
-# MUSEUM_WEB_TIMEOUT (seconds, default 3600) bounds the browser; the profile is recorded as web-webgl2-tour.
+# MUSEUM_WEB_TIMEOUT (seconds, default 3600) bounds the browser. MUSEUM_WEB_RENDERER=WEBGPU tours with the browser WebGPU
+# renderer of a two-renderer build (?renderer=WEBGPU) and Chrome's WebGPU switched on: on the machine's GPU through Vulkan
+# by default, or SwiftShader with MUSEUM_WEB_GPU=swiftshader. The profile is recorded as web-<renderer>-tour.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -25,9 +27,22 @@ script=""
 for k in "${rooms[@]}"; do script+="goto:$k;wait:3;pressall;wait:4;"; done
 script+="stats;quit"
 query=$(python3 -I -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$script")
+renderer=${MUSEUM_WEB_RENDERER:-WEBGL2}
+profile_name="web-$(echo "$renderer" | tr '[:upper:]' '[:lower:]')-tour"
+gpu_flags=(--enable-webgl --enable-unsafe-swiftshader --use-angle=swiftshader --use-gl=angle)
+if [ "$renderer" = WEBGPU ]; then
+  query="$query&renderer=WEBGPU"
+  if [ "${MUSEUM_WEB_GPU:-vulkan}" = swiftshader ]; then
+    gpu_flags=(--enable-unsafe-webgpu --enable-features=Vulkan,VulkanFromANGLE,DefaultANGLEVulkan --ignore-gpu-blocklist --use-vulkan=native)
+  else
+    gpu_flags=(--enable-unsafe-webgpu --enable-features=Vulkan --use-angle=vulkan --ignore-gpu-blocklist)
+  fi
+fi
 
-out="$build_dir/web-tour"
+out="$build_dir/web-tour/$renderer"
 mkdir -p "$out"
+# The page must name the renderer it runs on; a silent fallback would tour the wrong one.
+expect_renderer="renderer $renderer on adapter"
 log="$out/chrome.log"
 profile="$out/chrome-profile"
 rm -rf "$profile"
@@ -41,8 +56,8 @@ for _ in $(seq 1 50); do
 done
 kill -0 "$server_pid" 2>/dev/null || { echo "error: the HTTP server did not start on port $port (MUSEUM_WEB_PORT)" >&2; exit 2; }
 
-timeout -k 15 "${MUSEUM_WEB_TIMEOUT:-3600}" "$chrome" --headless=new --no-sandbox --disable-gpu-sandbox \
-  --enable-webgl --enable-unsafe-swiftshader --use-angle=swiftshader \
+env -u DISPLAY -u WAYLAND_DISPLAY timeout -k 15 "${MUSEUM_WEB_TIMEOUT:-3600}" "$chrome" --headless=new --no-sandbox --disable-gpu-sandbox \
+  "${gpu_flags[@]}" \
   --user-data-dir="$profile" --enable-logging=stderr --v=1 \
   "http://127.0.0.1:$port/cna-3d-museum.html?script=$query" >"$log" 2>&1 || true
 
@@ -57,17 +72,21 @@ echo "$stats" | grep -q 'exhibit errors 0 .*script errors 0' || problems+=("erro
 if grep -aqE 'MUSEUM_(ABORT|PAGE_ERROR)|WebGL context.*lost|\[museum\]\[(exhibit|draw|script)-error\]' "$out/museum.log"; then
   problems+=("$(grep -aE 'MUSEUM_(ABORT|PAGE_ERROR)|context.*lost|-error\]' "$out/museum.log" | head -1 | cut -c1-160)")
 fi
+# A WebGPU validation error during the tour (the device lost at exit is the normal shutdown) is a failure too.
+webgpu_errors=$(grep -ac 'CNA WebGPU uncaptured error' "$out/museum.log" || true)
+[ "${webgpu_errors:-0}" = 0 ] || problems+=("$webgpu_errors WebGPU validation error(s), first: $(grep -a 'uncaptured error' "$out/museum.log" | head -1 | cut -c1-160)")
+grep -aq "$expect_renderer" "$out/museum.log" || problems+=("the page did not run on $renderer: $(grep -a 'on adapter\|passed over' "$out/museum.log" | head -2 | tr '\n' ' ')")
 validate_fail=$(grep -acE '\[museum\]\[validate\] .*: FAIL' "$out/museum.log" || true)
 validate_pass=$(grep -acE '\[museum\]\[validate\] .*: PASS' "$out/museum.log" || true)
 [ "${validate_fail:-0}" = 0 ] || problems+=("$validate_fail renderer self-check(s) failed: $(grep -aE '\[validate\] .*: FAIL' "$out/museum.log" | head -1 | cut -c1-140)")
 
-echo "WEBGL2 tour: ${#rooms[@]} rooms, visited ${visited:-0}; renderer self-checks $validate_pass PASS, ${validate_fail:-0} FAIL (log: $out/museum.log)"
+echo "$renderer tour: ${#rooms[@]} rooms, visited ${visited:-0}; renderer self-checks $validate_pass PASS, ${validate_fail:-0} FAIL (log: $out/museum.log)"
 if [ ${#problems[@]} -eq 0 ]; then
-  echo "WEBGL2 BROWSER TOUR: PASS"
-  BUILD_DIR=$build_dir python3 tools/record_profile.py web-webgl2-tour --passed 1 --failed 0 --binary "$build_dir/bin/cna-3d-museum.wasm" --library "$build_dir/bin/cna-3d-museum.wasm" --note "$validate_pass self-checks PASS" || true
+  echo "$renderer BROWSER TOUR: PASS"
+  BUILD_DIR=$build_dir python3 tools/record_profile.py "$profile_name" --passed 1 --failed 0 --binary "$build_dir/bin/cna-3d-museum.wasm" --library "$build_dir/bin/cna-3d-museum.wasm" --note "$validate_pass self-checks PASS" || true
 else
   printf 'FAIL  %s\n' "${problems[@]}"
-  echo "WEBGL2 BROWSER TOUR: FAIL"
-  BUILD_DIR=$build_dir python3 tools/record_profile.py web-webgl2-tour --passed 0 --failed 1 --binary "$build_dir/bin/cna-3d-museum.wasm" --library "$build_dir/bin/cna-3d-museum.wasm" --note "${problems[0]}" || true
+  echo "$renderer BROWSER TOUR: FAIL"
+  BUILD_DIR=$build_dir python3 tools/record_profile.py "$profile_name" --passed 0 --failed 1 --binary "$build_dir/bin/cna-3d-museum.wasm" --library "$build_dir/bin/cna-3d-museum.wasm" --note "${problems[0]}" || true
   exit 1
 fi

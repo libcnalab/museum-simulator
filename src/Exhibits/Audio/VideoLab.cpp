@@ -153,6 +153,7 @@ protected:
         sb.End();
     }
 
+#ifdef CNA_VIDEO_AVAILABLE
     // The picture in the texture and the clock the soundtrack plays against must agree: the presented frame's timestamp
     // (CNA extension) trails PlayPosition by at most one museum frame (the picture advances when the room draws; a software-
     // rendered frame can take 0.1 s) plus two video frames at 24 fps: 0.25 s. A soundtrack drifting away from the picture
@@ -170,6 +171,7 @@ protected:
         std::snprintf(got, sizeof got, "frame %.3f s, PlayPosition %.3f s, gap %.3f s", frame, position, gap);
         Museum::Log("check", "%s picture follows PlayPosition: %s (expected a gap of at most 0.250 s, got %s)", R().key.c_str(), gap <= 0.250 ? "PASS" : "FAIL", got);
     }
+#endif
 
 private:
 #ifdef CNA_VIDEO_AVAILABLE

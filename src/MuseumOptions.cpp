@@ -29,6 +29,7 @@ const char* MuseumOptions::Usage()
         "  --sensitivity F           mouse sensitivity multiplier (default 1.0)\n"
         "  --volume F                master volume 0..1\n"
         "  --no-audio                do not load or play any sound\n"
+        "  --renderer NAME           choose a compiled-in renderer, as CNA_GRAPHICS_RENDERER does\n"
         "  --room KEY                start in a room by its key (see docs/MUSEUM_MAP.md), e.g. lighting\n"
         "  --pos X,Y,Z --yaw DEG --pitch DEG   start pose (metres, degrees)\n"
         "  --frames N                exit after N frames\n"
@@ -65,6 +66,7 @@ MuseumOptions MuseumOptions::Parse(int argc, char** argv)
         else if (Match(a, "--volume", v, i, argc, argv)) o.volume = static_cast<float>(std::atof(v));
         else if (!std::strcmp(a, "--no-audio")) o.audio = false;
         else if (Match(a, "--room", v, i, argc, argv)) o.startRoom = v;
+        else if (Match(a, "--renderer", v, i, argc, argv)) o.renderer = v;
         else if (Match(a, "--yaw", v, i, argc, argv)) o.startYawDegrees = static_cast<float>(std::atof(v));
         else if (Match(a, "--pitch", v, i, argc, argv)) o.startPitchDegrees = static_cast<float>(std::atof(v));
         else if (Match(a, "--pos", v, i, argc, argv)) {

@@ -85,6 +85,13 @@ int main(int argc, char** argv)
         // Nobody named a renderer: let CNA fall back across the ones compiled in (mature GPU renderers first, CPU renderers next) when the
         // default cannot start on this machine, so a visitor still gets a museum. A named renderer (CNA_GRAPHICS_RENDERER) stays an
         // error when it fails, and every fallback is logged.
+        if (options.renderer) {
+#ifdef _WIN32
+            _putenv_s("CNA_GRAPHICS_RENDERER", options.renderer->c_str());
+#else
+            setenv("CNA_GRAPHICS_RENDERER", options.renderer->c_str(), 1);
+#endif
+        }
         if (std::getenv("CNA_GRAPHICS_RENDERER") == nullptr) CNA::GraphicsRendererSelection::EnableAutomaticFallback(true);
         MuseumGame game(options);
         game.Run();

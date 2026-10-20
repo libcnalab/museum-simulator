@@ -30,8 +30,10 @@ done
 # A server that could not bind (the port is taken) must not let the browser load somebody else's page.
 kill -0 "$server_pid" 2>/dev/null || { echo "error: the HTTP server did not start on port $port (MUSEUM_WEB_PORT)" >&2; exit 2; }
 
-timeout 45 "$chrome" --headless=new --no-sandbox --disable-gpu-sandbox \
-  --enable-webgl --enable-unsafe-swiftshader --use-angle=swiftshader \
+# No display at all: headless Chrome must not reach the live desktop (with DISPLAY set it also failed to create the
+# WebGL context of a two-renderer build).
+env -u DISPLAY -u WAYLAND_DISPLAY timeout 45 "$chrome" --headless=new --no-sandbox --disable-gpu-sandbox \
+  --enable-webgl --enable-unsafe-swiftshader --use-angle=swiftshader --use-gl=angle \
   --user-data-dir="$profile" --enable-logging=stderr --v=1 \
   "http://127.0.0.1:$port/cna-3d-museum.html?smoke=1" >"$log" 2>&1 || true
 

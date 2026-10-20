@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Build the browser/WebAssembly edition with CNA's WebGL 2 renderer.
+# Build the browser/WebAssembly edition with CNA's WebGL 2 renderer and, chosen at run time (?renderer=WEBGPU), its
+# browser WebGPU renderer (Emscripten's emdawnwebgpu port from the emsdk cache). MUSEUM_WEB_RENDERERS overrides the list.
 # Reuses build-consumer/, the project's shared cross-compilation build tree.
 set -euo pipefail
 
@@ -40,10 +41,12 @@ fi
   -DCMAKE_C_COMPILER_LAUNCHER=ccache \
   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
   -DCNA_GRAPHICS_RENDERER=WEBGL2 \
+  "-DCNA_GRAPHICS_RENDERERS=${MUSEUM_WEB_RENDERERS:-WEBGL2;WEBGPU}" \
   -DCNA_ENABLE_EMSCRIPTEN_THREADS=OFF \
   -DMUSEUM_NETWORKING=OFF \
   -DMUSEUM_INSPECTOR=OFF \
-  -DMUSEUM_VIDEO=OFF
+  -DMUSEUM_VIDEO=OFF \
+  -DMUSEUM_C_API=OFF
 
 cmake --build "$build_dir" --target cna-3d-museum --parallel "$jobs"
 

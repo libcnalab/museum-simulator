@@ -19,6 +19,7 @@ struct MuseumOptions {
     std::string screenshotPath;         // written after `screenshotFrame`, then exits
     int screenshotFrame = 8;
     std::optional<std::string> startRoom;  // room id, e.g. "lighting"
+    std::optional<std::string> renderer;   // --renderer NAME: CNA_GRAPHICS_RENDERER for this run (the browser has no environment)
     std::optional<float> startYawDegrees;
     std::optional<float> startPitchDegrees;
     std::optional<Microsoft::Xna::Framework::Vector3> startPosition;

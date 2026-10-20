@@ -41,6 +41,7 @@ PROFILES = [
     ("online", "build", "tools/online_check.sh"),
     ("web-webgl2", "build-consumer", "tools/web_smoke.sh"),
     ("web-webgl2-tour", "build-consumer", "tools/web_tour.sh  (every room and control in headless Chrome)"),
+    ("web-webgpu-tour", "build-consumer", "MUSEUM_WEB_RENDERER=WEBGPU tools/web_tour.sh  (browser WebGPU on the GPU)"),
 ]
 
 

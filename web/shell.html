@@ -28,10 +28,13 @@
     const smoke = query.get('smoke') === '1';
     // ?script=STEPS runs a museum script, as --script does natively (tools/web_tour.sh tours every room this way).
     const script = query.get('script');
+    // ?renderer=WEBGPU picks the other renderer a two-renderer build carries (the default is WEBGL2).
+    const renderer = query.get('renderer');
     var Module = {
       canvas,
-      arguments: script ? ['--script', script, '--fixed-step', '0.02', '--no-audio', '--no-save']
-               : smoke ? ['--script', 'walk:1,0,60;wait:60;stats;quit', '--fixed-step', '0.1', '--no-audio', '--save', '--fresh'] : [],
+      arguments: (renderer ? ['--renderer', renderer] : []).concat(
+                 script ? ['--script', script, '--fixed-step', '0.02', '--no-audio', '--no-save']
+               : smoke ? ['--script', 'walk:1,0,60;wait:60;stats;quit', '--fixed-step', '0.1', '--no-audio', '--save', '--fresh'] : []),
       print(text) { console.log('MUSEUM_OUT ' + text); },
       printErr(text) { console.error('MUSEUM_ERR ' + text); },
       onAbort(reason) {
