@@ -374,13 +374,6 @@ scenario `capi_native` expects exactly these FAIL lines (logged as `[museum][che
   the back buffer 0x0 (the 800x480 belongs to `GraphicsDeviceManager`'s defaults). **Needed change:** `isFullScreen_(true)`
   and a 0x0 back buffer in the constructor, or document the desktop defaults as CNA's own instead of XNA-compatible.
   Check (game probe): "cna_presentation_parameters_init (documented as XNA-compatible defaults), cna_presentation_parameters_clone".
-- **A missing content asset leaves no canonical exception type.** `core.h` names
-  `Microsoft.Xna.Framework.Content.ContentLoadException` as the example `cna_error_copy_last_exception_type_ext` reports,
-  but the content loaders in `modules/c-api/src/CnaCApiContent.cpp` catch `ContentLoadException` themselves and return
-  `IoError(exception.what())`, so after `cna_content_manager_load_texture2d` of a missing asset the type is empty.
-  **Needed change:** record the canonical type in those catch blocks (an `IoError` overload taking the exception and
-  storing `CanonicalTypeName(exception)`, or let the exception reach the barrier, which maps it to `CNA_RESULT_IO`).
-  Check (game probe): "cna_error_copy_last_exception_type_ext after cna_content_manager_load_texture2d of a missing asset".
 
 Not counted as failures (the checks follow CNA's own documentation): `devices.h` says "supported physical host targets
 report `CNA_DEVICE_TYPE_DEVICE`", while `Microsoft/Devices/Environment.hpp` and the implementation report `Emulator` on
@@ -407,6 +400,8 @@ documents, where XNA also XORs the button states; the checks test the hash contr
   triangles counts twice at the corners its diagonal touches), exactly like XNA.
 
 ## Fixed in CNA after the museum reported them
+
+- **A missing content asset left no canonical exception type (C API).** After `cna_content_manager_load_texture2d` of a missing asset, `cna_error_copy_last_exception_type_ext` now reports `Microsoft.Xna.Framework.Content.ContentLoadException`: the cx-capi game probe's check passes and the probe reports 63 checks, 1 failed (was 2), in the final battery on 2026-10-20.
 - StorageContainer members after `Dispose` now throw `ObjectDisposedException` as in XNA (CNA `5865ae938`); verified by
   `tests/scenarios/storage_contracts.json` (FileExists, CreateFile and GetFileNames after Dispose: PASS).
 See the "CNA findings fixed in CNA" list in the project memory and `plan.md`; entries move here when their fix is
