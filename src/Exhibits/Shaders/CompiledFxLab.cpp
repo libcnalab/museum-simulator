@@ -20,6 +20,9 @@
 #include "Microsoft/Xna/Framework/Content/Pipeline/Processors/EffectProcessor.hpp"
 #include "Microsoft/Xna/Framework/Content/Pipeline/Serialization/Compiler/ContentCompiler.hpp"
 #endif
+#include "Microsoft/Xna/Framework/Graphics/EffectParameterClass.hpp"
+#include "Microsoft/Xna/Framework/Graphics/SpriteBatch.hpp"
+#include "Microsoft/Xna/Framework/Graphics/RenderTarget2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Effect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EffectParameter.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EffectPass.hpp"
@@ -92,6 +95,7 @@ public:
         p.AddReadout("CompiledEffects capability", [this] { return capability_; });
         p.AddReadout("Effect", [this] { return status_; });
         p.AddReadout("Vertex texture effect", [this] { return vertexStatus_; });
+        p.AddButton("Check: reflection, the pixel shader's arithmetic, vertex texture addressing", [this] { checkPending_ = true; });
         p.AddReadout("VertexTextures[2] during draw", [this] { return vertexBinding_; });
         p.AddReadout("Parameters", [this] { return parameters_; });
         p.AddReadout("Techniques", [this] { return techniques_; });
@@ -294,6 +298,89 @@ private:
         }
     }
 
+    // Exact results of the two fixtures (Content/Effects/*.fx), run from RenderOffscreen so the screen's own target is free:
+    // blur2tap returns tex(uv) * Weight + tex(uv + Offset) * Weight, so with Offset 0 a flat colour is scaled by 2 x Weight;
+    // vertextexture's bars sample u from -0.25 to 1.25, so PointClamp and PointWrap must give different shapes.
+    void RenderOffscreen(const DrawContext& ctx) override
+    {
+        ScreenExhibit::RenderOffscreen(ctx);
+        if (!checkPending_) return;
+        checkPending_ = false;
+        const auto check = [this](const std::string& name, const std::string& expected, const std::string& got) {
+            Museum::Log("check", "%s %s: %s (expected %s, got %s)", R().key.c_str(), name.c_str(), expected == got ? "PASS" : "FAIL", expected.c_str(), got.c_str());
+        };
+        if (!compiledSupported_) {
+            Museum::Log("check", "%s compiled effects: SKIP (GraphicsCapability.CompiledEffects is false on this renderer)", R().key.c_str());
+            return;
+        }
+        GraphicsDevice& d = ctx.device;
+        if (effect_ != nullptr) {
+            const EffectParameterCollection& ps = effect_->getParametersProperty();
+            const EffectParameter* weight = ps["Weight"];
+            const EffectParameter* offset = ps["Offset"];
+            const EffectTechnique* blur = effect_->getTechniquesProperty()["Blur"];
+            const std::string got = std::string(weight != nullptr && weight->getParameterClassProperty() == EffectParameterClass::Scalar ? "Weight scalar" : "no scalar Weight") + ", " +
+                                    (offset != nullptr && offset->getParameterClassProperty() == EffectParameterClass::Vector && offset->getColumnCountProperty() == 2 ? "Offset float2" : "no float2 Offset") + ", " +
+                                    (blur != nullptr ? "technique Blur with " + std::to_string(blur->getPassesProperty().getCountProperty()) + " pass" : std::string("no technique Blur"));
+            check("blur2tap reflection", "Weight scalar, Offset float2, technique Blur with 1 pass", got);
+            const Color flat(200, 100, 40, 255);
+            Texture2D source(d, 4, 4, false, SurfaceFormat::Color);
+            std::vector<Color> texels(16, flat);
+            source.SetData(texels.data(), 16);
+            RenderTarget2D target(d, 16, 16, false, SurfaceFormat::Color, DepthFormat::None);
+            SpriteBatch batch(d);
+            for (const float w : {0.5f, 0.25f}) {
+                effect_->getParametersProperty()["Weight"]->SetValue(w);
+                effect_->getParametersProperty()["Offset"]->SetValue(Vector2(0.0f, 0.0f));
+                d.SetRenderTarget(&target);
+                d.Clear(Color::Black);
+                batch.Begin(SpriteSortMode::Immediate, &BlendState::Opaque, &SamplerState::PointClamp, nullptr, nullptr, effect_.get());
+                batch.Draw(source, Rectangle(0, 0, 16, 16), Color::White);
+                batch.End();
+                d.SetRenderTarget(nullptr);
+                std::vector<Color> px(256);
+                target.GetData(px.data(), 256);
+                const Color c = px[8 * 16 + 8];
+                const int er = static_cast<int>(200 * 2 * w), eg = static_cast<int>(100 * 2 * w), eb = static_cast<int>(40 * 2 * w);
+                const bool near = std::abs(c.getRProperty() - er) <= 3 && std::abs(c.getGProperty() - eg) <= 3 && std::abs(c.getBProperty() - eb) <= 3;
+                char buffer[96];
+                std::snprintf(buffer, sizeof buffer, "%d,%d,%d", c.getRProperty(), c.getGProperty(), c.getBProperty());
+                char want[96];
+                std::snprintf(want, sizeof want, "%d,%d,%d +-3", er, eg, eb);
+                check("blur2tap with Weight " + std::string(w == 0.5f ? "0.5" : "0.25") + ", Offset 0 on 200,100,40", want, near ? std::string(want) : std::string(buffer));
+            }
+            effect_->getParametersProperty()["Weight"]->SetValue(weight_);
+        }
+        if (vertexEffect_ == nullptr || vertexTexture_ == nullptr) {
+            Museum::Log("check", "%s vertextexture: SKIP (the renderer refused it: %s)", R().key.c_str(), vertexStatus_.c_str());
+        } else {
+            RenderTarget2D target(d, 64, 64, false, SurfaceFormat::Color, DepthFormat::None);
+            std::vector<Color> clamp(64 * 64), wrap(64 * 64);
+            const bool keep = vertexWrap_;
+            for (int mode = 0; mode < 2; ++mode) {
+                vertexWrap_ = mode == 1;
+                d.SetRenderTarget(&target);
+                d.setViewportProperty(Viewport(0, 0, 64, 64));
+                d.Clear(Color::Black);
+                DrawVertexTextureGraph();
+                d.SetRenderTarget(nullptr);
+                target.GetData((mode == 0 ? clamp : wrap).data(), 64 * 64);
+            }
+            vertexWrap_ = keep;
+            if (vertexBinding_.rfind("draw failed", 0) == 0) {
+                Museum::Log("check", "%s vertextexture: SKIP (the renderer refused the draw: %s)", R().key.c_str(), vertexBinding_.c_str());
+                return;
+            }
+            int lit = 0, differ = 0;
+            for (std::size_t i = 0; i < clamp.size(); ++i) {
+                lit += clamp[i].getPackedValueProperty() != Color::Black.getPackedValueProperty() ? 1 : 0;
+                differ += clamp[i].getPackedValueProperty() != wrap[i].getPackedValueProperty() ? 1 : 0;
+            }
+            check("vertextexture: VertexSamplerStates[2] PointClamp against PointWrap", "a drawn graph whose shape changes",
+                  lit > 100 && differ > 20 ? std::string("a drawn graph whose shape changes") : std::to_string(lit) + " lit pixels, " + std::to_string(differ) + " differ");
+        }
+    }
+
     void Describe()
     {
         parameters_.clear();
@@ -332,6 +419,7 @@ private:
     int picture_ = 0;
     int lastLoggedWrap_ = -1;
     std::string capability_ = "-", status_ = "-", vertexStatus_ = "-", vertexBinding_ = "-", parameters_ = "-", techniques_ = "-", readBack_ = "-";
+    bool checkPending_ = false;
 };
 
 }  // namespace

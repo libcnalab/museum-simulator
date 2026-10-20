@@ -1,0 +1,12 @@
+{
+  "description": "Compiled XNA effects: blur2tap reflection and arithmetic, and vs_3_0 vertex texture addressing (needs the compiled-effects build option)",
+  "requires": "CNA_EASYGL_COMPILED_EFFECTS",
+  "script": "goto:fx-compiled;wait:40;press:Check: reflection;wait:10;stats;quit",
+  "expect": [
+    "fx-compiled blur2tap reflection: PASS",
+    "fx-compiled blur2tap with Weight 0.5, Offset 0 on 200,100,40: PASS",
+    "fx-compiled blur2tap with Weight 0.25, Offset 0 on 200,100,40: PASS",
+    "fx-compiled vertextexture: VertexSamplerStates[2] PointClamp against PointWrap: PASS"
+  ],
+  "forbid": [": FAIL ("]
+}

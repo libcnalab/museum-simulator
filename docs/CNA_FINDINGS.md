@@ -42,6 +42,45 @@ are named in the code where they are used and listed here; nothing is hidden beh
 - **Needed change:** carry the session state in `ServerWelcomeMessage` (and apply it in `HandleServerWelcome`, raising
   nothing for the joiner, as XNA's joiner does not get GameStarted replayed), or send a state change to the new peer.
 
+### PbrEffect differs between renderers (rv-shading)
+The same face-on quad (`VertexPositionNormalTexture`), one directional light along -Z, camera in front (`tools/renderer_check.sh`):
+- **OPENGLES3, OPENGL33, SOFTWARE, FNA3D:** red dielectric 151,10,10; MetallicFactor 0 against 1 on a grey base 148 against
+  255; emission (0,1,0) on black 10,255,10.
+- **WEBGPU:** the base colour comes out unlit (red 255,0,0, grey 0.8 → 204,204,204 for both MetallicFactor values):
+  lighting, metallic and roughness are not applied. **Needed change:** the WebGPU PbrEffect shader path must evaluate the
+  lights as the GL one does.
+- **SDL_GPU:** the draw is refused with `NotSupportedException: CNA SDL_GPU: the selected stock effect cannot be matched to
+  this VertexDeclaration`: `SdlGpuRenderer.cpp` draws PbrEffect only for 48- or 60-byte vertices (with tangents). XNA's
+  effects take any declaration that carries the semantics they read. **Needed change:** accept vertices without a tangent
+  (no normal map) as the other renderers do.
+
+### SDL_GPU: no ShaderEffect source layout samples a volume, and one crashes
+`tex-volshader` draws slice 20 of a 32³ volume through `ShaderEffect.SetTexture(0, Texture3D)` and compares every pixel
+(storage itself is fine everywhere: `Texture3D.GetData` returns all 32 768 texels). GLSL ES on OPENGLES3/OPENGL33 and WGSL
+under the descriptor contract on WEBGPU (volume unit 0 at `@group(1) @binding(8)`, sampler at 40, scalars at
+`@group(3) @binding(0)`) pass, 0 of 1024 pixels off. On SDL_GPU (lavapipe) every documented layout fails:
+- SDL's native layout (vertex uniforms set 1, fragment sampler set 2 binding 0, fragment uniforms set 3): the sampler reads
+  the sprite's own texture, the volume is never bound (all 1024 pixels white).
+- the portable layout's volume binding (set 1 binding 8, as `shader_effect_per_unit_sampler_test.cpp` declares it) with
+  the native vertex shader (uniforms set 1 binding 0): **the process dies with a segmentation fault**.
+- the portable layout in both stages (scalar block set 3 binding 0): nothing is drawn (all pixels black) in a single-room
+  run, and the press-all tour on SDL_GPU died with a segmentation fault entering the room. The museum therefore runs no
+  volume shader on SDL_GPU and says so; the storage check still runs there.
+- **Needed change:** document the GLSL 450 layout a ShaderEffect source must use for a volume on SDL_GPU, and refuse a
+  layout CNA cannot map with a compile diagnostic instead of crashing (`SupportsTexture3DSamplingEXT` says true).
+
+### Vertex texture fetch (XNA HiDef) is missing on WEBGPU and SDL_GPU
+With the compiled-effects options on (`build-probe`), `fx-compiled` checks the fixtures exactly: `blur2tap` reflection and
+its arithmetic (Weight 0.5 and 0.25 on a flat colour) pass on OPENGLES3, FNA3D, WEBGPU and SDL_GPU, and the vs_3_0
+`vertextexture` effect draws a graph whose shape follows `VertexSamplerStates[2]` (PointClamp against PointWrap) on
+OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Single/Vector4 textures, but:
+- **WEBGPU:** creating the Vector4 vertex texture fails: `Texture: SurfaceFormat 15 is not implemented by the selected
+  graphics renderer`.
+- **SDL_GPU:** the draw is refused: `this compiled effect's vertex shader samples a texture; vertex-stage texture sampling
+  is unsupported by this renderer`.
+- **Needed change:** implement vertex-stage sampling (and the float vertex-texture formats) on both, or make HiDef device
+  creation report the missing feature; the room logs both as SKIP with these messages.
+
 ### HapticDevice's inline default constructor cannot be compiled outside CNA (CNA-DEMOS-ISSUE-009)
 - **Where:** `modules/input/include/CNA/Input/HapticDevice.hpp`: `CNAEXT HapticDevice() = default;` with a
   `std::unique_ptr<CNA::Platform::IPlatformHapticDevice>` member whose type no public header completes.

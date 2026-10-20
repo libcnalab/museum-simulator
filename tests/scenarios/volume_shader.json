@@ -5,5 +5,9 @@
     "tex-volshader Texture3D.GetData returns what SetData stored: PASS",
     "shader samples slice 20 texel for texel: PASS"
   ],
-  "forbid": [": FAIL (", "volume checks: SKIP"]
+  "forbid": [
+    ": FAIL (",
+    "volume checks: SKIP",
+    "shader sampling: SKIP"
+  ]
 }

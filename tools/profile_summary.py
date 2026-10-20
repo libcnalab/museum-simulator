@@ -40,6 +40,7 @@ PROFILES = [
     ("net", "build", "tools/net_check.sh"),
     ("online", "build", "tools/online_check.sh"),
     ("web-webgl2", "build-consumer", "tools/web_smoke.sh"),
+    ("web-webgl2-tour", "build-consumer", "tools/web_tour.sh  (every room and control in headless Chrome)"),
 ]
 
 

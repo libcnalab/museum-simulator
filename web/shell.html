@@ -24,10 +24,14 @@
   <script>
     const canvas = document.getElementById('canvas');
     const status = document.getElementById('status');
-    const smoke = new URLSearchParams(location.search).get('smoke') === '1';
+    const query = new URLSearchParams(location.search);
+    const smoke = query.get('smoke') === '1';
+    // ?script=STEPS runs a museum script, as --script does natively (tools/web_tour.sh tours every room this way).
+    const script = query.get('script');
     var Module = {
       canvas,
-      arguments: smoke ? ['--script', 'walk:1,0,60;wait:60;stats;quit', '--fixed-step', '0.1', '--no-audio', '--save', '--fresh'] : [],
+      arguments: script ? ['--script', script, '--fixed-step', '0.02', '--no-audio', '--no-save']
+               : smoke ? ['--script', 'walk:1,0,60;wait:60;stats;quit', '--fixed-step', '0.1', '--no-audio', '--save', '--fresh'] : [],
       print(text) { console.log('MUSEUM_OUT ' + text); },
       printErr(text) { console.error('MUSEUM_ERR ' + text); },
       onAbort(reason) {
