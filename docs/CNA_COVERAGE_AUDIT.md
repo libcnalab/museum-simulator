@@ -7,16 +7,16 @@ Implementation, execution and correctness counts rise only from recorded evidenc
 The complete per-claim and per-declaration matrix
 is generated in `build/api-audit/coverage-evidence.json`.
 
-Museum catalogue SHA-256: `812f5e37bfbac033d4fe0c4d552274702666129cdaa460acd6db2ed9e5e78fab`; exhibit sources SHA-256: `e4bb993ec3b556e0e3b737486415ef82150115a5396412ee53cca0893687150b`
+Museum catalogue SHA-256: `39d61a9b15eda78238265dafa87b97e2c0c0779572b09de0e60ac48491d8faac`; exhibit sources SHA-256: `b4798ef69483f1411d1033950d95ae7a7532828d216e65ac6d578f1acb211707`
 
 CNA revision: `faa5dd7192f90af5d32cfae61de30fbf3f896574` (`v0.1.0-508-gfaa5dd719-dirty`)
 
-Claims: **2903**; exact declaration matches: **2403**; member/overload families: **490**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
+Claims: **2904**; exact declaration matches: **2404**; member/overload families: **490**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
 
-Public declarations: **19851**; linked by at least one catalogue name: **3777**; implementation-verified: **3261**; executed: **0**; correctness-verified: **0**.
+Public declarations: **19851**; linked by at least one catalogue name: **3778**; implementation-verified: **3263**; executed: **0**; correctness-verified: **0**.
 
 Implementation source located through the exhibit registry for **320 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
-Reviewed implementation records: **3715**; fully implementation-verified claims: **2568**. Reviewed claim-room pairs: **3603** of **3603**; fully verified pairs: **3088**.
+Reviewed implementation records: **3717**; fully implementation-verified claims: **2570**. Reviewed claim-room pairs: **3604** of **3604**; fully verified pairs: **3090**.
 Execution runs: **0 current** of **2 recorded**; execution records: **2**; fully executed claims: **0**; executed claim-room pairs: **0**.
 Correctness oracles: **5**; fully correctness-verified claims: **0**; correctness-verified claim-room pairs: **0**.
 
@@ -38,7 +38,7 @@ Correctness oracles: **5**; fully correctness-verified claims: **0**; correctnes
 | `inspector` | 189 | 19 | 170 |
 | `math` | 954 | 457 | 497 |
 | `media` | 339 | 97 | 242 |
-| `net` | 290 | 120 | 170 |
+| `net` | 290 | 121 | 169 |
 | `phone` | 61 | 35 | 26 |
 | `platform` | 1286 | 8 | 1278 |
 | `renderers/common/mojoshader` | 0 | 0 | 0 |
@@ -236,7 +236,7 @@ Only rooms with at least one reviewed pair are listed.
 | `model-variants` | 3 | 0 | 0 | 0 | 0 | 3 |
 | `models` | 4 | 0 | 0 | 0 | 0 | 4 |
 | `net-packets` | 9 | 1 | 0 | 0 | 0 | 10 |
-| `net-session` | 66 | 13 | 0 | 0 | 0 | 79 |
+| `net-session` | 68 | 12 | 0 | 0 | 0 | 80 |
 | `on-account` | 8 | 0 | 0 | 0 | 0 | 8 |
 | `on-friends` | 15 | 0 | 0 | 0 | 0 | 15 |
 | `on-messages` | 2 | 0 | 0 | 0 | 0 | 2 |

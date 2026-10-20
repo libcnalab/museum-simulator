@@ -12247,7 +12247,7 @@
       "room": "net-session",
       "kind": "direct-read",
       "symbols": ["CPP-A183E9598AC6"],
-      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "Log(\"GamerJoined: \" + (e.getGamerProperty() != nullptr"}],
+      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "const NetworkGamer* joined = e.getGamerProperty();"}],
       "conditions": ["runtime:systemlink-session"],
       "note": "The joined gamer's tag and locality are logged; net_check expects a remote GamerJoined on the host."
     },
@@ -12397,9 +12397,9 @@
       "room": "net-session",
       "kind": "direct-call",
       "symbols": ["CPP-27035430D156"],
-      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "find_ = NetworkSession::BeginFind(NetType(), 2, props, {}, std::any{});"}],
+      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "find_ = NetworkSession::BeginFind(NetType(), localGamers_, props, {}, std::any{});"}],
       "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:net-session-room-loaded", "runtime:BeginFind-button-pressed"],
-      "note": "BeginFind(type, maxLocalGamers=2, properties, callback, state) starts an asynchronous search."
+      "note": "BeginFind(type, maxLocalGamers from the room's choice, properties, callback, state) starts an asynchronous search for sessions with that many open public slots."
     },
     {
       "id": "net-session-begin-join",
@@ -12427,9 +12427,29 @@
       "room": "net-session",
       "kind": "direct-call",
       "symbols": ["CPP-BBC38DAE831D"],
-      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "host_ = NetworkSession::Create(NetType(), localGamers_, 8);"}],
+      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "? NetworkSession::Create(NetType(), localGamers_, 8)"}],
       "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:net-session-room-loaded", "runtime:gamer-signed-in", "runtime:packet-delivery-toggle-on(SystemLink transport created)"],
-      "note": "Switching packet delivery on creates a SystemLink (or PlayerMatch) session with Create(type, 2, 8)."
+      "note": "Switching packet delivery on with the default shape (MaxGamers 8, no private slots) creates a SystemLink (or PlayerMatch) session with Create(type, maxLocalGamers, 8)."
+    },
+    {
+      "id": "net-session-create-private-slots",
+      "claim": "NetworkSession.Create",
+      "room": "net-session",
+      "kind": "direct-call",
+      "symbols": ["CPP-64855CD526DD"],
+      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": ": NetworkSession::Create(NetType(), localGamers_, maxGamers_, privateSlots_, NetworkSessionProperties{});"}],
+      "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:net-session-room-loaded", "runtime:gamer-signed-in", "runtime:max-gamers-or-private-slots-chosen", "runtime:packet-delivery-toggle-on"],
+      "note": "With a MaxGamers or PrivateGamerSlots choice the session is created with Create(type, maxLocalGamers, maxGamers, privateGamerSlots, properties); tools/online_party_check.sh shows an invited gamer taking the private slot."
+    },
+    {
+      "id": "net-session-send-party-invites",
+      "claim": "LocalNetworkGamer.SendPartyInvites",
+      "room": "net-session",
+      "kind": "direct-call",
+      "symbols": ["CPP-EE0778F30029"],
+      "path": [{"source": "src/Exhibits/Players/NetLab.cpp", "anchor": "n->getLocalGamersProperty()[0]->SendPartyInvites();"}],
+      "conditions": ["build:MUSEUM_NETWORKING=ON", "runtime:net-session-room-loaded", "runtime:gamer-signed-in", "runtime:button-pressed"],
+      "note": "The SendPartyInvites button invites the first local gamer's party to the session; refusals are logged."
     },
     {
       "id": "net-session-end-find",

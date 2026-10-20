@@ -255,6 +255,8 @@ private:
                     }
                     if (i == 0) {
                         partySize_ = std::to_string(g->getPartySizeProperty());
+                        if (partySize_ != loggedPartySize_) Museum::Log("online", "SignedInGamer.PartySize of %s: %s", g->getGamertagProperty().c_str(), partySize_.c_str());
+                        loggedPartySize_ = partySize_;
                         FriendCollection list = g->GetFriends();
                         for (int f = 0; f < list.getCountProperty() && f < 8; ++f) {
                             FriendGamer* fr = list[f];
@@ -317,7 +319,7 @@ private:
     std::vector<Card> cards_;
     std::vector<Friend> friends_;
     std::string friendCollectionState_ = "-";
-    std::string service_ = "-", signedIn_ = "0", partySize_ = "-", note_ = "-";
+    std::string service_ = "-", signedIn_ = "0", partySize_ = "-", loggedPartySize_, note_ = "-";
     bool configured_ = false;
     float refresh_ = 0.0f;
 #endif

@@ -96,6 +96,7 @@ private:
     long long frame_ = 0;
     bool paused_ = false;
     bool wasActive_ = true;
+    bool guideWasUp_ = false;   // Guide.IsVisible on the previous frame (its changes are logged)
     bool showHelp_ = false;
     bool showStats_ = false;
     bool showMap_ = true;

@@ -470,6 +470,8 @@ void MuseumGame::Update(GameTime& gameTime)
 #else
     const bool guideUp = false;
 #endif
+    if (guideUp != guideWasUp_) Museum::Log("guide", "Guide.IsVisible %s", guideUp ? "true" : "false");   // an invitation card opening shows here too
+    guideWasUp_ = guideUp;
     const bool active = getIsActiveProperty() || guideUp;
     if (wasActive_ && !active && !paused_ && options_.maxFrames == 0) SetPaused(true);
     wasActive_ = active;

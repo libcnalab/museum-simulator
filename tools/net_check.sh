@@ -44,7 +44,7 @@ run_round() {   # run_round LOCALS: A hosts with LOCALS local gamers (1 or 2), B
   pids=()
   for f in host joinB joinC; do cp "$dir/$f.log" "$dir/$f-$locals.log"; done
   local tag="[$locals local on the host]"
-  grep -q "\[museum\]\[net\] Create(SystemLink, $locals local, 8 max): $locals local gamer(s)" "$dir/host.log" && ok "$tag A created a SystemLink session" || bad "$tag A did not create a session: $(grep '\[museum\]\[net\]' "$dir/host.log" | head -3)"
+  grep -q "\[museum\]\[net\] Create(SystemLink, $locals local, 8 max, 0 private): $locals local gamer(s)" "$dir/host.log" && ok "$tag A created a SystemLink session" || bad "$tag A did not create a session: $(grep '\[museum\]\[net\]' "$dir/host.log" | head -3)"
   for j in joinB joinC; do
     grep -qE "\[museum\]\[net\] Joined: [0-9]+ gamer\(s\) in the session; this machine sees AllowHostMigration true" "$dir/$j.log" && ok "$tag $j joined and sees AllowHostMigration true" || bad "$tag $j: $(grep '\[museum\]\[net\]' "$dir/$j.log" | tail -2 | cut -c1-160)"
   done
@@ -95,12 +95,12 @@ run_packets() {   # A hosts with simulated loss and latency (both act on what A 
     grep -q "\[museum\]\[net\] GameStarted" "$dir/$f.log" && grep -q "\[museum\]\[net\] GameEnded" "$dir/$f.log" && ok "$tag $f saw GameStarted and GameEnded" || bad "$tag $f: no GameStarted/GameEnded"
     grep -q "\[museum\]\[stats\].* exhibit errors 0 .*script errors 0" "$dir/$f.log" || bad "$tag $f: errors: $(grep '\[museum\]\[stats\]\|exhibit-error\|script-error' "$dir/$f.log" | head -2 | cut -c1-160)"
   done
-  grep -qE "\[museum\]\[net\] GamerJoined: .* \(remote\)" "$dir/host.log" && ok "$tag the host saw B's gamer join (GamerJoined, remote)" || bad "$tag no remote GamerJoined on the host"
+  grep -qE "\[museum\]\[net\] GamerJoined: .* \(remote, " "$dir/host.log" && ok "$tag the host saw B's gamer join (GamerJoined, remote)" || bad "$tag no remote GamerJoined on the host"
 }
 
 run_lifecycle() {   # join in progress, removal by the host, and the removed museum joining again; each step awaits the last
   rm -rf "$dir"/*-profiles
-  local host="goto:net-session;wait:20;press:Local gamers in a new session=1;press:Deliver packets=1;wait:20;press:SessionProperties[0] (game mode)=$mode;press:AllowJoinInProgress=1;wait:30;press:NetworkSession.StartGame;await:(remote),4000;wait:100;press:NetworkMachine.RemoveFromSession;await:GamerLeft,1000;await:(remote),4000;wait:100;stats;quit"
+  local host="goto:net-session;wait:20;press:Local gamers in a new session=1;press:Deliver packets=1;wait:20;press:SessionProperties[0] (game mode)=$mode;press:AllowJoinInProgress=1;wait:30;press:NetworkSession.StartGame;await:(remote,,4000;wait:100;press:NetworkMachine.RemoveFromSession;await:GamerLeft,1000;await:(remote,,4000;wait:100;stats;quit"
   local join="goto:net-session;wait:120;press:SessionProperties[0] (game mode)=$mode;press:Search for game mode=1;press:NetworkSession.BeginFind;wait:250;press:NetworkSession.BeginJoin;await:Joined: ,1500;await:SessionEnded: RemovedByHost,3000;wait:60;press:NetworkSession.BeginFind;wait:250;press:NetworkSession.BeginJoin;await:Joined: ,1500;wait:200;stats;quit"
   launch host "$host"
   sleep 4
@@ -113,7 +113,7 @@ run_lifecycle() {   # join in progress, removal by the host, and the removed mus
   grep -q "\[museum\]\[net\] RemoveFromSession: removed" "$dir/host.log" && ok "$tag the host removed B's machine (NetworkMachine.RemoveFromSession)" || bad "$tag removal: $(grep 'RemoveFromSession' "$dir/host.log" | head -1)"
   grep -q "\[museum\]\[net\] SessionEnded: RemovedByHost" "$dir/joinB.log" && ok "$tag B's session ended with RemovedByHost" || bad "$tag B: $(grep 'SessionEnded' "$dir/joinB.log" | head -1)"
   grep -q "\[museum\]\[net\] GamerLeft" "$dir/host.log" && ok "$tag the host saw B's gamer leave (GamerLeft)" || bad "$tag no GamerLeft on the host"
-  [ "$(grep -c '\[museum\]\[net\] Joined: ' "$dir/joinB.log")" -ge 2 ] && [ "$(grep -c '\[museum\]\[net\] GamerJoined: .* (remote)' "$dir/host.log")" -ge 2 ] && ok "$tag B joined again after the removal and the host saw it join twice" || bad "$tag reconnect: B joined $(grep -c 'net\] Joined: ' "$dir/joinB.log") time(s), host saw $(grep -c 'GamerJoined: .* (remote)' "$dir/host.log") remote join(s)"
+  [ "$(grep -c '\[museum\]\[net\] Joined: ' "$dir/joinB.log")" -ge 2 ] && [ "$(grep -c '\[museum\]\[net\] GamerJoined: .* (remote,' "$dir/host.log")" -ge 2 ] && ok "$tag B joined again after the removal and the host saw it join twice" || bad "$tag reconnect: B joined $(grep -c 'net\] Joined: ' "$dir/joinB.log") time(s), host saw $(grep -c 'GamerJoined: .* (remote,' "$dir/host.log") remote join(s)"
   for f in host joinB; do
     grep -q "\[museum\]\[stats\].* exhibit errors 0 .*script errors 0" "$dir/$f.log" || bad "$tag $f: errors (an await that timed out is a script error): $(grep 'script-error\|exhibit-error' "$dir/$f.log" | head -2 | cut -c1-160)"
   done

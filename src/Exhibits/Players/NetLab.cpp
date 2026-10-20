@@ -114,6 +114,9 @@ public:
             p.AddButton("NetworkSession.ResetReady", [this] { NetworkSession* n = Primary(); if (n != nullptr) { try { n->ResetReady(); Museum::Log("net", "ResetReady; gamers: %s", GamerDetails().c_str()); } catch (const std::exception& e) { Log(std::string("ResetReady refused: ") + std::string(e.what()).substr(0, 48)); } } });
             p.AddButton("Guide.ShowSignIn: an account for PlayerMatch", [this] { try { Microsoft::Xna::Framework::GamerServices::Guide::ShowSignIn(1, true); Museum::Log("online", "ShowSignIn(1, true) opened"); } catch (const std::exception& e) { status_ = std::string(e.what()).substr(0, 50); } });
             p.AddChoice("Local gamers in a new session (maxLocalGamers)", {"2", "1"}, 0, [this](int v) { localGamers_ = v == 1 ? 1 : 2; });
+            // Private slots are taken only by invited gamers (JoinInvited); an ordinary join finds the public ones full.
+            p.AddChoice("MaxGamers in a new session", {"8", "2", "3", "4"}, 0, [this](int v) { maxGamers_ = v == 0 ? 8 : v + 1; });
+            p.AddChoice("PrivateGamerSlots in a new session", {"0", "1", "2"}, 0, [this](int v) { privateSlots_ = v; });
             p.AddToggle("Deliver packets: a SystemLink session (visible on your network)", false, [this](bool v) { SetTransport(v); });
             p.AddSlider("SimulatedLatency (ms, on packets this museum sends)", 0.0f, 500.0f, 0.0f, [this](float v) { latencyMs_ = v; ApplyImpairment(); }, "%.0f", 10.0f);
             p.AddSlider("SimulatedPacketLoss", 0.0f, 0.5f, 0.0f, [this](float v) { loss_ = v; ApplyImpairment(); }, "%.2f", 0.05f);
@@ -121,6 +124,7 @@ public:
             p.AddToggle("AllowJoinInProgress", false, [this](bool v) { joinInProgress_ = v; ApplySessionSettings(); });
             p.AddChoice("Search for game mode", {"any", "this session's", "one nobody hosts"}, 0, [this](int v) { searchMode_ = v; });
             p.AddButton("Guide.ShowGameInvite (your friends)", [this] { InviteFriends(); });
+            p.AddButton("LocalNetworkGamer.SendPartyInvites (your party, to this session)", [this] { SendPartyInvites(); });
             p.AddButton("NetworkSession.BeginFind (SystemLink)", [this] { BeginFind(); });
             p.AddButton("NetworkSession.BeginJoin (the first session found)", [this] { BeginJoin(); });
             p.AddReadout("Find", [this] { return found_; });
@@ -396,11 +400,14 @@ private:
         try {
             ResetStats();
             DisposeLobby();   // the same profiles cannot be in a Local lobby and a SystemLink session at once (one session per process, as in XNA)
-            host_ = NetworkSession::Create(NetType(), localGamers_, 8);
+            // Create(type, maxLocalGamers, maxGamers) for the default shape; the five-argument form once a slot count was chosen.
+            host_ = maxGamers_ == 8 && privateSlots_ == 0 ? NetworkSession::Create(NetType(), localGamers_, 8)
+                                                          : NetworkSession::Create(NetType(), localGamers_, maxGamers_, privateSlots_, NetworkSessionProperties{});
             phase_ = Phase::Connected;
             HookHost();
             transportStatus_ = online_ ? "PlayerMatch session through the account service: packets travel by its relay" : "SystemLink session, both profiles local: packets flow in memory";
-            Log(std::string("Create(") + (online_ ? "PlayerMatch" : "SystemLink") + ", " + std::to_string(localGamers_) + " local, 8 max): " + std::to_string(host_->getLocalGamersProperty().getCountProperty()) + " local gamer(s)");
+            Log(std::string("Create(") + (online_ ? "PlayerMatch" : "SystemLink") + ", " + std::to_string(localGamers_) + " local, " + std::to_string(maxGamers_) + " max, " +
+                std::to_string(privateSlots_) + " private): " + std::to_string(host_->getLocalGamersProperty().getCountProperty()) + " local gamer(s)");
             if (wantReady_) SetReady(true);
         } catch (const std::exception& e) {
             CloseTransport();
@@ -481,7 +488,7 @@ private:
             NetworkSessionProperties props;
             if (searchMode_ == 1) props[0] = gameMode_;
             if (searchMode_ == 2) props[0] = (gameMode_ + 5) % 10;
-            find_ = NetworkSession::BeginFind(NetType(), 2, props, {}, std::any{});
+            find_ = NetworkSession::BeginFind(NetType(), localGamers_, props, {}, std::any{});   // sessions with that many open public slots
             found_ = "searching the local network...";
         } catch (const std::exception& e) {
             found_ = std::string("BeginFind: ") + std::string(e.what()).substr(0, 56);
@@ -518,6 +525,7 @@ private:
                 foundLines_.push_back(line);
             }
             Museum::Log("net", "%s", found_.c_str());
+            for (const std::string& line : foundLines_) Museum::Log("net", "found: %s", line.c_str());
         } catch (const std::exception& e) {
             delete find_;
             find_ = nullptr;
@@ -661,7 +669,9 @@ private:
         });
         hostLeft_ = host_->GamerLeft.Add([this](System::Object*, const GamerLeftEventArgs&) { Log("GamerLeft"); });
         hostJoined_ = host_->GamerJoined.Add([this](System::Object*, const GamerJoinedEventArgs& e) {
-            Log("GamerJoined: " + (e.getGamerProperty() != nullptr ? e.getGamerProperty()->getGamertagProperty() : std::string("?")) + (e.getGamerProperty() != nullptr && e.getGamerProperty()->getIsLocalProperty() ? " (local)" : " (remote)"));
+            const NetworkGamer* joined = e.getGamerProperty();
+            Log("GamerJoined: " + (joined != nullptr ? joined->getGamertagProperty() : std::string("?")) + (joined != nullptr && joined->getIsLocalProperty() ? " (local" : " (remote") +
+                (joined != nullptr && joined->getIsPrivateSlotProperty() ? ", private slot)" : ", public slot)"));
         });
         hostStarted_ = host_->GameStarted.Add([this](System::Object*, const GameStartedEventArgs&) { Log("GameStarted"); });
         hostEndedGame_ = host_->GameEnded.Add([this](System::Object*, const GameEndedEventArgs&) { Log("GameEnded"); });
@@ -682,6 +692,19 @@ private:
     }
 
     // Asks the Guide to invite the friends to this machine's online session.
+    // LocalNetworkGamer.SendPartyInvites: every member of the gamer's party is invited to this session (as Guide.ShowGameInvite does for chosen friends).
+    void SendPartyInvites()
+    {
+        NetworkSession* n = Primary();
+        if (n == nullptr || n->getLocalGamersProperty().getCountProperty() == 0) { Log("SendPartyInvites: no session"); return; }
+        try {
+            n->getLocalGamersProperty()[0]->SendPartyInvites();
+            Log("SendPartyInvites: sent by " + n->getLocalGamersProperty()[0]->getGamertagProperty());
+        } catch (const std::exception& e) {
+            Log(std::string("SendPartyInvites refused: ") + std::string(e.what()).substr(0, 64));
+        }
+    }
+
     void InviteFriends()
     {
         try {
@@ -950,6 +973,8 @@ private:
     std::deque<std::string> log_;
     std::map<std::string, bool> talking_;
     int localGamers_ = 2;
+    int maxGamers_ = 8;
+    int privateSlots_ = 0;
     std::string status_ = "-";
     int gameMode_ = 3, searchMode_ = 0, remoteReceived_ = 0;
     std::size_t hostEnded_ = 0, hostChanged_ = 0, hostLeft_ = 0, hostJoined_ = 0, hostStarted_ = 0, hostEndedGame_ = 0;

@@ -182,8 +182,8 @@ public:
     {
 #ifdef MUSEUM_NETWORKING
         if (mode_ == Mode::Players) {
-            inToken_ = SignedInGamer::SignedIn.Add([this](System::Object*, const SignedInEventArgs&) { ++signedIn_; });
-            outToken_ = SignedInGamer::SignedOut.Add([this](System::Object*, const SignedOutEventArgs&) { ++signedOut_; });
+            inToken_ = SignedInGamer::SignedIn.Add([this](System::Object*, const SignedInEventArgs& e) { ++signedIn_; LogSignEvent("SignedIn", e.getGamerProperty()); });
+            outToken_ = SignedInGamer::SignedOut.Add([this](System::Object*, const SignedOutEventArgs& e) { ++signedOut_; LogSignEvent("SignedOut", e.getGamerProperty()); });
             subscribed_ = true;
         }
         Refresh();
@@ -305,6 +305,14 @@ private:
         std::string tag, display, index, presence, privileges, defaults, profile;
         bool guest = false, live = false;
     };
+    // The events are written to the museum log too, so a scripted sign-out through the Guide leaves a witness.
+    static void LogSignEvent(const char* event, SignedInGamer* gamer)
+    {
+        std::string tag = "?";
+        try { if (gamer != nullptr) tag = gamer->getGamertagProperty(); } catch (const std::exception&) { tag = "(disposed gamer)"; }
+        Museum::Log("players", "SignedInGamer.%s: %s", event, tag.c_str());
+    }
+
     void Refresh()
     {
         try {
