@@ -34,37 +34,46 @@ The user resumed the goal on 2026-10-19 ("read the handoff and continue until th
 - Never treat an old binary, a catalogue name, a support query, or a skipped test as proof
   that an API was implemented, executed, or correct.
 
-## Current state (2026-10-20, third session)
+## Current state (2026-10-20, end of the third session)
 
-`plan.md` is the authoritative backlog with per-item status and evidence; read it first. In short:
+`plan.md` is the authoritative backlog with per-item status and evidence; read it first. Every row is DONE, NOT_APPLICABLE or
+BLOCKED_EXTERNAL with its blocker named. In short:
 
-- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 851 declarations; the 70 declarations
-  whose signatures name internal types are classified in `audit/internal_type_classification.json` (A11).
+- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 857 declarations; the declarations whose
+  signatures name internal types are classified in `audit/internal_type_classification.json` (A11). A new one appears
+  whenever CNA adds such a member: `--check` names its id; classify it (the latest, `ContentManager::ReadXnbHeader`, is
+  public only through `DEF_PROP`'s `public:`, a CNA finding).
 - **Catalogue and implementation evidence:** about 2 900 claims; every claim-room pair has a reviewed record in
-  `audit/implementation_evidence.json`. Every public header is either claimed or classified in
-  `audit/area_classification.json` (the coverage check fails on a stale or missing rule). The whole C ABI (59 headers)
-  is claimed: C17 code in the museum plus a separate C17 game probe (`cna-c-probe`) run from the cx-capi room.
-- **Execution evidence:** `tools/execution_coverage.py` runs one museum process per room in a tree configured with
-  `-DMUSEUM_COVERAGE=ON` and records the executed lines per room. It refuses a binary older than the sources, takes
-  provenance before the run and records nothing if a source changes during it. A current run needs build-probe back
-  in its coverage configuration (A08).
-- **Correctness:** exact witnesses: `[museum][check]` lines (wk-*, math-checks, cx-capi, ct-storage, fx-compiled,
-  tex-volshader, pl-log, pl-diagnostics, model-sampler, in-text, in-phone, app-device, ...), renderer self-checks
-  (`[museum][validate]`), `tools/scenarios.py` (scenarios in `tests/scenarios/`), `tools/devices_check.sh`,
-  `tools/audio_check.sh` (PCM through SDL's disk driver: tones, pan, XACT, MediaPlayer, microphone loopback),
-  `tools/voice_check.sh`, `tools/net_check.sh` (migration, packets under simulated loss, session lifecycle),
-  `tools/online_check.sh` (a private service, read back).
-- **Profiles:** each runner records its result (`tools/record_profile.py`); `tools/profile_summary.py` shows every
-  profile as current, stale or not run and calls the battery complete only when all are current and green.
-- **Renderers and hardware:** `MUSEUM_GPU=1` (SDL offscreen) and `MUSEUM_GPU=weston` (private headless Weston) run on
-  the machine's real GPU without the live desktop. build-probe carries every native renderer and the compiled-effects
-  options. The browser edition (`tools/build_web.sh`, build-consumer) carries WEBGL2 and WEBGPU (`?renderer=`);
-  `tools/web_tour.sh` tours it in headless Chrome. What needs a person or absent hardware is in
-  `docs/HARDWARE_CHECKLIST.md`; how to run everything is in `docs/VERIFICATION.md`.
+  `audit/implementation_evidence.json`, whose anchors must each occur exactly once (rename new locals rather than repeat
+  an anchored line). Every public header is either claimed or classified in `audit/area_classification.json`.
+- **Execution evidence:** build-probe is the coverage tree (`-DMUSEUM_COVERAGE=ON`, OPENGLES3;SOFTWARE;FNA3D;WEBGPU;SDL_GPU;
+  HEADLESS;STUB, every compiled-effects option, CNA_DIAGNOSTICS=FULL, every MUSEUM_* feature). Runs
+  `2026-10-20-opengles3-full` (320 rooms, one process each, on the GPU without a display), `-arrival-rooms` and
+  `-tex-io-branches` are current; their logs and line counters are tracked in `audit/runs/`. A source change makes them
+  historical: rebuild build-probe and rerun `tools/execution_coverage.py run --scenarios` before the next audit claims
+  execution.
+- **Correctness:** exact witnesses in `[museum][check]` and `[museum][validate]` lines, `tools/scenarios.py`
+  (also in the page: `tools/web_scenarios.py`), `tools/devices_check.sh`, `tools/audio_check.sh` (PCM through SDL's disk
+  driver, now with the 3D voice), `tools/voice_check.sh`, `tools/net_check.sh`, `tools/online_check.sh` and
+  `tools/online_party_check.sh` (three accounts: invitation into a private slot, a party of three, sign-out).
+- **Sanitizers:** ASan+UBSan (build-asan) and TSan (build-tsan) runs are recorded in plan P11; TSan found three CNA races.
+- **Platforms:** Linux natively on every renderer (also on the GPU: `MUSEUM_GPU=1` / `weston`); the browser edition
+  (`tools/build_web.sh`, WEBGL2 tour 320/320; browser WebGPU blocked by two CNA defects); Android on the emulator
+  (`tools/build_android.sh`, `tools/android_run.sh`, 319/320, `model-sampler` crashes the emulator itself); the Windows
+  build under Wine (`tools/wine_tour.sh`, SOFTWARE and DIRECTX9 clean). macOS, iOS, real Windows and physical Android
+  devices are not available here (`docs/HARDWARE_CHECKLIST.md`).
+- **Profiles:** each runner records its result (`tools/record_profile.py`); `tools/profile_summary.py` lists every
+  profile. It cannot report "complete" while CNA defects fail their checks (net migration and join-in-progress, browser
+  WebGPU, the notification channel in a browser, Float16 on the Android emulator): those are recorded, not hidden.
 - **CNA defects** found by the museum are in `docs/CNA_FINDINGS.md` with the exact change each needs. CNA is owned
   by another agent: record, never edit. Entries move to "Fixed" when a museum run shows the fix.
-- New wings (appended so no existing room moved): floor 7 *Devices and the System*, floor 8 *Pipeline Workshop*
-  (wk-* rooms including the content build engine), rv-vertextype and rv-capabilities on floor 9.
+- **CNA's working tree moves:** every build compiles `../cna` as it is on disk, including another agent's uncommitted edits,
+  and the inventory reads its headers. When CNA adds a declaration, `check_all`'s inventory step fails until
+  `tools/generate_api_inventory.py --write` (and `tools/audit_api_coverage.py --write` after the rebuild) runs; while CNA
+  is mid-refactor the museum can even fail to start (2026-10-21 03:2x: `std::bad_alloc` loading textures with 33 modified
+  CNA files). Check `git -C ../cna status` before trusting a failure, and never record an API that is uncommitted.
+- **Long runs:** watch them with a monitor that reports progress and every failure state; a run that waits on a device
+  or process without a time limit can hang for hours unnoticed (the Android runner now times out every adb call).
 
 ## Meaning of the evidence levels
 
