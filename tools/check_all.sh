@@ -28,8 +28,8 @@ else
 fi
 if [ "${SLOW:-0}" = 1 ]; then
   for r in OPENGL33 SOFTWARE; do
-    step "tour on $r" env CNA_GRAPHICS_RENDERER=$r MUSEUM_TIMEOUT=2400 tools/tour.sh -f 3 -p
-    step "self-checks on $r" tools/renderer_check.sh $r
+    step "tour on $r" env CNA_GRAPHICS_RENDERER=$r MUSEUM_TIMEOUT=4800 tools/tour.sh -f 3 -p   # SOFTWARE rasterises on the CPU: on a loaded machine its tour passed 40 minutes
+    step "self-checks on $r" env MUSEUM_TIMEOUT=1800 tools/renderer_check.sh $r
     step "memory on $r" env MUSEUM_TIMEOUT=4800 tools/leak_check.sh $r   # three SOFTWARE tours alone take about 40 minutes
   done
 else
