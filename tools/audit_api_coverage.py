@@ -15,6 +15,7 @@ import fnmatch
 import gzip
 import hashlib
 import json
+import os
 import pathlib
 import re
 import subprocess
@@ -1443,7 +1444,7 @@ def parse_arguments() -> argparse.Namespace:
         default=root / "build" / "api-audit" / "public-api.json",
     )
     parser.add_argument(
-        "--museum-bin", type=pathlib.Path, default=root / "build" / "bin" / "cna-3d-museum"
+        "--museum-bin", type=pathlib.Path, default=root / os.environ.get("BUILD_DIR", "build") / "bin" / "cna-3d-museum"
     )
     parser.add_argument(
         "--json-output",
@@ -1473,7 +1474,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--cna-bin",
         type=pathlib.Path,
-        default=root / "build" / "cna" / "libcna.so",
+        default=root / os.environ.get("BUILD_DIR", "build") / "cna" / "libcna.so",   # the tree check_all is checking
     )
     return parser.parse_args()
 

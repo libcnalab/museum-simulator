@@ -16,6 +16,7 @@ import dataclasses
 import hashlib
 import importlib.util
 import json
+import os
 import pathlib
 import re
 import subprocess
@@ -606,7 +607,8 @@ def parse_arguments() -> argparse.Namespace:
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--write", action="store_true")
     mode.add_argument("--check", action="store_true")
-    parser.add_argument("--cna-root", type=pathlib.Path, default=root.parent / "cna")
+    # MUSEUM_CNA_ROOT: the CNA tree the build was configured with (CNA_ROOT_DIR), when it is not the sibling checkout.
+    parser.add_argument("--cna-root", type=pathlib.Path, default=pathlib.Path(os.environ.get("MUSEUM_CNA_ROOT", root.parent / "cna")))
     parser.add_argument(
         "--json-output",
         type=pathlib.Path,
