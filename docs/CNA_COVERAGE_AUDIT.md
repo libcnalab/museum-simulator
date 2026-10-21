@@ -7,18 +7,18 @@ Implementation, execution and correctness counts rise only from recorded evidenc
 The complete per-claim and per-declaration matrix
 is generated in `build/api-audit/coverage-evidence.json`.
 
-Museum catalogue SHA-256: `39d61a9b15eda78238265dafa87b97e2c0c0779572b09de0e60ac48491d8faac`; exhibit sources SHA-256: `df232dbbfb4226adc1b159b1da742df7ced414381b0f65780bc23813435e92ed`
+Museum catalogue SHA-256: `39d61a9b15eda78238265dafa87b97e2c0c0779572b09de0e60ac48491d8faac`; exhibit sources SHA-256: `bb391367c566f5cfbed8e5b83b5b02d27c14e5593ceae55fc9b1373d44414998`
 
 CNA revision: `a9d74c0238d5a985ace108c5aeb92d44ea4c499f` (`v0.1.0-625-ga9d74c023-dirty`)
 
 Claims: **2904**; exact declaration matches: **2404**; member/overload families: **490**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
 
-Public declarations: **19867**; linked by at least one catalogue name: **3778**; implementation-verified: **3263**; executed: **117**; correctness-verified: **3**.
+Public declarations: **19867**; linked by at least one catalogue name: **3778**; implementation-verified: **3263**; executed: **0**; correctness-verified: **0**.
 
 Implementation source located through the exhibit registry for **320 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
 Reviewed implementation records: **3717**; fully implementation-verified claims: **2570**. Reviewed claim-room pairs: **3604** of **3604**; fully verified pairs: **3090**.
-Execution runs: **2 current** of **5 recorded**; execution records: **5**; fully executed claims: **71**; executed claim-room pairs: **98**.
-Correctness oracles: **5**; fully correctness-verified claims: **0**; correctness-verified claim-room pairs: **1**.
+Execution runs: **0 current** of **5 recorded**; execution records: **5**; fully executed claims: **0**; executed claim-room pairs: **0**.
+Correctness oracles: **5**; fully correctness-verified claims: **0**; correctness-verified claim-room pairs: **0**.
 
 | Module | Declarations | Catalogue-linked | Not catalogue-linked |
 |---|---:|---:|---:|
@@ -313,7 +313,7 @@ Only rooms with at least one reviewed pair are listed.
 | `rv-shading` | 1 | 7 | 0 | 0 | 0 | 8 |
 | `rv-sprites` | 3 | 1 | 0 | 0 | 0 | 4 |
 | `rv-targets` | 2 | 1 | 0 | 0 | 0 | 3 |
-| `rv-vertextype` | 14 | 0 | 11 | 0 | 0 | 14 |
+| `rv-vertextype` | 14 | 0 | 0 | 0 | 0 | 14 |
 | `sim-balls` | 1 | 2 | 0 | 0 | 0 | 3 |
 | `sim-flock` | 2 | 3 | 0 | 0 | 0 | 5 |
 | `sim-ik` | 2 | 2 | 0 | 0 | 0 | 4 |
@@ -342,7 +342,7 @@ Only rooms with at least one reviewed pair are listed.
 | `tex-dynamic` | 0 | 2 | 0 | 0 | 0 | 2 |
 | `tex-filter` | 3 | 0 | 0 | 0 | 0 | 3 |
 | `tex-formats` | 5 | 0 | 0 | 0 | 0 | 5 |
-| `tex-io` | 2 | 2 | 2 | 2 | 1 | 4 |
+| `tex-io` | 2 | 2 | 0 | 0 | 0 | 4 |
 | `tex-mip` | 3 | 4 | 0 | 0 | 0 | 7 |
 | `tex-uv` | 2 | 0 | 0 | 0 | 0 | 2 |
 | `tex-volshader` | 7 | 0 | 0 | 0 | 0 | 7 |
@@ -373,8 +373,8 @@ Only rooms with at least one reviewed pair are listed.
 | `wk-importers` | 43 | 1 | 0 | 0 | 0 | 44 |
 | `wk-incremental` | 48 | 0 | 0 | 0 | 0 | 48 |
 | `wk-material` | 38 | 6 | 0 | 0 | 0 | 44 |
-| `wk-meshhelper` | 27 | 8 | 27 | 8 | 0 | 35 |
-| `wk-processor` | 62 | 4 | 58 | 4 | 0 | 66 |
+| `wk-meshhelper` | 27 | 8 | 0 | 0 | 0 | 35 |
+| `wk-processor` | 62 | 4 | 0 | 0 | 0 | 66 |
 | `wk-routes` | 66 | 0 | 0 | 0 | 0 | 66 |
 | `wk-tasks` | 36 | 0 | 0 | 0 | 0 | 36 |
 | `wk-typewriter` | 42 | 5 | 0 | 0 | 0 | 47 |

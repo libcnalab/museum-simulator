@@ -84,6 +84,9 @@ struct Services {
     std::function<void(const std::string& name)> showView;   // teleport to a named reference view
     std::function<void(const Microsoft::Xna::Framework::Vector3& eye, float yaw, float pitch)> focusView;   // glide to a viewing spot
     std::function<void()> openDirectory;            // the full-screen directory and map
+    // Runs ACTION after SECONDS of game time, also while the museum is paused (a minimised window pauses it). ACTION must not
+    // capture an exhibit, which may be unloaded meanwhile; the game outlives every room.
+    std::function<void(float seconds, std::function<void()> action)> after;
     std::string contentRoot;
     // What the window title and the device manager's profile were before the museum set anything: the defaults XNA takes
     // from the assembly title and the project profile (declared in Main.cpp).

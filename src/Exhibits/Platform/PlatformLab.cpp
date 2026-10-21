@@ -171,9 +171,15 @@ public:
             originalResizable_ = g.getWindowProperty().getAllowUserResizingProperty();
             resizeToken_ = g.getWindowProperty().ClientSizeChanged.Add([this](System::Object*, const System::EventArgs&) { ++resizeEvents_; });
             orientationToken_ = g.getWindowProperty().OrientationChanged.Add([this](System::Object*, const System::EventArgs&) { ++orientationEvents_; });
-            activeToken_ = g.Activated.Add([this](System::Object*, const System::EventArgs&) { ++activated_; });
-            inactiveToken_ = g.Deactivated.Add([this](System::Object*, const System::EventArgs&) { ++deactivated_; });
-            dropToken_ = g.getWindowProperty().FileDropEXT.Add([this](System::Object*, const FileDropEventArgsEXT&) { ++drops_; });
+            // Logged too, so a run with a window manager (tools/window_check.sh) can see focus moving to another window and back.
+            activeToken_ = g.Activated.Add([this](System::Object*, const System::EventArgs&) { ++activated_; Museum::Log("window", "Game.Activated (%d)", activated_); });
+            inactiveToken_ = g.Deactivated.Add([this](System::Object*, const System::EventArgs&) { ++deactivated_; Museum::Log("window", "Game.Deactivated (%d)", deactivated_); });
+            dropToken_ = g.getWindowProperty().FileDropEXT.Add([this](System::Object*, const FileDropEventArgsEXT& e) {
+                ++drops_;
+                std::string names;
+                for (const auto& file : e.getFilesProperty()) names += (names.empty() ? "" : ", ") + file;
+                Museum::Log("window", "FileDropEXT: %zu file(s): %s", e.getFilesProperty().size(), names.c_str());
+            });
 #ifdef MUSEUM_PHONE
             // Microsoft.Phone.Shell maps the game's window events onto a phone application's lifetime: subscribe first, then attach, so
             // Launching (raised by the attach itself) is counted.

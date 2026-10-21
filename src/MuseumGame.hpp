@@ -97,6 +97,7 @@ private:
     bool paused_ = false;
     bool wasActive_ = true;
     bool guideWasUp_ = false;   // Guide.IsVisible on the previous frame (its changes are logged)
+    std::vector<std::pair<float, std::function<void()>>> deferred_;   // Services::after: seconds left, action
     bool showHelp_ = false;
     bool showStats_ = false;
     bool showMap_ = true;

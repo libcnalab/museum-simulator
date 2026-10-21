@@ -148,6 +148,7 @@ void MuseumGame::LoadContent()
     InteractionSystem::failureReporter = [this](const std::string& what) { ReportInteractionFailure(what); };
     services_.travelToFloor = [this](int floor) { StartRide(floor); };
     services_.openDirectory = [this] { OpenDirectory(); };
+    services_.after = [this](float seconds, std::function<void()> action) { deferred_.emplace_back(seconds, std::move(action)); };
     directory_ = std::make_unique<DirectoryScreen>(services_);
 
     PlayerController::Settings settings;
@@ -480,6 +481,13 @@ void MuseumGame::Update(GameTime& gameTime)
     const float activityStartYaw = camera_.Yaw();
     const float activityStartPitch = camera_.Pitch();
     RunScript();
+    // Deferred actions (Services::after) count down even while paused; each runs once, in the order it was due.
+    for (std::size_t i = 0; i < deferred_.size();) {
+        if ((deferred_[i].first -= dt) > 0.0f) { ++i; continue; }
+        std::function<void()> action = std::move(deferred_[i].second);
+        deferred_.erase(deferred_.begin() + static_cast<std::ptrdiff_t>(i));
+        action();
+    }
 
     if (directory_->IsOpen()) {
         const auto& vp = getGraphicsDeviceProperty().getViewportProperty();

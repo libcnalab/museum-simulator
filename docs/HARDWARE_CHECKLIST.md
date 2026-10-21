@@ -26,8 +26,8 @@ panel. Rooms that open something outside the museum do it only from their button
 | Browser | dev-tray | UrlLauncher.Open | the default viewer opens the local file | log line with `returned true` |
 | Phone sensors (Android/iOS build) | in-phone | Start each sensor, move the device | accelerometer/gyro/compass/motion readings change; vibration felt | screenshots per sensor |
 | Display hotplug / resize | pl-window | drag a window edge, move to a second screen | ClientSizeChanged counts rise; content scale updates | screenshot |
-| Window minimise on a real desktop | dev-window | MinimizeEXT then RestoreEXT | the window disappears and returns | observation note |
-| Text drag and drop | dev-window | drag text from another program onto the window | "TextDropEXT: \"…\"" logged | log |
+| Window minimise on a real desktop | dev-window | MinimizeEXT, then RestoreEXT 2 s later | the window disappears and returns (automated on a private display with openbox: `tools/window_check.sh` reads WM_STATE Iconic, then Normal; this row is only the look on a real desktop) | observation note |
+| Text drag and drop | dev-window | drag text from another program onto the window | "TextDropEXT: \"…\"" logged (automated with a real XDND source on a private display: `tools/window_check.sh`; this row only repeats it with a desktop program) | log |
 | Device loss (driver reset, GPU switch, sleep/resume) | dev-window, rt-* | suspend and resume the machine with the museum open | DeviceLost/DeviceReset counted, render targets report IsContentLost and are re-rendered | log, screenshot |
 | Windows (real, not Wine): DIRECTX9 | whole museum | `tools/tour.sh -f 3 -p` from a native Windows build | exit 0, 0 exhibit errors | `build/tour.log` |
 | macOS/Metal-backed renderer, Android, iOS | whole museum | platform build and tour | as above | logs |

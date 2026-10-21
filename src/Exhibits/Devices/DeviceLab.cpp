@@ -106,7 +106,7 @@ public:
                 p.AddReadout("Frames shown", [this] { return std::to_string(frames_); });
                 break;
             case Mode::Window:
-                p.AddManualButton("GameWindow.MinimizeEXT, then RestoreEXT", [this] { MinimizeRestore(); });
+                p.AddManualButton("GameWindow.MinimizeEXT, then RestoreEXT 2 s later", [this] { MinimizeRestore(); });
                 p.AddButton("Emulate: RenderTarget2D.NotifyContentLostEXT", [this] { EmulateContentLoss(); });
                 p.AddReadout("TextDropEXT (drag text onto the window)", [this] { return std::to_string(textDrops_) + (lastText_.empty() ? "" : ": \"" + lastText_ + "\""); });
                 p.AddReadout("DeviceLost / Resetting / Reset", [this] { return std::to_string(deviceLost_) + " / " + std::to_string(deviceResetting_) + " / " + std::to_string(deviceReset_); });
@@ -587,15 +587,24 @@ private:
     }
 
     // --- window and device loss ------------------------------------------------------------------
+    // Minimised for two seconds, then restored, so the minimised state can be seen (and checked from outside:
+    // tools/window_check.sh reads the window manager's WM_STATE in between). The restore is deferred through the game, which
+    // keeps counting while the museum is paused: losing focus to the minimise pauses it.
     void MinimizeRestore()
     {
         try {
-            GameWindow& w = S().game->getWindowProperty();
-            w.MinimizeEXT();
-            w.RestoreEXT();
-            last_ = "MinimizeEXT and RestoreEXT returned";
+            S().game->getWindowProperty().MinimizeEXT();
+            last_ = "MinimizeEXT returned; RestoreEXT follows in 2 s";
+            S().after(2.0f, [game = S().game] {
+                try {
+                    game->getWindowProperty().RestoreEXT();
+                    Museum::Log("devices", "window: RestoreEXT returned");
+                } catch (const std::exception& e) {
+                    Museum::Log("devices", "window: RestoreEXT refused: %s", e.what());
+                }
+            });
         } catch (const std::exception& e) {
-            last_ = std::string("MinimizeEXT/RestoreEXT refused: ") + e.what();
+            last_ = std::string("MinimizeEXT refused: ") + e.what();
         }
         Museum::Log("devices", "window: %s", last_.c_str());
     }

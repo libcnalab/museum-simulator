@@ -20667,8 +20667,8 @@
       "room": "dev-window",
       "kind": "direct-call",
       "symbols": ["CPP-F4A4AA6B5EC7"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "w.MinimizeEXT();"}],
-      "conditions": ["runtime:room-param-mode=window", "runtime:manual-button-pressed(GameWindow.MinimizeEXT, then RestoreEXT)"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "S().game->getWindowProperty().MinimizeEXT();"}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:manual-button-pressed(GameWindow.MinimizeEXT, then RestoreEXT 2 s later)"],
       "note": "The manual button minimises the game window."
     },
     {
@@ -20677,8 +20677,8 @@
       "room": "dev-window",
       "kind": "direct-call",
       "symbols": ["CPP-793293B2C246"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "w.RestoreEXT();"}],
-      "conditions": ["runtime:room-param-mode=window", "runtime:manual-button-pressed(GameWindow.MinimizeEXT, then RestoreEXT)"],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "game->getWindowProperty().RestoreEXT();"}],
+      "conditions": ["runtime:room-param-mode=window", "runtime:manual-button-pressed(GameWindow.MinimizeEXT, then RestoreEXT 2 s later)"],
       "note": "The manual button restores the window right after minimising it."
     },
     {

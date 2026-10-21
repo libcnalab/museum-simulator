@@ -52,6 +52,7 @@ is current and nothing failed.
 | Scenarios in a browser | `tools/web_scenarios.py` | the same expectations as `tools/scenarios.py`; SKIP names its reason | `build-consumer/web-scenarios/<renderer>/` |
 | Android (emulator) | `tools/build_android.sh` then `tools/android_run.sh` | `ANDROID RUN: PASS`, every room visited in batches | `build-consumer/android-run/` |
 | Windows build under Wine | MinGW build (docs/RENDERER_TESTING.md) then `tools/wine_tour.sh -p` (`CNA_GRAPHICS_RENDERER=DIRECTX9` for Direct3D 9) | `WINE TOUR: PASS`, a Wine result, not Windows | `build-consumer/windows/` |
+| The window among other windows | `tools/window_check.sh` (private Xvfb, openbox from ~/deps, a GTK drag source, xdotool) | text and file drops arrive exactly, focus away and back raises Deactivated/Activated, MinimizeEXT leaves the window Iconic and RestoreEXT Normal | `build/window-check/` |
 | API audit | `python3 tools/generate_api_inventory.py --check`, `python3 tools/audit_api_coverage.py --check` | inventory and evidence current; every unclaimed public header classified | `docs/CNA_API_INVENTORY.md`, `docs/CNA_COVERAGE_AUDIT.md` |
 | Execution evidence | `tools/execution_coverage.py run --id <id> --build-dir build-probe --renderer OPENGLES3 --scenarios` (in a `-DMUSEUM_COVERAGE=ON` tree whose binary matches the sources) | one process per room, 0 errors; the audit then marks the implementation records whose every step ran | `audit/runs/<id>.*`, `audit/execution_evidence.json` |
 
