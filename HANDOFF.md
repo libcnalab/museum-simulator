@@ -39,7 +39,7 @@ The user resumed the goal on 2026-10-19 ("read the handoff and continue until th
 `plan.md` is the authoritative backlog with per-item status and evidence; read it first. Every row is DONE, NOT_APPLICABLE or
 BLOCKED_EXTERNAL with its blocker named. In short:
 
-- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 867 declarations; the declarations whose
+- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 856 declarations (CNA next 7b028ebe8 in the worktree); the declarations whose
   signatures name internal types are classified in `audit/internal_type_classification.json` (A11). A new one appears
   whenever CNA adds such a member: `--check` names its id; classify it (the latest, `ContentManager::ReadXnbHeader`, is
   public only through `DEF_PROP`'s `public:`, a CNA finding).
