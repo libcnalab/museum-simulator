@@ -61,7 +61,7 @@ else
 fi
 script+=";goto:dev-haptics;wait:30;press:Open the first device;wait:5;press:Rumble;wait:5;press:Constant effect;wait:5;press:Gain 50;wait:5;press:Close the device;wait:5"
 script+=";goto:dev-medialib;wait:30;press:Read my media library;wait:20;press:SavePicture;wait:10;press:Dispose the library;wait:5"
-script+=";goto:dev-window;wait:30;press:MinimizeEXT;wait:30;press:Emulate;wait:20"
+script+=";goto:dev-window;wait:30;press:MinimizeEXT;await:RestoreEXT returned,600;press:Emulate;wait:20"
 script+=";goto:dev-identity;wait:20;pressall;wait:10"
 script+=";goto:dev-notify;wait:20;pressall;wait:60;stats;quit"
 
@@ -184,7 +184,7 @@ grep -q "playlist Favourites: Sunrise (1.2 s)" "$media_log" && ok "the playlist 
 [ "${libs[3]:-}" = "library: 2 / 1 / 1 / 1 songs/albums/artists/genres, 1 playlist(s), 6 / 4" ] && ok "a picture saved with SavePicture is in the next read: ${libs[3]}" || bad "read after SavePicture: ${libs[3]:-no read}"
 
 # Window and identity.
-has "window: MinimizeEXT and RestoreEXT returned" && ok "GameWindow.MinimizeEXT/RestoreEXT returned" || bad "minimise/restore: $(line 'window:')"
+has "window: MinimizeEXT returned; RestoreEXT follows in 2 s" && has "window: RestoreEXT returned" && ok "GameWindow.MinimizeEXT, then RestoreEXT 2 s later (deferred through the game, also while paused), both returned" || bad "minimise/restore: $(line 'window:')"
 has "emulated: ContentLost raised 1 time(s), IsContentLost yes" && ok "emulated content loss raised ContentLost once and set IsContentLost" || bad "content loss: $(line 'emulated')"
 has "after rebinding the target: IsContentLost no" && ok "binding the target again cleared IsContentLost" || bad "rebinding: $(line 'after rebinding')"
 has "identity: platform Linux" && ok "identity: $(line 'identity: platform' | sed 's/.*identity: //')" || bad "identity: $(line 'identity:')"
