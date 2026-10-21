@@ -9,13 +9,13 @@ and build-time content pipeline APIs, plus the native C ABI. Paths containing `I
 `Detail` (case-insensitive) are excluded unless a reviewed public facade exports declarations
 physically defined there.
 
-CNA revision: `8d73b19c0397ebb273fd2dc9055cba413b6d39a9` (`v0.1.0-623-g8d73b19c0-dirty`)
+CNA revision: `a9d74c0238d5a985ace108c5aeb92d44ea4c499f` (`v0.1.0-625-ga9d74c023-dirty`)
 
-Public-header SHA-256: `70152ecf8fc7ce71d8623e94fb95f67517c1ed252c5df421368cd6fdd7163b7c`
+Public-header SHA-256: `b006a3a67c291ebe5d610d0b832f6bf0332f812c0e90f2d0c3d66f22b1d4ba79`
 
 Doxygen: `1.9.8`
 
-Snapshot: **699 headers**, **19857 declarations** (**12947 C++**, **6910 C**), **226 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
+Snapshot: **699 headers**, **19867 declarations** (**12957 C++**, **6910 C**), **227 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
 The snapshot also records **71 public declarations whose signatures still reference internal/detail types**; these declarations remain in the denominator, while the referenced internal types do not.
 One reviewed detail header is included through its public `IntermediateSerializer.hpp` facade.
 
@@ -24,22 +24,22 @@ The complete deterministic JSON is generated in
 
 | Module | Public headers | Internal/detail headers | Declarations |
 |---|---:|---:|---:|
-| `audio` | 22 | 11 | 321 |
+| `audio` | 22 | 11 | 322 |
 | `c-api` | 60 | 0 | 6910 |
-| `content` | 56 | 47 | 1551 |
+| `content` | 56 | 47 | 1553 |
 | `content-pipeline` | 101 | 6 | 2250 |
-| `core` | 15 | 10 | 128 |
+| `core` | 15 | 11 | 128 |
 | `design` | 14 | 2 | 83 |
 | `devices` | 20 | 13 | 216 |
 | `devices-ext` | 17 | 1 | 84 |
 | `diagnostics` | 2 | 0 | 224 |
 | `gamer-services` | 52 | 16 | 690 |
-| `graphics` | 141 | 36 | 2912 |
+| `graphics` | 141 | 36 | 2916 |
 | `graphics-ext` | 11 | 2 | 106 |
 | `input` | 51 | 5 | 897 |
 | `inspector` | 3 | 0 | 189 |
 | `math` | 24 | 0 | 954 |
-| `media` | 24 | 12 | 339 |
+| `media` | 24 | 12 | 342 |
 | `net` | 23 | 7 | 290 |
 | `phone` | 9 | 0 | 61 |
 | `platform` | 28 | 0 | 1286 |

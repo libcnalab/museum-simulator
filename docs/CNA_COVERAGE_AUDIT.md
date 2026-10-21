@@ -9,11 +9,11 @@ is generated in `build/api-audit/coverage-evidence.json`.
 
 Museum catalogue SHA-256: `39d61a9b15eda78238265dafa87b97e2c0c0779572b09de0e60ac48491d8faac`; exhibit sources SHA-256: `df232dbbfb4226adc1b159b1da742df7ced414381b0f65780bc23813435e92ed`
 
-CNA revision: `8d73b19c0397ebb273fd2dc9055cba413b6d39a9` (`v0.1.0-623-g8d73b19c0-dirty`)
+CNA revision: `a9d74c0238d5a985ace108c5aeb92d44ea4c499f` (`v0.1.0-625-ga9d74c023-dirty`)
 
 Claims: **2904**; exact declaration matches: **2404**; member/overload families: **490**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
 
-Public declarations: **19857**; linked by at least one catalogue name: **3778**; implementation-verified: **3263**; executed: **2362**; correctness-verified: **8**.
+Public declarations: **19867**; linked by at least one catalogue name: **3778**; implementation-verified: **3263**; executed: **2362**; correctness-verified: **8**.
 
 Implementation source located through the exhibit registry for **320 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
 Reviewed implementation records: **3717**; fully implementation-verified claims: **2570**. Reviewed claim-room pairs: **3604** of **3604**; fully verified pairs: **3090**.
@@ -22,9 +22,9 @@ Correctness oracles: **5**; fully correctness-verified claims: **5**; correctnes
 
 | Module | Declarations | Catalogue-linked | Not catalogue-linked |
 |---|---:|---:|---:|
-| `audio` | 321 | 80 | 241 |
+| `audio` | 322 | 80 | 242 |
 | `c-api` | 6910 | 892 | 6018 |
-| `content` | 1551 | 229 | 1322 |
+| `content` | 1553 | 229 | 1324 |
 | `content-pipeline` | 2250 | 484 | 1766 |
 | `core` | 128 | 35 | 93 |
 | `design` | 83 | 17 | 66 |
@@ -32,12 +32,12 @@ Correctness oracles: **5**; fully correctness-verified claims: **5**; correctnes
 | `devices-ext` | 84 | 41 | 43 |
 | `diagnostics` | 224 | 37 | 187 |
 | `gamer-services` | 690 | 120 | 570 |
-| `graphics` | 2912 | 784 | 2128 |
+| `graphics` | 2916 | 784 | 2132 |
 | `graphics-ext` | 106 | 16 | 90 |
 | `input` | 897 | 166 | 731 |
 | `inspector` | 189 | 19 | 170 |
 | `math` | 954 | 457 | 497 |
-| `media` | 339 | 97 | 242 |
+| `media` | 342 | 97 | 245 |
 | `net` | 290 | 121 | 169 |
 | `phone` | 61 | 35 | 26 |
 | `platform` | 1286 | 8 | 1278 |
@@ -403,7 +403,7 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 
 ## Public API areas
 
-**542** public headers (16971 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
+**542** public headers (16981 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
 `audit/area_classification.json` (first match wins; the check fails for an unclassified header or a stale rule):
 
 | Status | Headers | Declarations | Meaning |

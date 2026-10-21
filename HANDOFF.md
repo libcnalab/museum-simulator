@@ -39,7 +39,7 @@ The user resumed the goal on 2026-10-19 ("read the handoff and continue until th
 `plan.md` is the authoritative backlog with per-item status and evidence; read it first. Every row is DONE, NOT_APPLICABLE or
 BLOCKED_EXTERNAL with its blocker named. In short:
 
-- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 857 declarations; the declarations whose
+- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 867 declarations; the declarations whose
   signatures name internal types are classified in `audit/internal_type_classification.json` (A11). A new one appears
   whenever CNA adds such a member: `--check` names its id; classify it (the latest, `ContentManager::ReadXnbHeader`, is
   public only through `DEF_PROP`'s `public:`, a CNA finding).
@@ -71,7 +71,7 @@ BLOCKED_EXTERNAL with its blocker named. In short:
   and the inventory reads its headers. When CNA adds a declaration, `check_all`'s inventory step fails until
   `tools/generate_api_inventory.py --write` (and `tools/audit_api_coverage.py --write` after the rebuild) runs; while CNA
   is mid-refactor the museum can even fail to start (2026-10-21 03:2x: `std::bad_alloc` loading textures with 33 modified
-  CNA files). Check `git -C ../cna status` before trusting a failure, and never record an API that is uncommitted.
+  CNA files). Check `git -C ../cna status` before trusting a failure. The inventory and the evidence ids follow the CNA tree the museum is built against, which has long been a working tree with uncommitted changes (its committed HEAD differs: a museum build against a read-only `git archive` of HEAD in `build-consumer/cna-head` passed every behavioural check_all step on 2026-10-21, while the inventory steps cannot match HEAD); regenerate only when that tree builds and runs.
 - **Long runs:** watch them with a monitor that reports progress and every failure state; a run that waits on a device
   or process without a time limit can hang for hours unnoticed (the Android runner now times out every adb call).
 
