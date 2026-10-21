@@ -71,7 +71,7 @@ BLOCKED_EXTERNAL with its blocker named. In short:
   and the inventory reads its headers. When CNA adds a declaration, `check_all`'s inventory step fails until
   `tools/generate_api_inventory.py --write` (and `tools/audit_api_coverage.py --write` after the rebuild) runs; while CNA
   is mid-refactor the museum can even fail to start (2026-10-21 03:2x: `std::bad_alloc` loading textures with 33 modified
-  CNA files). Check `git -C ../cna status` before trusting a failure. The inventory and the evidence ids follow the CNA tree the museum is built against, which has long been a working tree with uncommitted changes (its committed HEAD differs: a museum build against a read-only `git archive` of HEAD in `build-consumer/cna-head` passed every behavioural check_all step on 2026-10-21, while the inventory steps cannot match HEAD); regenerate only when that tree builds and runs.
+  CNA files). Check `git -C ../cna status` before trusting a failure. The inventory and the evidence ids follow the CNA tree the museum is built against, which has long been a working tree with uncommitted changes (its committed HEAD differs: a museum build against a read-only `git archive` of HEAD (in `build-consumer/cna-head`, removed afterwards) passed every behavioural check_all step on 2026-10-21, while the inventory steps cannot match HEAD); regenerate only when that tree builds and runs.
 - **Long runs:** watch them with a monitor that reports progress and every failure state; a run that waits on a device
   or process without a time limit can hang for hours unnoticed (the Android runner now times out every adb call).
 
