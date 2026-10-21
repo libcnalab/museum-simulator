@@ -42,6 +42,7 @@ PROFILES = [
     ("online", "build", "tools/online_check.sh"),
     ("online-party", "build", "tools/online_party_check.sh  (three accounts: invitation, private slot, party, sign-out)"),
     ("window", "build", "tools/window_check.sh  (drops, focus and minimise with openbox on a private display)"),
+    ("tray", "build", "tools/tray_check.sh  (the tray icon against a private StatusNotifier host)"),
     ("web-webgl2", "build-consumer", "tools/web_smoke.sh"),
     ("web-webgl2-tour", "build-consumer", "tools/web_tour.sh  (every room and control in headless Chrome)"),
     ("web-webgpu-tour", "build-consumer", "MUSEUM_WEB_RENDERER=WEBGPU tools/web_tour.sh  (browser WebGPU on the GPU)"),

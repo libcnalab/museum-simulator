@@ -55,7 +55,7 @@ script="goto:dev-dialogs;wait:30;press:ShowOpenFile;wait:90;press:ShowSaveFile;w
 script+=";goto:dev-tray;wait:30;press:Create a tray icon;wait:10;press:Toggle the checkable entry;wait:5;press:Enable / disable;wait:5;press:UrlLauncher.Open;wait:30;press:Remove the tray icon;wait:5"
 # A real camera is private: it is opened only with MUSEUM_ALLOW_CAMERA=1 (otherwise only the list is checked).
 if [ "${MUSEUM_ALLOW_CAMERA:-0}" = 1 ]; then
-  script+=";goto:dev-camera;wait:30;press:Open the default camera;wait:30;press:Close the camera;wait:5"
+  script+=";goto:dev-camera;wait:30;press:Open the default camera;wait:90;press:Close the camera;wait:5"
 else
   script+=";goto:dev-camera;wait:30"
 fi
@@ -130,6 +130,7 @@ elif grep -q "camera: supported yes, [1-9][0-9]* camera(s)" "$log"; then
   ok "Camera.AvailableCameras listed: $(line 'camera: supported' | sed 's/.*camera: //')"
   if [ "${MUSEUM_ALLOW_CAMERA:-0}" = 1 ]; then
     has "camera: camera opened" && ok "Camera opened: $(line 'camera: camera opened')" || bad "Camera open: $(grep 'camera: ' "$log" | tail -1)"
+    grep -qE 'camera: closed after [1-9][0-9]* frame' "$log" && ok "Camera.TryAcquireFrame read frames into a Texture2D: $(line 'camera: closed after')" || bad "Camera frames: $(grep 'camera: ' "$log" | tail -1)"
   else
     na "Camera open/frames: not attempted (a real camera is private; run with MUSEUM_ALLOW_CAMERA=1)"
   fi

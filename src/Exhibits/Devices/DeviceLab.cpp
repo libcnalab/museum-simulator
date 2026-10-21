@@ -570,6 +570,7 @@ private:
     void CloseCamera()
     {
 #ifdef CNA_DEVICES
+        if (camera_ != nullptr) Museum::Log("devices", "camera: closed after %d frame(s) read into the texture", static_cast<int>(frames_));
         camera_.reset();
         cameraTexture_.reset();
 #endif

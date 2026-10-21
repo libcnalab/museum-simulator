@@ -335,6 +335,20 @@ pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/
 - **Needed change:** find the sampler binding that outlives its texture or sampler in FNA3D's SDL_GPU driver as CNA wires
   it (the deferred state is bound at draw time, after rv-formats created and released many textures).
 
+### A tray host reading the menu makes the game abort (dangling entry labels)
+- **Where:** `modules/platform/src/Sdl3/Sdl3Tray.cpp` passes `label.c_str()` of its `std::string` parameter to
+  `SDL_InsertTrayEntryAt` (line 73) and `SDL_SetTrayEntryLabel` (line 89); SDL's D-Bus tray backend
+  (`third_party/SDL/src/tray/unix/SDL_dbustray.c`, `InsertTrayEntryAt` and `SetTrayEntryLabel`) stores the pointer
+  (`item->utf8 = label`) instead of a copy.
+- **What happens:** when a StatusNotifier host asks for the menu (`com.canonical.dbusmenu` layout or item properties), SDL
+  serialises the freed label memory and libdbus aborts the process: `dbus_message_iter_append_basic() ... assertion
+  "_dbus_check_is_valid_utf8 (*string_p)" failed` (stack: `MenuAppendItemProperties` → `MenuMessageHandler` →
+  `dbus_connection_dispatch` → `SDL_UpdateTrays` → `Game::PollEvents`). Reproduced on 2026-10-21 by `tools/tray_check.sh`:
+  a private session bus with a minimal watcher and host; the item registers, its plain properties read back, and the
+  first menu request aborts dev-tray (exit 134). On a desktop with a tray this happens when the user opens the menu.
+- **Needed change:** keep each entry's label alive for the entry's lifetime in `Sdl3Tray` (store the strings and pass their
+  `c_str()`), or copy the label in SDL's D-Bus backend as its other backends do.
+
 ### Native C API
 The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
 that the room starts as a child process because a process hosts one game) check every C header family against the
