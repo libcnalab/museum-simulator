@@ -35497,9 +35497,9 @@
       "room": "wk-incremental",
       "kind": "indirect-runtime",
       "symbols": ["CPP-A828E5EAAD95"],
-      "path": [{"source": "src/Exhibits/Content/WorkshopIncrementalChecks.cpp", "anchor": "Canon::ContentBuildManifestVersion == 9u"}, {"source": "src/Exhibits/Content/PipelineChecksLab.cpp", "anchor": "case Mode::Incremental: Workshop::IncrementalBuildChecks(checks_, S()); return;"}],
+      "path": [{"source": "src/Exhibits/Content/WorkshopIncrementalChecks.cpp", "anchor": "const std::string carried = \"\\\"version\\\":\" + std::to_string(Canon::ContentBuildManifestVersion)"}, {"source": "src/Exhibits/Content/PipelineChecksLab.cpp", "anchor": "case Mode::Incremental: Workshop::IncrementalBuildChecks(checks_, S()); return;"}],
       "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:room=wk-incremental(mode=incremental)", "runtime:screen-loaded(OnScreenLoaded runs the checks)"],
-      "note": "Checks the manifest format version constant."
+      "note": "Checks that the serialized manifest carries the format version constant, and builds a manifest one version older for the refusal check."
     },
     {
       "id": "wk-incremental-contentbuildmanifestfilename",

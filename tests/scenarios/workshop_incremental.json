@@ -20,7 +20,7 @@
     "wk-incremental ContentBuildManifestVersion, ContentBuildManifestFileName: PASS",
     "wk-incremental Serialize, then Parse: PASS",
     "wk-incremental Find(\"texture\"), Find(\"nothing\"): PASS",
-    "wk-incremental ContentBuildManifest::Parse of a version-8 manifest: PASS",
+    "wk-incremental ContentBuildManifest::Parse of a manifest one version older: PASS",
     "wk-incremental ContentBuildManifest::Set of a record without a node id: PASS",
     "wk-incremental Clear(): PASS",
     "wk-incremental nothing changed: ComputeContentBuildDirectFingerprint: PASS",

@@ -94,12 +94,15 @@ std::string Replace(std::string text, const std::string& from, const std::string
 }
 
 // The same manifest claiming the previous format version: the digit after the first "version" key, 9 -> 8.
+// The same manifest one version older than CNA's current ContentBuildManifestVersion (whatever that is).
 std::string OlderVersion(std::string text)
 {
     const std::size_t key = text.find("\"version\"");
     if (key == std::string::npos) return text;
-    const std::size_t digit = text.find_first_of("0123456789", key);
-    if (digit != std::string::npos && text[digit] == '9') text[digit] = '8';
+    const std::size_t first = text.find_first_of("0123456789", key);
+    if (first == std::string::npos) return text;
+    const std::size_t last = text.find_first_not_of("0123456789", first);
+    text.replace(first, last - first, std::to_string(Canon::ContentBuildManifestVersion - 1u));
     return text;
 }
 
@@ -202,12 +205,14 @@ void IncrementalBuildChecks(Checks& checks, Services& services)
         checks.Add("direct and effective fingerprints", "64 lowercase hex digits each, and different for the two assets",
                    Head(curveEntry.fingerprint) + " / " + Head(textureEntry.fingerprint),
                    Hex64(curveEntry.directFingerprint) && Hex64(curveEntry.fingerprint) && Hex64(textureEntry.fingerprint) && curveEntry.fingerprint != textureEntry.fingerprint);
-        checks.Add("ContentBuildManifestVersion, ContentBuildManifestFileName", "9, \".cna-content-manifest.json\"",
-                   std::to_string(Canon::ContentBuildManifestVersion) + ", \"" + Canon::ContentBuildManifestFileName + "\"",
-                   Canon::ContentBuildManifestVersion == 9u && std::string(Canon::ContentBuildManifestFileName) == ".cna-content-manifest.json");
         manifest.Set(textureEntry);
         manifest.Set(curveEntry);
         const std::string text = manifest.Serialize();
+        // The version is CNA's to raise; what must hold is that the file written carries it.
+        const std::string carried = "\"version\":" + std::to_string(Canon::ContentBuildManifestVersion) + ",";   // the serializer writes compact JSON
+        checks.Add("ContentBuildManifestVersion, ContentBuildManifestFileName", "the version the serialized manifest carries, \".cna-content-manifest.json\"",
+                   std::to_string(Canon::ContentBuildManifestVersion) + (text.find(carried) != std::string::npos ? " (carried)" : " (not in the text)") + ", \"" + Canon::ContentBuildManifestFileName + "\"",
+                   text.find(carried) != std::string::npos && std::string(Canon::ContentBuildManifestFileName) == ".cna-content-manifest.json");
         WriteBytes(out / Canon::ContentBuildManifestFileName, std::vector<std::uint8_t>(text.begin(), text.end()));
         const Canon::ContentBuildManifest again = Canon::ContentBuildManifest::Parse(text);
         checks.Add("Serialize, then Parse", "the same two records, the same text again, one trailing newline",
@@ -215,7 +220,7 @@ void IncrementalBuildChecks(Checks& checks, Services& services)
                    again.Entries() == manifest.Entries() && again.Serialize() == text && !text.empty() && text.back() == '\n' && text[text.size() > 1 ? text.size() - 2 : 0] != '\n');
         checks.Add("Find(\"texture\"), Find(\"nothing\")", "the texture record; null", std::string(again.Find("texture") ? "record" : "null") + "; " + (again.Find("nothing") ? "record" : "null"),
                    again.Find("texture") && *again.Find("texture") == textureEntry && again.Find("nothing") == nullptr);
-        checks.ExpectThrow<std::runtime_error>("ContentBuildManifest::Parse of a version-8 manifest", "std::runtime_error (incompatible)", [&] { (void)Canon::ContentBuildManifest::Parse(OlderVersion(text)); });
+        checks.ExpectThrow<std::runtime_error>("ContentBuildManifest::Parse of a manifest one version older", "std::runtime_error (incompatible)", [&] { (void)Canon::ContentBuildManifest::Parse(OlderVersion(text)); });
         checks.ExpectThrow<std::invalid_argument>("ContentBuildManifest::Set of a record without a node id", "std::invalid_argument", [&] {
             Canon::ContentBuildManifestEntry nameless = curveEntry;
             nameless.nodeId.clear();
