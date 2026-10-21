@@ -9,9 +9,9 @@ and build-time content pipeline APIs, plus the native C ABI. Paths containing `I
 `Detail` (case-insensitive) are excluded unless a reviewed public facade exports declarations
 physically defined there.
 
-CNA revision: `ba56ddf5a028fa3b3f0a916da7a6923924bcedaa` (`v0.1.0-635-gba56ddf5a-dirty`)
+CNA revision: `4e627d305e281a9373d328f28f5f156ed583ad62` (`v0.1.0-637-g4e627d305-dirty`)
 
-Public-header SHA-256: `65b8978d77e9f815e92bf80d8197cc250742ff4e80006af83fb8c78934b39fff`
+Public-header SHA-256: `9f25af6d6eebd461c063040f240dd88d93a0c1dce4b94de99437ccccb127329a`
 
 Doxygen: `1.9.8`
 

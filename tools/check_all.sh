@@ -30,7 +30,7 @@ if [ "${SLOW:-0}" = 1 ]; then
   for r in OPENGL33 SOFTWARE; do
     step "tour on $r" env CNA_GRAPHICS_RENDERER=$r MUSEUM_TIMEOUT=2400 tools/tour.sh -f 3 -p
     step "self-checks on $r" tools/renderer_check.sh $r
-    step "memory on $r" env MUSEUM_TIMEOUT=2400 tools/leak_check.sh $r
+    step "memory on $r" env MUSEUM_TIMEOUT=4800 tools/leak_check.sh $r   # three SOFTWARE tours alone take about 40 minutes
   done
 else
   notrun+=("OPENGL33 and SOFTWARE tours, self-checks and leak checks (SLOW=1)")

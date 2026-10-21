@@ -9,7 +9,7 @@ is generated in `build/api-audit/coverage-evidence.json`.
 
 Museum catalogue SHA-256: `39d61a9b15eda78238265dafa87b97e2c0c0779572b09de0e60ac48491d8faac`; exhibit sources SHA-256: `db0c15336bf771d95d64b0a03344df3848d58d746fc27e68753c9af1b9fe5160`
 
-CNA revision: `ba56ddf5a028fa3b3f0a916da7a6923924bcedaa` (`v0.1.0-635-gba56ddf5a-dirty`)
+CNA revision: `4e627d305e281a9373d328f28f5f156ed583ad62` (`v0.1.0-637-g4e627d305-dirty`)
 
 Claims: **2904**; exact declaration matches: **2404**; member/overload families: **490**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
 
