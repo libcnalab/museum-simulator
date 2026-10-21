@@ -67,6 +67,7 @@ BLOCKED_EXTERNAL with its blocker named. In short:
   WebGPU, the notification channel in a browser, Float16 on the Android emulator): those are recorded, not hidden.
 - **CNA defects** found by the museum are in `docs/CNA_FINDINGS.md` with the exact change each needs. CNA is owned
   by another agent: record, never edit. Entries move to "Fixed" when a museum run shows the fix.
+- **CNA worktree (since 2026-10-21):** at the owner's request `build/` is configured with `-DCNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next`, a detached `git worktree` of CNA's `next` branch beside the checkout (created with `git -C ../cna worktree add --detach ../cna-next <commit>`; the uninitialised submodule directories `third_party/SDL`, `SDL_mixer` and `draco` are copied in from `../cna`, as CNA's configure copies SDL and refuses symlinks). The other agent's edits in `../cna` no longer reach the museum; to move on, check out a newer commit of `next` in the worktree (`git -C ../cna-next checkout --detach <commit>`) and rebuild. `tools/generate_api_inventory.py` and `tools/execution_coverage.py` read `CNA_ROOT_DIR` from the build tree's cache, so the inventory follows it.
 - **CNA's working tree moves:** every build compiles `../cna` as it is on disk, including another agent's uncommitted edits,
   and the inventory reads its headers. When CNA adds a declaration, `check_all`'s inventory step fails until
   `tools/generate_api_inventory.py --write` (and `tools/audit_api_coverage.py --write` after the rebuild) runs; while CNA

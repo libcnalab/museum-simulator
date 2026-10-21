@@ -212,7 +212,8 @@ def run(arguments: argparse.Namespace) -> int:
     sources_at_start = source_hashes()
     museum_revision = git("rev-parse", "HEAD")
     museum_dirty = bool(git("status", "--porcelain", "--", "src", "CMakeLists.txt"))
-    cna_revision = git("rev-parse", "HEAD", cwd=ROOT.parent / "cna")
+    cna_root = pathlib.Path(cache_value(build_dir, "CNA_ROOT_DIR") or ROOT.parent / "cna")   # the CNA tree this binary was built from
+    cna_revision = git("rev-parse", "HEAD", cwd=cna_root)
     museum_sha = sha256_bytes(binary.read_bytes())
     cna_sha = sha256_bytes(library.read_bytes())
     work = build_dir / "execution-coverage" / arguments.id

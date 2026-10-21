@@ -601,14 +601,26 @@ def print_declaration_delta(previous: dict[str, Any], current: dict[str, Any]) -
             print(f"  {label}: ... and {len(rows) - 20} more", file=sys.stderr)
 
 
+def configured_cna_root(root: pathlib.Path) -> pathlib.Path:
+    if os.environ.get("MUSEUM_CNA_ROOT"):
+        return pathlib.Path(os.environ["MUSEUM_CNA_ROOT"])
+    cache = root / os.environ.get("BUILD_DIR", "build") / "CMakeCache.txt"
+    if cache.is_file():
+        match = re.search(r"^CNA_ROOT_DIR:PATH=(.+)$", cache.read_text(errors="replace"), re.MULTILINE)
+        if match and pathlib.Path(match.group(1)).is_dir():
+            return pathlib.Path(match.group(1)).resolve()
+    return root.parent / "cna"
+
+
 def parse_arguments() -> argparse.Namespace:
     root = repository_root()
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--write", action="store_true")
     mode.add_argument("--check", action="store_true")
-    # MUSEUM_CNA_ROOT: the CNA tree the build was configured with (CNA_ROOT_DIR), when it is not the sibling checkout.
-    parser.add_argument("--cna-root", type=pathlib.Path, default=pathlib.Path(os.environ.get("MUSEUM_CNA_ROOT", root.parent / "cna")))
+    # The CNA tree the museum is built against: MUSEUM_CNA_ROOT, else the build tree's CNA_ROOT_DIR (for example a worktree of
+    # CNA's next branch beside the checkout), else the sibling checkout.
+    parser.add_argument("--cna-root", type=pathlib.Path, default=configured_cna_root(root))
     parser.add_argument(
         "--json-output",
         type=pathlib.Path,
