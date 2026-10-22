@@ -68,6 +68,10 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
 - **Needed change:** declare the default constructor in the header and define it (`= default`) in the .cpp, as the
   move operations and destructor already are.
 - **Museum workaround:** `DeviceLab` holds `std::optional<HapticDevice>` filled from `Haptics::OpenEXT`.
+- **2026-10-22:** CNA `974c1ac08` declares the constructor in the header and defines it in the .cpp. A probe holding a
+  default-constructed `HapticDevice` member, compiled with the museum's own flags (`-fsyntax-only`), fails with the error above
+  against the header at `5b6aab981` and compiles against the header at `974c1ac08`. Linking against a library built at that
+  commit is not yet checked (the worktree is still at `5b6aab981`), so the entry stays here.
 
 ### VertexTypeRegistryEXT::Resolve names the refused type in its mangled form
 - **What happens:** `Resolve(System::Type::From<T>())` for an unregistered `T` throws

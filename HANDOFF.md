@@ -34,10 +34,11 @@ The user resumed the goal on 2026-10-19 ("read the handoff and continue until th
 - Never treat an old binary, a catalogue name, a support query, or a skipped test as proof
   that an API was implemented, executed, or correct.
 
-## Current state (2026-10-20, end of the third session)
+## Current state (2026-10-22)
 
 `plan.md` is the authoritative backlog with per-item status and evidence; read it first. Every row is DONE, NOT_APPLICABLE or
-BLOCKED_EXTERNAL with its blocker named. In short:
+BLOCKED_EXTERNAL with its blocker named; the four still blocked (G06, I01, P08, P09) need hardware this machine does not
+have. In short:
 
 - **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 858 declarations (CNA next 5b6aab981 in the worktree); the declarations whose
   signatures name internal types are classified in `audit/internal_type_classification.json` (A11). A new one appears
@@ -61,13 +62,14 @@ BLOCKED_EXTERNAL with its blocker named. In short:
   `tools/tray_check.sh` and `tools/dialogs_check.sh` (the real portal file dialogs and message box clicks on a private bus and display).
 - **Sanitizers:** ASan+UBSan (build-asan) and TSan (build-tsan) runs are recorded in plan P11; TSan found three CNA races.
 - **Platforms:** Linux natively on every renderer (also on the GPU: `MUSEUM_GPU=1` / `weston`); the browser edition
-  (`tools/build_web.sh`, WEBGL2 tour 320/320; browser WebGPU blocked by two CNA defects); Android on the emulator
+  (`tools/build_web.sh`, WEBGL2 and WEBGPU tours 320/320; WEBGPU fails only the recorded PbrEffect check); Android on the emulator
   (`tools/build_android.sh`, `tools/android_run.sh`, 319/320, `model-sampler` crashes the emulator itself); the Windows
   build under Wine (`tools/wine_tour.sh`, SOFTWARE and DIRECTX9 clean). macOS, iOS, real Windows and physical Android
   devices are not available here (`docs/HARDWARE_CHECKLIST.md`).
 - **Profiles:** each runner records its result (`tools/record_profile.py`); `tools/profile_summary.py` lists every
-  profile. It cannot report "complete" while CNA defects fail their checks (net migration and join-in-progress, browser
-  WebGPU, the notification channel in a browser, Float16 on the Android emulator): those are recorded, not hidden.
+  profile. It cannot report "complete" while CNA defects fail their checks (WEBGPU PbrEffect natively and in the browser,
+  FNA3D on the GPU before CNA `c2664bad6`, the notification channel in a browser, Float16 on the Android emulator): those
+  are recorded, not hidden. Battery of 2026-10-22 against `5b6aab981`: `build/battery-5b6a/summary.txt` and plan D07.
 - **CNA defects** found by the museum are in `docs/CNA_FINDINGS.md` with the exact change each needs. CNA is owned
   by another agent: record, never edit. Entries move to "Fixed" when a museum run shows the fix.
 - **CNA worktree (since 2026-10-21):** at the owner's request `build/` is configured with `-DCNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next`, a detached `git worktree` of CNA's `next` branch beside the checkout (created with `git -C ../cna worktree add --detach ../cna-next <commit>`; the uninitialised submodule directories `third_party/SDL`, `SDL_mixer` and `draco` are copied in from `../cna`, as CNA's configure copies SDL and refuses symlinks). The other agent's edits in `../cna` no longer reach the museum; since 2026-10-22 it is at `5b6aab981` (CNA fixed host migration, join in progress and the tray labels at the museum's request, sent with `codex queue` to the cna-demos session); to move on, check out a newer commit of `next` in the worktree (`git -C ../cna-next checkout --detach <commit>`) and rebuild. `tools/generate_api_inventory.py` and `tools/execution_coverage.py` read `CNA_ROOT_DIR` from the build tree's cache, so the inventory follows it.

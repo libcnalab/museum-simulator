@@ -17,7 +17,7 @@ numberfile=$(mktemp -p "${XDG_RUNTIME_DIR:-/tmp}" museum-xvfb.XXXXXX) || exit 2
 # shellcheck disable=SC2086
 Xvfb -displayfd 3 -nolisten tcp $server 3> "$numberfile" 2> "$errors" &
 xvfb=$!
-for _ in $(seq 1 100); do [ -s "$numberfile" ] && break; kill -0 $xvfb 2> /dev/null || break; sleep 0.05; done
+for _ in $(seq 1 300); do [ -s "$numberfile" ] && break; kill -0 $xvfb 2> /dev/null || break; sleep 0.05; done
 number=$(tr -dc '0-9' < "$numberfile")
 rm -f "$numberfile"
 [ -n "$number" ] || { echo "error: Xvfb did not start (log: $errors)" >&2; kill $xvfb 2> /dev/null; exit 2; }

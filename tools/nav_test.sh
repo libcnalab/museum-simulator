@@ -6,13 +6,16 @@ cd "$(dirname "$0")/.." || exit 2
 bin=${MUSEUM_BIN:-${BUILD_DIR:-build}/bin/cna-3d-museum}
 floors=$("$bin" --inventory | grep -o '"floors": [0-9]*' | grep -o '[0-9]*')
 status=0
+# keep NAME: a failed run's output and log stay beside the build (the next route overwrites run.log and nav.out).
+keep() { local b=${BUILD_DIR:-build}; cp "$b/nav.out" "$b/nav-failed-$1.out" 2> /dev/null; cp "$b/run.log" "$b/nav-failed-$1.log" 2> /dev/null; cp "$b/run.log.xvfb" "$b/nav-failed-$1.xvfb" 2> /dev/null; echo "      kept: $b/nav-failed-$1.*"; }
+rm -f "${BUILD_DIR:-build}"/nav-failed-*
 # A route only counts when its run reached the stats step with no caught exhibit, draw or script error.
 clean() {
   local log="${BUILD_DIR:-build}/run.log"
   grep -q "\[museum\]\[stats\].* exhibit errors 0\b" "$log" && ! grep -q "\[museum\]\[\(exhibit\|draw\|script\)-error\]" "$log"
 }
 for ((f = 0; f < floors; ++f)); do
-  tools/run.sh "ride:$f;wait:160;stats;directory:open;wait:5;directory:close;wait:3;quit" --no-audio > "${BUILD_DIR:-build}/nav.out" 2>&1 || { echo "FAIL floor $f: the run failed"; status=1; continue; }
+  tools/run.sh "ride:$f;wait:160;stats;directory:open;wait:5;directory:close;wait:3;quit" --no-audio > "${BUILD_DIR:-build}/nav.out" 2>&1 || { echo "FAIL floor $f: the run failed (exit $?)"; keep "floor-$f"; status=1; continue; }
   got=$(grep -o " floor [0-9]*  exhibit errors" "${BUILD_DIR:-build}/run.log" | tail -1 | grep -o "floor [0-9]*" | grep -o '[0-9]*')
   if [ "$got" = "$f" ] && clean; then echo "ok    ride to floor $f"; else echo "FAIL  ride to floor $f arrived on floor ${got:-?} (or an error was logged: ${BUILD_DIR:-build}/run.log)"; status=1; fi
 done
@@ -23,7 +26,7 @@ done
 for ((f = 0; f + 1 < floors; ++f)); do
   upper=$((f + 1))
   if ((f % 2 == 0)); then door_z=-2.9; else door_z=6.1; fi
-  tools/run.sh "floor:$f;wait:8;at:-9,$door_z,90,0;wait:3;walk:1,0,210;look:0,0;walk:1,0,55;look:-90,0;walk:1,0,210;wait:8;stats;quit" --no-audio > "${BUILD_DIR:-build}/nav.out" 2>&1 || { echo "FAIL stairs $f->$upper: the run failed"; status=1; continue; }
+  tools/run.sh "floor:$f;wait:8;at:-9,$door_z,90,0;wait:3;walk:1,0,210;look:0,0;walk:1,0,55;look:-90,0;walk:1,0,210;wait:8;stats;quit" --no-audio > "${BUILD_DIR:-build}/nav.out" 2>&1 || { echo "FAIL stairs $f->$upper: the run failed (exit $?)"; keep "stairs-$f"; status=1; continue; }
   got=$(grep -o " floor [0-9]*  exhibit errors" "${BUILD_DIR:-build}/run.log" | tail -1 | grep -o "floor [0-9]*" | grep -o '[0-9]*')
   visited=$(grep -o " visited [0-9]*  floor" "${BUILD_DIR:-build}/run.log" | tail -1 | grep -o '[0-9]*')
   if [ "$got" = "$upper" ] && [ "${visited:-0}" -ge 3 ] && clean; then echo "ok    stairs from floor $f hall to floor $upper hall"; else echo "FAIL  stairs from floor $f to $upper arrived on floor ${got:-?} after visiting ${visited:-?} cells"; status=1; fi
