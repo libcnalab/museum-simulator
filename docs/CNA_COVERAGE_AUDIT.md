@@ -17,7 +17,7 @@ Public declarations: **19849**; linked by at least one catalogue name: **3778**;
 
 Implementation source located through the exhibit registry for **320 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
 Reviewed implementation records: **3717**; fully implementation-verified claims: **2570**. Reviewed claim-room pairs: **3604** of **3604**; fully verified pairs: **3090**.
-Execution runs: **1 current** of **6 recorded**; execution records: **6**; fully executed claims: **1658**; executed claim-room pairs: **2151**.
+Execution runs: **2 current** of **8 recorded**; execution records: **8**; fully executed claims: **1658**; executed claim-room pairs: **2151**.
 Correctness oracles: **5**; fully correctness-verified claims: **0**; correctness-verified claim-room pairs: **0**.
 
 | Module | Declarations | Catalogue-linked | Not catalogue-linked |

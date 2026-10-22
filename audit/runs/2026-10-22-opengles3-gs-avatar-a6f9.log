@@ -1,0 +1,6 @@
+[museum][main] renderer OPENGLES3 on adapter "screen" (PCI vendor 0x1002, device 0x15BF)
+[museum][script] goto gs-avatar
+[museum][achievement] awarded first-steps to Visitor
+[museum][script] pressall: 1 panel(s) exercised
+[museum][stats] built 9 loaded 2 (lifetime built 16 destroyed 7) triangles 27610  textures 45  frame 27  fps 50  interactables 13 + 12 panel controls in 6 loaded cells  visited 1  floor 8  exhibit errors 0  script errors 0
+[museum][app] Game.Exiting raised: the museum is shutting down

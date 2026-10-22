@@ -21,18 +21,6 @@ are named in the code where they are used and listed here; nothing is hidden beh
 - **Seen in the museum:** `math-checks`, check "BoundingFrustum.Intersects(Ray from outside)" (FAIL); the by-reference
   overload agrees with the value one for a ray from inside (PASS).
 
-### PbrEffect differs between renderers (rv-shading)
-The same face-on quad (`VertexPositionNormalTexture`), one directional light along -Z, camera in front (`tools/renderer_check.sh`):
-- **OPENGLES3, OPENGL33, SOFTWARE, FNA3D:** red dielectric 151,10,10; MetallicFactor 0 against 1 on a grey base 148 against
-  255; emission (0,1,0) on black 10,255,10.
-- **WEBGPU:** the base colour comes out unlit (red 255,0,0, grey 0.8 → 204,204,204 for both MetallicFactor values):
-  lighting, metallic and roughness are not applied. **Needed change:** the WebGPU PbrEffect shader path must evaluate the
-  lights as the GL one does.
-- **SDL_GPU:** the draw is refused with `NotSupportedException: CNA SDL_GPU: the selected stock effect cannot be matched to
-  this VertexDeclaration`: `SdlGpuRenderer.cpp` draws PbrEffect only for 48- or 60-byte vertices (with tangents). XNA's
-  effects take any declaration that carries the semantics they read. **Needed change:** accept vertices without a tangent
-  (no normal map) as the other renderers do.
-
 ### SDL_GPU: no ShaderEffect source layout samples a volume, and one crashes
 `tex-volshader` draws slice 20 of a 32³ volume through `ShaderEffect.SetTexture(0, Texture3D)` and compares every pixel
 (storage itself is fine everywhere: `Texture3D.GetData` returns all 32 768 texels). GLSL ES on OPENGLES3/OPENGL33 and WGSL
@@ -70,6 +58,15 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
   `GraphicsDeviceManager.ApplyChanges` (`NoSuitableGraphicsDeviceException`) instead of a later unrelated failure.
 - **Needed change (suggestion):** treat a failed Reset as a lost device until a Reset succeeds (gate draws as for
   `D3DERR_DEVICELOST`), or surface the unusable mode from ApplyChanges. Not seen on real Windows (none here).
+
+### A heap corruption crash in gs-avatar under OPENGLES3 (seen once, at CNA a6f9e9b2e)
+- **What happens:** in the execution coverage run `2026-10-22-opengles3-full-a6f9` (build-probe, one process per room)
+  `gs-avatar` ended with SIGSEGV after `pressall`; the core's stack is `malloc` inside Mesa's libgallium (25.0.7) called
+  from `EasyGLRenderer::DrawIndexedPrimitivesEx` ← `GraphicsDevice::DrawIndexedPrimitives` ← the museum's `StaticMesh::Draw`.
+  A crash inside `malloc` means the heap was damaged earlier, by any component.
+- **Not reproduced:** 13 more runs of the same script (8 with glibc's heap checking, `glibc.malloc.check=3`) and a separate
+  coverage run of the room all passed. The same room passed in every run at `5b6aab981`. Recorded so that a repeat can be
+  matched; an ASan run (build-asan) is the next step if it returns.
 
 ### HapticDevice's inline default constructor cannot be compiled outside CNA (CNA-DEMOS-ISSUE-009)
 - **Where:** `modules/input/include/CNA/Input/HapticDevice.hpp`: `CNAEXT HapticDevice() = default;` with a
@@ -113,6 +110,8 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
 - **Needed change:** add the `Texture` (Texture2D) and `EnvironmentMap` (TextureCube) parameters and route the
   properties through them, as the other stock effects do for their textures.
 
+- **2026-10-22:** CNA `28145a201` says it reflects and binds both texture parameters; no museum check reads them by
+  name yet, so it is not verified here.
 ### No capability query for reading a render target back
 - **What happens:** `Texture2D::GetData` on a render target raises `System::NotSupportedException` on HEADLESS (which
   rasterises nothing, by design). Neither `GraphicsCapability` nor `RendererCapabilityProfile`'s `RendererFeature`
@@ -297,6 +296,9 @@ pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/
 - **Needed change:** find the sampler binding that outlives its texture or sampler in FNA3D's SDL_GPU driver as CNA wires
   it (the deferred state is bound at draw time, after rv-formats created and released many textures).
 
+- **2026-10-22:** CNA `c2664bad6` unbinds textures before native disposal; `renderer-FNA3D-gpu` passed (78/0) at `a6f9e9b2e`
+  after a segfault at `5b6aab981`. One clean run does not settle a crash seen in about one run in four, so the entry stays
+  until more runs pass.
 ### Native C API
 The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
 that the room starts as a child process because a process hosts one game) check every C header family against the
@@ -373,6 +375,9 @@ documents, where XNA also XORs the button states; the checks test the hash contr
 
 ## Fixed in CNA after the museum reported them
 
+- **PbrEffect differed between renderers** (WEBGPU unlit, SDL_GPU refused tangent-free vertices; CNA `91612a0a3`,
+  `bb6a2f44e`): at `a6f9e9b2e` rv-shading passes on every renderer - WEBGPU 83/0 natively and on the GPU, SDL_GPU 104/0,
+  the browser WebGPU tour 320/320 with 82/0 self-checks (2026-10-22).
 - **Haptics.OpenEXT could not open an id that GetHapticsEXT listed** (the haptic subsystem was quit between calls and
   SDL renumbered the devices; CNA `272696e8b` + `a6f9e9b2e`, which also fixed `272696e8b`'s failing SDL budget audit):
   `tools/haptics_check.sh` against a virtual /dev/uinput force-feedback device passes 14 of 14 at `a6f9e9b2e` - listed and

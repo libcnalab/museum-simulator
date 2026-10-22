@@ -61,21 +61,19 @@ BLOCKED_EXTERNAL with its blocker named; the three still blocked (G06, P08, P09)
   `tools/tray_check.sh` and `tools/dialogs_check.sh` (the real portal file dialogs and message box clicks on a private bus and display).
 - **Sanitizers:** ASan+UBSan (build-asan) and TSan (build-tsan) runs are recorded in plan P11; TSan found three CNA races.
 - **Platforms:** Linux natively on every renderer (also on the GPU: `MUSEUM_GPU=1` / `weston`); the browser edition
-  (`tools/build_web.sh`, WEBGL2 and WEBGPU tours 320/320; WEBGPU fails only the recorded PbrEffect check); Android on the emulator
+  (`tools/build_web.sh`, WEBGL2 and WEBGPU tours 320/320 with no failing check); Android on the emulator
   (`tools/build_android.sh`, `tools/android_run.sh`, 319/320, `model-sampler` crashes the emulator itself); the Windows
   build under Wine (`tools/wine_tour.sh`, SOFTWARE and DIRECTX9 clean). macOS, iOS, real Windows and physical Android
   devices are not available here (`docs/HARDWARE_CHECKLIST.md`).
 - **Profiles:** each runner records its result (`tools/record_profile.py`); `tools/profile_summary.py` lists every
-  profile. It cannot report "complete" while CNA defects fail their checks (WEBGPU PbrEffect natively and in the browser,
-  FNA3D on the GPU before CNA `c2664bad6`, the notification channel in a browser, Float16 on the Android emulator): those
-  are recorded, not hidden. Battery of 2026-10-22 against `5b6aab981`: `build/battery-5b6a/summary.txt` and plan D07.
+  profile. It cannot report "complete" while CNA defects fail their checks (the notification channel in a browser, Float16
+  on the Android emulator): those are recorded, not hidden. Last battery: `build/battery-a6f9/summary.txt` and plan D07.
 - **CNA defects** found by the museum are in `docs/CNA_FINDINGS.md` with the exact change each needs. CNA is owned
   by another agent: record, never edit. Entries move to "Fixed" when a museum run shows the fix.
 - **CNA worktree (since 2026-10-21):** at the owner's request `build/` is configured with `-DCNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next`, a detached `git worktree` of CNA's `next` branch beside the checkout (created with `git -C ../cna worktree add --detach ../cna-next <commit>`; the uninitialised submodule directories `third_party/SDL`, `SDL_mixer` and `draco` are copied in from `../cna`, as CNA's configure copies SDL and refuses symlinks). The other agent's edits in `../cna` no longer reach the museum; since 2026-10-22 evening it is at `a6f9e9b2e` (CNA fixed host migration, join in progress and the tray labels at the museum's request, sent with `codex queue` to the cna-demos session); to move on, check out a newer commit of `next` in the worktree (`git -C ../cna-next checkout --detach <commit>`) and rebuild. `tools/generate_api_inventory.py` and `tools/execution_coverage.py` read `CNA_ROOT_DIR` from the build tree's cache, so the inventory follows it.
-- **Mixed state at the end of 2026-10-22:** build/ is built at CNA `a6f9e9b2e` (to verify the haptics fix); build-probe
-  and the browser tree are still at `5b6aab981`, where the last full battery ran (`build/battery-5b6a/`). The build/
-  profiles are therefore stale until the battery runs again; the execution run is current for build-probe. To make all
-  of it current: rebuild build-probe and the browser tree, rerun the execution coverage run, then the battery.
+- **State at the end of 2026-10-22:** build/, build-probe and the browser tree are all built at CNA `a6f9e9b2e`; the last
+  full battery ran there (`build/battery-a6f9/summary.txt`, plan D07): 32 profiles current, 2 with failures, both CNA
+  defects. Execution runs `2026-10-22-opengles3-full-a6f9` and `-gs-avatar-a6f9` are current.
 - **Every build tree follows the worktree:** build/ and build-probe have `-DCNA_ROOT_DIR=…/cna-next`; the browser tree
   (build-consumer) takes it from `CNA_ROOT_DIR=… tools/build_web.sh`. The Android and MinGW trees were last built from
   `../cna` and still are; their profiles name the binary they ran.
