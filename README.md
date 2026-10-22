@@ -185,6 +185,7 @@ hardware.
 | `tools/build_android.sh`, `tools/android_run.sh` | the Android APK (OPENGLES3) and its tour on a headless x86_64 emulator |
 | `tools/window_check.sh` | the window with a real window manager on a private display: text and file dropped from a GTK window, focus away and back, minimise and restore |
 | `tools/tray_check.sh` | the tray icon against a private StatusNotifier host on a private session bus |
+| `tools/dialogs_check.sh` | the real portal file dialogs (xdg-desktop-portal-gtk on a private session bus and display) answered with typed paths, and message box buttons clicked with the pointer |
 | `tools/tour.sh [-f FRAMES] [-p] [-z N] [ROOM...]` | visits **every** room (or those named), prints engine statistics, exit status 0 only if nothing threw; `-p` also operates every control of every room through its whole range, `-z N` then makes N random control actions per room (a repeatable fuzz) |
 | `tools/leak_check.sh [RENDERER...]` | tours every room once and three times on the selected renderer(s): peak memory and registered textures must not grow |
 | `tools/nav_test.sh` | rides the elevator to every floor, walks all nine stair flights up and one down, and checks every arrival floor |

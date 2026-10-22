@@ -21,8 +21,8 @@ panel. Rooms that open something outside the museum do it only from their button
 | Touch screen | in-touch | tap, hold, drag, flick, pinch | gestures listed with positions and deltas | screenshot |
 | Camera | dev-camera | Open the default camera (private: only on your own machine) | state Ready, frames counted, picture on the screen; Close turns it off | screenshot; or `MUSEUM_ALLOW_CAMERA=1 tools/devices_check.sh` |
 | Desktop with a system tray (StatusNotifier host) | dev-tray | Create a tray icon, click its entries, toggle | icon and menu appear, "tray entry clicked" logged, checkable entry follows | screenshot, log |
-| Real file dialogs (portal or native) | dev-dialogs | each dialog button; pick a file, cancel once | callback reports the picked path, cancel reports no file | log lines `[museum][devices] FileDialog…` |
-| Message box with a pointer click | dev-dialogs | MessageBox.Show, click "No" | "MessageBox.Show returned button 1 (No)" | log |
+| Real file dialogs (portal or native) | dev-dialogs | each dialog button; pick a file, cancel once | callback reports the picked path, cancel reports no file | log lines `[museum][devices] FileDialog…` (automated through xdg-desktop-portal with its GTK backend on a private bus and display by `tools/dialogs_check.sh`; this step remains for the live desktop's own portal backend) |
+| Message box with a pointer click | dev-dialogs | MessageBox.Show, click "No" | "MessageBox.Show returned button 1 (No)" | log (automated with xdotool pointer clicks on a private display by `tools/dialogs_check.sh`) |
 | Browser | dev-tray | UrlLauncher.Open | the default viewer opens the local file | log line with `returned true` |
 | Phone sensors (Android/iOS build) | in-phone | Start each sensor, move the device | accelerometer/gyro/compass/motion readings change; vibration felt | screenshots per sensor |
 | Display hotplug / resize | pl-window | drag a window edge, move to a second screen | ClientSizeChanged counts rise; content scale updates | screenshot |

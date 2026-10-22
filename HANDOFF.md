@@ -55,7 +55,8 @@ BLOCKED_EXTERNAL with its blocker named. In short:
 - **Correctness:** exact witnesses in `[museum][check]` and `[museum][validate]` lines, `tools/scenarios.py`
   (also in the page: `tools/web_scenarios.py`), `tools/devices_check.sh`, `tools/audio_check.sh` (PCM through SDL's disk
   driver, now with the 3D voice), `tools/voice_check.sh`, `tools/net_check.sh`, `tools/online_check.sh` and
-  `tools/online_party_check.sh` (three accounts: invitation into a private slot, a party of three, sign-out).
+  `tools/online_party_check.sh` (three accounts: invitation into a private slot, a party of three, sign-out), `tools/window_check.sh`,
+  `tools/tray_check.sh` and `tools/dialogs_check.sh` (the real portal file dialogs and message box clicks on a private bus and display).
 - **Sanitizers:** ASan+UBSan (build-asan) and TSan (build-tsan) runs are recorded in plan P11; TSan found three CNA races.
 - **Platforms:** Linux natively on every renderer (also on the GPU: `MUSEUM_GPU=1` / `weston`); the browser edition
   (`tools/build_web.sh`, WEBGL2 tour 320/320; browser WebGPU blocked by two CNA defects); Android on the emulator
