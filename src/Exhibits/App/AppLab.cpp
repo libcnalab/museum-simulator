@@ -594,20 +594,6 @@ private:
         }
         b.AddWallSign(FarWall(), -3.2f, 2.3f, 3.6f, 2.4f, info);
 
-#ifdef __EMSCRIPTEN__
-        // Browser WebGPU: asking the device for these lists makes CNA create an rgba16unorm texture the device was not given
-        // the feature for, and the JavaScript exception ends the program (docs/CNA_FINDINGS.md). The room says so instead.
-        if (dev.GetGraphicsRendererType() == CNA::GraphicsRendererType::WebGPU) {
-            SignSpec note;
-            note.leftAlign = true;
-            note.pixelWidth = 900;
-            note.pixelHeight = 300;
-            note.lines.push_back({"Capability lists not queried here", true, Kit::kGold});
-            note.lines.push_back({"Browser WebGPU: the query creates a texture format the device lacks, which ends the program (a CNA defect; see docs/CNA_FINDINGS.md).", false, Kit::kText});
-            b.AddWallSign(FarWall(), 3.2f, 2.3f, 3.6f, 1.6f, note);
-            return;
-        }
-#endif
         using CNA::GraphicsCapability;
         SignSpec caps;
         caps.leftAlign = true;

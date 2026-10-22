@@ -60,29 +60,6 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
 - **Needed change:** implement vertex-stage sampling (and the float vertex-texture formats) on both, or make HiDef device
   creation report the missing feature; the room logs both as SKIP with these messages.
 
-### Browser WebGPU ends the program on a texture format the device was not given
-- **What happens:** in the browser build (WEBGPU through emdawnwebgpu, Chrome 155 on the machine's GPU), entering
-  `app-device` (which queries the device's capabilities and its renderer capability profile) ends the program with
-  `exit 0`, without `Game.Exiting`; the console says `Uncaught (in promise) TypeError: Failed to execute 'createTexture' on
-  'GPUDevice': Use of the 'rgba16unorm' texture format requires the 'texture-formats-tier1' feature to be enabled`
-  (`MUSEUM_WEB_RENDERER=WEBGPU tools/web_tour.sh app-device`). The native WEBGPU renderer runs the same room cleanly.
-- **Needed change:** request `texture-formats-tier1` when the adapter offers it, and otherwise refuse `Rgba64` (and the
-  other tier-1 formats) with a C++ exception instead of creating the texture; a JavaScript exception must not end the
-  program as a successful exit.
-- **Also on browser WebGPU:** every run reports one validation error at start-up, `CNA WebGPU uncaptured error (2):
-  Destroyed texture [Texture (unlabeled 1280x720 px, TextureFormat::BGRA8Unorm)] used in a submit` (the canvas texture of
-  the first frame is used after the canvas was reconfigured); `tools/web_tour.sh` counts it as a failure.
-- **Museum handling:** in a browser WebGPU build `app-device` does not query the capability lists and says why. The
-  browser tour (`MUSEUM_WEB_RENDERER=WEBGPU tools/web_tour.sh`) then reached 162 of 320 rooms with 0 exhibit errors until
-  the same exception ended the page near `rt-mrt` (a render target in Rgba64); the start-up validation error was reported
-  18 times on the way. Any room that creates an Rgba64 texture ends the browser WebGPU page.
-- **Re-run on 2026-10-20, after the WEBGL2 browser tour passed 320/320:** four rooms end the browser WebGPU page this way,
-  found one at a time: `rt-mrt`, `pl-renderer`, `rv-formats`, `rv-capabilities`. With them left out
-  (`MUSEUM_WEB_SKIP="rt-mrt pl-renderer rv-formats rv-capabilities"`) the other 316 rooms are all visited with 0 exhibit and
-  0 script errors and 69 renderer self-checks pass; the one self-check FAIL is the WEBGPU PBR metallic finding above, as
-  natively. The destroyed-canvas-texture validation error is not limited to start-up: it was reported 85 times over the
-  tour, so the browser WebGPU tour fails until both are fixed in CNA.
-
 ### HapticDevice's inline default constructor cannot be compiled outside CNA (CNA-DEMOS-ISSUE-009)
 - **Where:** `modules/input/include/CNA/Input/HapticDevice.hpp`: `CNAEXT HapticDevice() = default;` with a
   `std::unique_ptr<CNA::Platform::IPlatformHapticDevice>` member whose type no public header completes.
@@ -242,6 +219,8 @@ Measured by the `ct-storage` button "Error paths and async results, checked agai
   ASan+UBSan `tools/net_check.sh` run on 2026-10-20, packet round with `SendDataOptions.None`). GCC and Clang produce
   the expected bit today, so no packet was lost, but the compiler may assume it never happens.
 - **Needed change:** `1u << (index % 32)` in both places.
+- **2026-10-22:** CNA `5b6aab981` (MUSEUM-NET-003) makes both shifts `1u << (index % 32)` (read in the worktree's source);
+  the museum has not rerun UBSan on it (the sanitizer trees were removed after P11), so the entry stays here until it does.
 
 ### Data races found by ThreadSanitizer (build-tsan, 2026-10-20)
 Seen in the targeted TSan run (`tools/scenarios.py notifications inspector`, a 30-frame press-all tour of the au-*, dev-notify,
@@ -390,6 +369,11 @@ documents, where XNA also XORs the button states; the checks test the hash contr
 
 ## Fixed in CNA after the museum reported them
 
+- **Browser WebGPU ended the program on `rgba16unorm`** (no `texture-formats-tier1`; CNA `b6fc8e441`, MUSEUM-WEBGPU-001) and
+  **reported "Destroyed texture ... used in a submit"** (canvas backbuffer across browser waits; CNA `31a3d54b8`,
+  MUSEUM-WEBGPU-002): at CNA `5b6aab981` the browser WebGPU tour visits all 320 rooms (no rooms left out) with 0
+  destroyed-texture and 0 uncaptured errors, exit 0; `app-device` queries the capability lists in the browser again (the
+  museum's workaround is removed). The tour's one FAIL is the WEBGPU PbrEffect finding, as natively (2026-10-22).
 - **Host migration picked a gamer of the machine that just left** (`AttemptHostMigration`, CNA `cd9868526`,
   MUSEUM-NET-001): with two local gamers on the departing host, `tools/net_check.sh` now sees `HostChanged: Guest ->
   Visitor` and B keeps its session (2026-10-22).

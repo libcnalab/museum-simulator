@@ -39,7 +39,7 @@ The user resumed the goal on 2026-10-19 ("read the handoff and continue until th
 `plan.md` is the authoritative backlog with per-item status and evidence; read it first. Every row is DONE, NOT_APPLICABLE or
 BLOCKED_EXTERNAL with its blocker named. In short:
 
-- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 858 declarations (CNA next 93baa9363 in the worktree); the declarations whose
+- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 858 declarations (CNA next 5b6aab981 in the worktree); the declarations whose
   signatures name internal types are classified in `audit/internal_type_classification.json` (A11). A new one appears
   whenever CNA adds such a member: `--check` names its id; classify it (the latest, `ContentManager::ReadXnbHeader`, is
   public only through `DEF_PROP`'s `public:`, a CNA finding).
@@ -47,11 +47,13 @@ BLOCKED_EXTERNAL with its blocker named. In short:
   `audit/implementation_evidence.json`, whose anchors must each occur exactly once (rename new locals rather than repeat
   an anchored line). Every public header is either claimed or classified in `audit/area_classification.json`.
 - **Execution evidence:** build-probe is the coverage tree (`-DMUSEUM_COVERAGE=ON`, OPENGLES3;SOFTWARE;FNA3D;WEBGPU;SDL_GPU;
-  HEADLESS;STUB, every compiled-effects option, CNA_DIAGNOSTICS=FULL, every MUSEUM_* feature). Runs
-  `2026-10-20-opengles3-full` (320 rooms, one process each, on the GPU without a display), `-arrival-rooms` and
-  `-tex-io-branches` are current; their logs and line counters are tracked in `audit/runs/`. A source change makes them
-  historical: rebuild build-probe and rerun `tools/execution_coverage.py run --scenarios` before the next audit claims
-  execution.
+  HEADLESS;STUB, every compiled-effects option, CNA_DIAGNOSTICS=FULL, every MUSEUM_* feature), since 2026-10-22 built
+  against the `../cna-next` worktree like build/. Run `2026-10-22-opengles3-full` (320 rooms, one process each, 0 failed)
+  is the current one: 2 348 declarations executed, 1 658 claims fully executed. The older five runs are historical; their
+  logs and line counters stay tracked in `audit/runs/`. Any change under `src/` (or a rebuild against another CNA) makes the
+  run historical: rebuild build-probe and rerun `tools/execution_coverage.py run --id <id> --build-dir build-probe
+  --renderer OPENGLES3 --frames 20 --scenarios` before the next audit claims execution (the audit then shows 0 executed,
+  as it did between 2026-10-21 and 2026-10-22 without anyone noticing: check the "Execution runs" line).
 - **Correctness:** exact witnesses in `[museum][check]` and `[museum][validate]` lines, `tools/scenarios.py`
   (also in the page: `tools/web_scenarios.py`), `tools/devices_check.sh`, `tools/audio_check.sh` (PCM through SDL's disk
   driver, now with the 3D voice), `tools/voice_check.sh`, `tools/net_check.sh`, `tools/online_check.sh` and
@@ -68,7 +70,10 @@ BLOCKED_EXTERNAL with its blocker named. In short:
   WebGPU, the notification channel in a browser, Float16 on the Android emulator): those are recorded, not hidden.
 - **CNA defects** found by the museum are in `docs/CNA_FINDINGS.md` with the exact change each needs. CNA is owned
   by another agent: record, never edit. Entries move to "Fixed" when a museum run shows the fix.
-- **CNA worktree (since 2026-10-21):** at the owner's request `build/` is configured with `-DCNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next`, a detached `git worktree` of CNA's `next` branch beside the checkout (created with `git -C ../cna worktree add --detach ../cna-next <commit>`; the uninitialised submodule directories `third_party/SDL`, `SDL_mixer` and `draco` are copied in from `../cna`, as CNA's configure copies SDL and refuses symlinks). The other agent's edits in `../cna` no longer reach the museum; since 2026-10-22 it is at `93baa9363` (CNA fixed host migration, join in progress and the tray labels at the museum's request, sent with `codex queue` to the cna-demos session); to move on, check out a newer commit of `next` in the worktree (`git -C ../cna-next checkout --detach <commit>`) and rebuild. `tools/generate_api_inventory.py` and `tools/execution_coverage.py` read `CNA_ROOT_DIR` from the build tree's cache, so the inventory follows it.
+- **CNA worktree (since 2026-10-21):** at the owner's request `build/` is configured with `-DCNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next`, a detached `git worktree` of CNA's `next` branch beside the checkout (created with `git -C ../cna worktree add --detach ../cna-next <commit>`; the uninitialised submodule directories `third_party/SDL`, `SDL_mixer` and `draco` are copied in from `../cna`, as CNA's configure copies SDL and refuses symlinks). The other agent's edits in `../cna` no longer reach the museum; since 2026-10-22 it is at `5b6aab981` (CNA fixed host migration, join in progress and the tray labels at the museum's request, sent with `codex queue` to the cna-demos session); to move on, check out a newer commit of `next` in the worktree (`git -C ../cna-next checkout --detach <commit>`) and rebuild. `tools/generate_api_inventory.py` and `tools/execution_coverage.py` read `CNA_ROOT_DIR` from the build tree's cache, so the inventory follows it.
+- **Every build tree follows the worktree:** build/ and build-probe have `-DCNA_ROOT_DIR=…/cna-next`; the browser tree
+  (build-consumer) takes it from `CNA_ROOT_DIR=… tools/build_web.sh`. The Android and MinGW trees were last built from
+  `../cna` and still are; their profiles name the binary they ran.
 - **CNA's working tree moves:** every build compiles `../cna` as it is on disk, including another agent's uncommitted edits,
   and the inventory reads its headers. When CNA adds a declaration, `check_all`'s inventory step fails until
   `tools/generate_api_inventory.py --write` (and `tools/audit_api_coverage.py --write` after the rebuild) runs; while CNA

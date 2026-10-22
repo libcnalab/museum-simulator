@@ -2,6 +2,7 @@
 # Build the browser/WebAssembly edition with CNA's WebGL 2 renderer and, chosen at run time (?renderer=WEBGPU), its
 # browser WebGPU renderer (Emscripten's emdawnwebgpu port from the emsdk cache). MUSEUM_WEB_RENDERERS overrides the list.
 # Reuses build-consumer/, the project's shared cross-compilation build tree.
+# CNA_ROOT_DIR chooses the CNA checkout (as for the native build, e.g. the ../cna-next worktree); the tree keeps it.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -43,6 +44,7 @@ fi
   -DCNA_GRAPHICS_RENDERER=WEBGL2 \
   "-DCNA_GRAPHICS_RENDERERS=${MUSEUM_WEB_RENDERERS:-WEBGL2;WEBGPU}" \
   -DCNA_ENABLE_EMSCRIPTEN_THREADS=OFF \
+  ${CNA_ROOT_DIR:+"-DCNA_ROOT_DIR=$CNA_ROOT_DIR"} \
   -DMUSEUM_NETWORKING=OFF \
   -DMUSEUM_INSPECTOR=OFF \
   -DMUSEUM_VIDEO=OFF \
