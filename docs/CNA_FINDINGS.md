@@ -60,6 +60,18 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
 - **Needed change:** implement vertex-stage sampling (and the float vertex-texture formats) on both, or make HiDef device
   creation report the missing feature; the room logs both as SKIP with these messages.
 
+### Haptics.OpenEXT cannot open an id that Haptics.GetHapticsEXT listed (SDL's Linux backend)
+- **Where:** `modules/input/src/CnaExt/Haptics.cpp`: `GetHapticsEXT`, `OpenEXT` (and `IsMouseHapticEXT`) each hold the haptic
+  subsystem only for the call (`ScopedHapticSubsystem`). When the last reference goes, `Sdl3Platform::ReleaseSubsystem` calls
+  `SDL_QuitSubSystem(SDL_INIT_HAPTIC)`, SDL frees its device list, and the next acquisition rescans and hands out new
+  instance ids.
+- **What happens:** with a real kernel force-feedback device (a virtual one through `/dev/uinput`, `tools/haptics_check.sh`)
+  dev-haptics lists `1 device(s), #3 ...`, then `#5 ...` for the same device on the next listing, and `OpenEXT(5)` returns a
+  closed device because its own listing already calls it `#7`: listing a device and then opening it can never work unless
+  something else keeps `SDL_INIT_HAPTIC` initialised. The fake backend in CNA's own tests keeps its ids, so they pass.
+- **Needed change:** keep the ids stable across calls: hold the haptic subsystem while the platform's haptics service is
+  alive (or from the first `GetHapticsEXT` until shutdown), or map SDL's ids to stable ones (for example by device path).
+
 ### HapticDevice's inline default constructor cannot be compiled outside CNA (CNA-DEMOS-ISSUE-009)
 - **Where:** `modules/input/include/CNA/Input/HapticDevice.hpp`: `CNAEXT HapticDevice() = default;` with a
   `std::unique_ptr<CNA::Platform::IPlatformHapticDevice>` member whose type no public header completes.

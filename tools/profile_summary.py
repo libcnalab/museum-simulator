@@ -43,6 +43,7 @@ PROFILES = [
     ("online-party", "build", "tools/online_party_check.sh  (three accounts: invitation, private slot, party, sign-out)"),
     ("window", "build", "tools/window_check.sh  (drops, focus and minimise with openbox on a private display)"),
     ("tray", "build", "tools/tray_check.sh  (the tray icon against a private StatusNotifier host)"),
+    ("haptics", "build", "tools/haptics_check.sh  (a virtual force-feedback device through /dev/uinput)"),
     ("dialogs", "build", "tools/dialogs_check.sh  (portal file dialogs and message box clicks on a private bus and display)"),
     ("web-webgl2", "build-consumer", "tools/web_smoke.sh"),
     ("web-webgl2-tour", "build-consumer", "tools/web_tour.sh  (every room and control in headless Chrome)"),

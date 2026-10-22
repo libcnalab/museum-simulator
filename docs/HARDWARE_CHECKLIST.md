@@ -16,7 +16,7 @@ panel. Rooms that open something outside the museum do it only from their button
 | Microphone | au-mic | press start, speak, stop | the level meter moves; BufferReady count rises; stop ends capture | screenshot of the panel, log lines `[museum][audio]` |
 | Game pad (Xbox / PlayStation / Switch layout) | in-pad, in-players, in-devices | move sticks and triggers, press every button, plug and unplug | readouts follow, Identity shows type/GUID/label of A, IsConnected toggles on hotplug, vibration felt | screenshot, log |
 | Pad with gyro or touchpad | in-pad | tilt, touch the pad | Identity says gyro yes / touchpad fingers > 0 | screenshot |
-| Haptic device (force-feedback wheel, pad with effects) | dev-haptics | Open the first device, Rumble, Constant effect, Gain/Pause | rumble felt; "CreateEffectEXT n, update yes, run yes …"; closing stops all effects | log lines `[museum][devices] haptics:` |
+| Haptic device (force-feedback wheel, pad with effects) | dev-haptics | Open the first device, Rumble, Constant effect, Gain/Pause | rumble felt; "CreateEffectEXT n, update yes, run yes …"; closing stops all effects | log lines `[museum][devices] haptics:` (the API path down to the kernel is automated with a virtual /dev/uinput device by `tools/haptics_check.sh`; this step is the motor) |
 | Joystick | in-joystick | move axes, press buttons, hats | capability counts and live state | screenshot |
 | Touch screen | in-touch | tap, hold, drag, flick, pinch | gestures listed with positions and deltas | screenshot |
 | Camera | dev-camera | Open the default camera (private: only on your own machine) | state Ready, frames counted, picture on the screen; Close turns it off | screenshot; or `MUSEUM_ALLOW_CAMERA=1 tools/devices_check.sh` |
