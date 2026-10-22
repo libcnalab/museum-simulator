@@ -72,6 +72,17 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
 - **Needed change:** keep the ids stable across calls: hold the haptic subsystem while the platform's haptics service is
   alive (or from the first `GetHapticsEXT` until shutdown), or map SDL's ids to stable ones (for example by device path).
 
+### D3D9: a failed full-screen Reset is followed by a fatal GetRenderTarget error (seen under Wine)
+- **What happens:** the Windows build under Wine 10 on an Xvfb screen of 1280x720 with `--fullscreen` on DIRECTX9: `D3D9 Reset
+  (resize to 800x480) failed, hr=0x8876086C -- keeping previous size, retrying next frame`, then on the same frame
+  `IDirect3DDevice9::GetRenderTarget failed: D3DERR_NOTFOUND (SetViewport)` escapes `Game::Run()` and the game ends. Xvfb
+  cannot switch display modes, so the mode is honestly unavailable; with an 800x480 screen the same run works.
+- **Why it matters:** after a failed `Reset` a Direct3D 9 device accepts only `Reset`, `TestCooperativeLevel` and `Release`,
+  so "retrying next frame" must not issue other device calls in between. XNA reports an unusable mode from
+  `GraphicsDeviceManager.ApplyChanges` (`NoSuitableGraphicsDeviceException`) instead of a later unrelated failure.
+- **Needed change (suggestion):** treat a failed Reset as a lost device until a Reset succeeds (gate draws as for
+  `D3DERR_DEVICELOST`), or surface the unusable mode from ApplyChanges. Not seen on real Windows (none here).
+
 ### HapticDevice's inline default constructor cannot be compiled outside CNA (CNA-DEMOS-ISSUE-009)
 - **Where:** `modules/input/include/CNA/Input/HapticDevice.hpp`: `CNAEXT HapticDevice() = default;` with a
   `std::unique_ptr<CNA::Platform::IPlatformHapticDevice>` member whose type no public header completes.
