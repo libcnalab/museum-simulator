@@ -16,7 +16,8 @@ native=${MUSEUM_BIN:-build/bin/cna-3d-museum}
 renderer=${CNA_GRAPHICS_RENDERER:-SOFTWARE}
 [ -f "$exe" ] || { echo "error: $exe is not built (docs/RENDERER_TESTING.md has the MinGW recipe)" >&2; exit 2; }
 [ -x "$native" ] || { echo "error: $native (for the room list and the compiled content) is not built" >&2; exit 2; }
-command -v wine > /dev/null && command -v xvfb-run > /dev/null || { echo "error: wine and xvfb-run are needed" >&2; exit 2; }
+command -v wine > /dev/null && command -v Xvfb > /dev/null || { echo "error: wine and Xvfb are needed" >&2; exit 2; }
+xvfb=$PWD/tools/private_xvfb.sh
 
 # The content tool is a foreign executable in this tree, so the compiled content comes from the native build; the MinGW
 # runtime libraries sit next to the executable.
@@ -33,7 +34,7 @@ log=$dir/wine-tour-$renderer.log
 start=$(date +%s)
 # The script file is given relative to the working directory, which Wine maps as it is.
 (cd "$dir/bin" && WINEPREFIX=${WINEPREFIX:-$HOME/.cache/museum-wine} WINEDEBUG=-all SDL_VIDEODRIVER=windows CNA_GRAPHICS_RENDERER=$renderer \
-  timeout -k 15 "${MUSEUM_TIMEOUT:-5400}" xvfb-run -a -s "-screen 0 1280x720x24" wine cna-3d-museum.exe --script-file ../wine-tour.script --no-audio) > "$log" 2>&1
+  timeout -k 15 "${MUSEUM_TIMEOUT:-5400}" "$xvfb" -s "-screen 0 1280x720x24" wine cna-3d-museum.exe --script-file ../wine-tour.script --no-audio) > "$log" 2>&1
 status=$?
 seconds=$(( $(date +%s) - start ))
 stats=$(grep -a '\[museum\]\[stats\]' "$log" | tail -1)

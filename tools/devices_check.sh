@@ -39,8 +39,12 @@ exit 0
 EOF
 chmod +x "$dir/fakebin/xdg-open" "$dir/fakebin/zenity"
 
-display=$((350 + RANDOM % 40))
-Xvfb :$display -screen 0 1920x1080x24 > /dev/null 2>&1 & xvfb=$!
+# Xvfb picks a free display itself (-displayfd): a guessed number could belong to another session's display.
+exec 3> "$dir/display"
+Xvfb -displayfd 3 -nolisten tcp -screen 0 1920x1080x24 > /dev/null 2>&1 & xvfb=$!
+for _ in $(seq 1 50); do [ -s "$dir/display" ] && break; sleep 0.1; done
+exec 3>&-
+display=$(tr -dc '0-9' < "$dir/display")
 museum= answerer=
 cleanup() {
   [ -n "$answerer" ] && kill "$answerer" 2> /dev/null
@@ -48,8 +52,7 @@ cleanup() {
   kill "$xvfb" 2> /dev/null
 }
 trap cleanup EXIT
-sleep 1
-kill -0 $xvfb 2> /dev/null || { echo "FAIL: Xvfb :$display did not start"; exit 1; }
+[ -n "$display" ] && kill -0 $xvfb 2> /dev/null || { echo "FAIL: Xvfb did not start"; exit 1; }
 
 script="goto:dev-dialogs;wait:30;press:ShowOpenFile;wait:90;press:ShowSaveFile;wait:90;press:ShowOpenFolder;wait:90;press:MessageBox.ShowSimple;wait:30;press:MessageBox.Show (Yes;wait:30"
 script+=";goto:dev-tray;wait:30;press:Create a tray icon;wait:10;press:Toggle the checkable entry;wait:5;press:Enable / disable;wait:5;press:UrlLauncher.Open;wait:30;press:Remove the tray icon;wait:5"

@@ -26,7 +26,7 @@ museum_headless() {
     return 2
   fi
   local gpu=${MUSEUM_GPU:-}
-  [ -n "$gpu" ] || command -v xvfb-run >/dev/null 2>&1 || { echo "error: xvfb-run is required (package xvfb)" >&2; return 2; }
+  [ -n "$gpu" ] || command -v Xvfb >/dev/null 2>&1 || { echo "error: Xvfb is required (package xvfb)" >&2; return 2; }
   mkdir -p "$(dirname "$log")"
   # Two runs writing the same log would interleave and each would read the other's result: the second one is refused.
   # (Point BUILD_DIR or MUSEUM_LOG elsewhere to run side by side.) The lock is released when this run ends, however it ends.
@@ -76,7 +76,7 @@ museum_headless() {
     env -u WAYLAND_DISPLAY SDL_VIDEODRIVER=x11 ${audio:+SDL_AUDIODRIVER=$audio} LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS="${LP_NUM_THREADS:-${MUSEUM_RENDER_THREADS:-3}}" \
       CNA_GAMER_SERVICES_PROFILES_DIR="${CNA_GAMER_SERVICES_PROFILES_DIR:-$root/${BUILD_DIR:-build}/gamer-profiles}" XDG_DATA_HOME="${MUSEUM_DATA_HOME:-$root/${BUILD_DIR:-build}/data-home}" \
       timeout -k 15 "${MUSEUM_TIMEOUT:-300}" \
-      xvfb-run -a -e "$log.xvfb" -s "-screen 0 ${MUSEUM_SCREEN:-1920x1080x24}" "$bin" "$@" > "$log" 2>&1
+      "$root/tools/private_xvfb.sh" -e "$log.xvfb" -s "-screen 0 ${MUSEUM_SCREEN:-1920x1080x24}" "$bin" "$@" > "$log" 2>&1
     status=$?
   fi
   [ -n "${museum_lock:-}" ] && exec {museum_lock}>&-

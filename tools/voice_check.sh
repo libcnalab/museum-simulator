@@ -4,10 +4,10 @@
 # to another. A hosts a SystemLink session, B joins; CNA routes the voice itself (Opus, 16 kHz). B must log that A's
 # gamer started talking, and B's output must contain the tone. Neither process has a real audio device.
 #
-#   tools/voice_check.sh        exit 0 when every check passed; needs xvfb-run and python3 with numpy
+#   tools/voice_check.sh        exit 0 when every check passed; needs Xvfb and python3 with numpy
 set -u
 cd "$(dirname "$0")/.." || exit 2
-command -v xvfb-run > /dev/null || { echo "skipped: xvfb-run is not installed"; exit 77; }
+command -v Xvfb > /dev/null || { echo "skipped: Xvfb is not installed"; exit 77; }
 python3 -c "import numpy" 2> /dev/null || { echo "skipped: python3 numpy is not installed"; exit 77; }
 bin=$PWD/${MUSEUM_BIN:-${BUILD_DIR:-build}/bin/cna-3d-museum}
 [ -x "$bin" ] || { echo "FAIL: $bin is not built"; exit 1; }
@@ -32,7 +32,7 @@ launch() {   # launch NAME SCRIPT [extra env...]
   env -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 \
     SDL_AUDIO_DRIVER=disk SDL_AUDIO_DISK_OUTPUT_FILE="$dir/$name-output.raw" SDL_AUDIO_DISK_INPUT_FILE="$dir/microphone.raw" "$@" \
     CNA_GAMER_SERVICES_PROFILES_DIR="$dir/$name-profiles" XDG_DATA_HOME="$dir/$name-data" timeout -k 15 "${MUSEUM_TIMEOUT:-240}" \
-    xvfb-run -a -s "-screen 0 1280x720x24" "$bin" --script "$script" --fixed-step 0.02 > "$dir/$name.log" 2>&1 &
+    tools/private_xvfb.sh -s "-screen 0 1280x720x24" "$bin" --script "$script" --fixed-step 0.02 > "$dir/$name.log" 2>&1 &
   pids+=($!)
 }
 launch talker "goto:net-session;wait:20;press:Deliver packets=1;wait:20;press:SessionProperties[0] (game mode)=$mode;wait:1600;stats;quit"

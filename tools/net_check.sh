@@ -10,7 +10,7 @@
 # joining a session somebody else hosts at the same time.
 set -u
 cd "$(dirname "$0")/.." || exit 2
-command -v xvfb-run > /dev/null || { echo "skipped: xvfb-run is not installed"; exit 77; }
+command -v Xvfb > /dev/null || { echo "skipped: Xvfb is not installed"; exit 77; }
 bin=$PWD/${MUSEUM_BIN:-${BUILD_DIR:-build}/bin/cna-3d-museum}
 [ -x "$bin" ] || { echo "FAIL: $bin is not built"; exit 1; }
 dir=$PWD/${BUILD_DIR:-build}/net-check
@@ -25,7 +25,7 @@ launch() {   # launch NAME SCRIPT
   mkdir -p "$dir/$1-profiles"
   env -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS SDL_VIDEODRIVER=x11 SDL_AUDIODRIVER=dummy LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 \
     CNA_GAMER_SERVICES_PROFILES_DIR="$dir/$1-profiles" XDG_DATA_HOME="$dir/$1-data" timeout -k 15 "${MUSEUM_TIMEOUT:-240}" \
-    xvfb-run -a -s "-screen 0 1280x720x24" "$bin" --script "$2" --fixed-step 0.02 --no-audio > "$dir/$1.log" 2>&1 &
+    tools/private_xvfb.sh -s "-screen 0 1280x720x24" "$bin" --script "$2" --fixed-step 0.02 --no-audio > "$dir/$1.log" 2>&1 &
   pids+=($!)
 }
 

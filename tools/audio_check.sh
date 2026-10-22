@@ -5,10 +5,10 @@
 # 440 Hz, and with SoundEffect.MasterVolume at 0 the output must fall silent (rooms play ambience otherwise). This proves CNA mixed and delivered the samples; it is not
 # a listening test (whether a loudspeaker makes the sound audible is a manual check).
 #
-#   tools/audio_check.sh        exit 0 when every check passed; needs xvfb-run and python3 with numpy
+#   tools/audio_check.sh        exit 0 when every check passed; needs Xvfb and python3 with numpy
 set -u
 cd "$(dirname "$0")/.." || exit 2
-command -v xvfb-run > /dev/null || { echo "skipped: xvfb-run is not installed"; exit 77; }
+command -v Xvfb > /dev/null || { echo "skipped: Xvfb is not installed"; exit 77; }
 python3 -c "import numpy" 2> /dev/null || { echo "skipped: python3 numpy is not installed"; exit 77; }
 bin=$PWD/${MUSEUM_BIN:-${BUILD_DIR:-build}/bin/cna-3d-museum}
 [ -x "$bin" ] || { echo "FAIL: $bin is not built"; exit 1; }
@@ -30,7 +30,7 @@ record() {   # record NAME "ROOM;SCRIPT" [MUSEUM ARGS]: one museum run whose aud
   env -u WAYLAND_DISPLAY SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=3 \
     SDL_AUDIO_DRIVER=disk SDL_AUDIO_DISK_OUTPUT_FILE="$dir/$1.raw" SDL_AUDIO_DISK_INPUT_FILE="$dir/mic-input.raw" \
     CNA_GAMER_SERVICES_PROFILES_DIR="$dir/profiles" XDG_DATA_HOME="$dir/data" timeout -k 15 "${MUSEUM_TIMEOUT:-200}" \
-    xvfb-run -a -s "-screen 0 1280x720x24" "$bin" --room "${2%%;*}" --script "${2#*;}" --fixed-step 0.02 ${3:-} > "$dir/$1.log" 2>&1
+    tools/private_xvfb.sh -s "-screen 0 1280x720x24" "$bin" --room "${2%%;*}" --script "${2#*;}" --fixed-step 0.02 ${3:-} > "$dir/$1.log" 2>&1
   echo $?
 }
 

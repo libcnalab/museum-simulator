@@ -54,10 +54,14 @@ finish() {
 abort() { bad "$1"; finish "$1"; }
 
 launch() {   # launch NAME SCRIPT: one museum on its own display, with its own profiles, credentials and data
-  local n=$((360 + ${#xvfbs[@]} * 7 + RANDOM % 5))
-  Xvfb :$n -screen 0 1280x720x24 > /dev/null 2>&1 &
+  # Xvfb picks a free display itself (-displayfd): a guessed number could belong to another session's display.
+  local n
+  exec 3> "$dir/$1.display"
+  Xvfb -displayfd 3 -nolisten tcp -screen 0 1280x720x24 > /dev/null 2>&1 &
   xvfbs+=($!)
-  sleep 1
+  for _ in $(seq 1 50); do [ -s "$dir/$1.display" ] && break; sleep 0.1; done
+  exec 3>&-
+  n=$(tr -dc '0-9' < "$dir/$1.display")
   display[$1]=:$n
   mkdir -p "$dir/$1/data" "$dir/$1/profiles"
   mkdir -m 700 -p "$dir/$1/credentials"

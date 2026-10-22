@@ -39,11 +39,14 @@ unset WAYLAND_DISPLAY
 rm -rf "$CNA_GAMER_SERVICES_PROFILES_DIR" "$CNA_GAMER_SERVICES_CREDENTIALS_DIR"
 mkdir -m 700 -p "$CNA_GAMER_SERVICES_CREDENTIALS_DIR"
 log=$dir/check.log
-display=$((300 + RANDOM % 50))
-Xvfb :$display -screen 0 1920x1080x24 > /dev/null 2>&1 & xvfb=$!
+# Xvfb picks a free display itself (-displayfd): a guessed number could belong to another session's display.
+exec 3> "$dir/display"
+Xvfb -displayfd 3 -nolisten tcp -screen 0 1920x1080x24 > /dev/null 2>&1 & xvfb=$!
+for _ in $(seq 1 50); do [ -s "$dir/display" ] && break; sleep 0.1; done
+exec 3>&-
+display=$(tr -dc '0-9' < "$dir/display")
 export DISPLAY=:$display
-sleep 1
-kill -0 $xvfb 2> /dev/null || { xvfb=; echo "FAIL: Xvfb :$display did not start"; exit 1; }
+[ -n "$display" ] && kill -0 $xvfb 2> /dev/null || { xvfb=; echo "FAIL: Xvfb did not start"; exit 1; }
 script="goto:gs-leaderboards;wait:20;e;wait:20;press:Guide.ShowSignIn=1;wait:1200;press:add 10 to=1;wait:900;press:Log the board from the top;wait:60;goto:on-friends;wait:200;press:Log the friends;wait:60;goto:gs-players;wait:200;quit"
 timeout -k 15 "${MUSEUM_TIMEOUT:-300}" "$bin" --script "$script" --fixed-step 0.02 --no-audio > "$log" 2>&1 & museum=$!
 fail() { echo "FAIL: $1 (log: $log)"; python3 tools/record_profile.py online --passed 0 --failed 1 --note "$1" || true; exit 1; }
