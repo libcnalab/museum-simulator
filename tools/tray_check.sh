@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# The tray icon of dev-tray (SystemTray over SDL's StatusNotifierItem) against a private tray host: a private session bus
-# (dbus-run-session) carries a small StatusNotifierWatcher and host written with GDBus, the museum runs on a private Xvfb, and
-# the host reads the item's tooltip and menu back and clicks "Say hello" exactly as a desktop panel does (dbusmenu Event).
-# The user's desktop, session bus and panel are never involved.
+# The tray icon of dev-tray (SystemTray over SDL's StatusNotifierItem) against a private tray host, and UrlLauncher: a private
+# session bus (dbus-run-session with a bus that can start no service) carries a small StatusNotifierWatcher and host written
+# with GDBus, the museum runs on a private Xvfb, and the host reads the item's tooltip and menu back and clicks "Say hello"
+# exactly as a desktop panel does (dbusmenu Event). UrlLauncher goes through the real xdg-open to the MIME default of a private
+# mimeapps.list: headless Chrome with no display, a private profile and no network loads the page. The user's desktop,
+# session bus, panel and browser are never involved.
 #   tools/tray_check.sh      exit 0 when every check passed; 77 when a prerequisite is absent
 set -u
 cd "$(dirname "$0")/.." || exit 2
@@ -10,14 +12,49 @@ bin=${MUSEUM_BIN:-${BUILD_DIR:-build}/bin/cna-3d-museum}
 [ -x "$bin" ] || { echo "FAIL: $bin is not built"; exit 1; }
 for tool in Xvfb dbus-run-session; do command -v $tool > /dev/null || { echo "skipped: $tool is not installed"; exit 77; }; done
 /usr/bin/python3 -c "import gi; gi.require_version('Gio', '2.0')" 2> /dev/null || { echo "skipped: the system Python has no GObject introspection"; exit 77; }
-dir=${BUILD_DIR:-build}/tray-check
-mkdir -p "$dir"
+dir=$PWD/${BUILD_DIR:-build}/tray-check
+rm -rf "$dir/run" "$dir/home"
+mkdir -p "$dir/run" "$dir/home" "$dir/services"
+chmod 700 "$dir/run"
 log=$dir/museum.log host=$dir/host.log
+# The bus can start nothing (an empty service directory): no portal, keyring or file system daemon wakes up for the museum.
+cat > "$dir/bus.conf" <<EOF
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <type>session</type>
+  <listen>unix:dir=$dir/run</listen>
+  <servicedir>$dir/services</servicedir>
+  <policy context="default"><allow send_destination="*" eavesdrop="true"/><allow eavesdrop="true"/><allow own="*"/></policy>
+</busconfig>
+EOF
 
-# Everything below runs inside its own session bus, which ends with it.
-env -u DBUS_SESSION_BUS_ADDRESS dbus-run-session -- bash -s "$bin" "$dir" "$log" "$host" <<'INNER'
+# UrlLauncher goes through the real xdg-open. Its choice of program comes from a private mimeapps.list: a desktop entry
+# that runs Chrome headless (no display), with a private profile and every network path closed, and prints the loaded
+# page. BROWSER, xdg-open's fallback when no MIME default is found, runs the same browser but is told apart in the log.
+rm -f "$dir/browser.log"
+mkdir -p "$dir/home/.config" "$dir/data/applications"
+cat > "$dir/browser.sh" <<EOF
+#!/bin/sh
+# browser.sh HOW URL: Chrome headless prints the DOM of URL (a local file); HOW names the path that chose it.
+echo "chosen by \$1: \$2" >> "$dir/browser.log"
+env -u DISPLAY -u WAYLAND_DISPLAY timeout 40 ${MUSEUM_CHROME:-google-chrome} --headless=new --no-sandbox --disable-gpu \\
+  --user-data-dir="$dir/chrome-profile" --no-first-run --disable-background-networking --disable-component-update \\
+  --disable-sync --disable-extensions --proxy-server=127.0.0.1:9 --host-resolver-rules="MAP * ~NOTFOUND" \\
+  --dump-dom "\$2" >> "$dir/browser.log" 2> "$dir/chrome.log"
+echo "exit \$?" >> "$dir/browser.log"
+EOF
+printf '#!/bin/sh\nexec "%s" browser-env "$1"\n' "$dir/browser.sh" > "$dir/browser-env.sh"
+chmod +x "$dir/browser.sh" "$dir/browser-env.sh"
+printf '[Desktop Entry]\nType=Application\nName=Museum check browser\nExec=%s mime-default %%u\nMimeType=image/png;text/html;\n' "$dir/browser.sh" \
+  > "$dir/data/applications/museum-check-browser.desktop"
+printf '[Default Applications]\nimage/png=museum-check-browser.desktop\ntext/html=museum-check-browser.desktop\n' > "$dir/home/.config/mimeapps.list"
+
+# Everything below runs inside its own session bus, which ends with it; no display, runtime directory or HOME of the
+# real session is passed in.
+env -u DBUS_SESSION_BUS_ADDRESS -u DISPLAY -u WAYLAND_DISPLAY HOME="$dir/home" XDG_RUNTIME_DIR="$dir/run" XDG_CONFIG_HOME="$dir/home/.config" \
+  XDG_CACHE_HOME="$dir/home/.cache" dbus-run-session --config-file="$dir/bus.conf" -- bash -s "$bin" "$dir" "$log" "$host" <<'INNER'
 bin=$1 dir=$2 log=$3 host=$4
-case "$DBUS_SESSION_BUS_ADDRESS" in *"$XDG_RUNTIME_DIR/bus"*) echo "FAIL: not a private session bus"; exit 1 ;; esac
+case "$DBUS_SESSION_BUS_ADDRESS" in *"$dir/run"*) ;; *) echo "FAIL: not the private session bus"; exit 1 ;; esac
 /usr/bin/python3 -I - > "$host" 2>&1 <<'PY' &
 from gi.repository import Gio, GLib
 XML = """<node><interface name="org.kde.StatusNotifierWatcher">
@@ -85,9 +122,11 @@ Xvfb -displayfd 3 -screen 0 1280x720x24 > /dev/null 2>&1 & xvfb=$!
 for _ in $(seq 1 50); do [ -s "$dir/display" ] && break; sleep 0.1; done
 exec 3>&-
 env -u WAYLAND_DISPLAY DISPLAY=:$(tr -dc '0-9' < "$dir/display") SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=${LP_NUM_THREADS:-3} \
-  XDG_DATA_HOME="$dir/data" timeout -k 15 "${MUSEUM_TIMEOUT:-240}" "$bin" --room dev-tray --no-audio --fixed-step 0.02 --script \
-  "wait:60;press:Create a tray icon;await:tray entry clicked,3000;press:Toggle the checkable entry;wait:10;press:Enable / disable the first entry;wait:300;press:Remove the tray icon;wait:20;stats;quit" \
+  XDG_DATA_HOME="$dir/data" XDG_DATA_DIRS="$dir/data:/usr/share" BROWSER="$dir/browser-env.sh" timeout -k 15 "${MUSEUM_TIMEOUT:-240}" "$bin" --room dev-tray --no-audio --fixed-step 0.02 --script \
+  "wait:60;press:Create a tray icon;await:tray entry clicked,3000;press:Toggle the checkable entry;wait:10;press:Enable / disable the first entry;wait:300;press:UrlLauncher.Open;wait:20;press:Remove the tray icon;wait:20;stats;quit" \
   > "$log" 2>&1
+# The browser loads a local file and quits by itself; give it the time it needs.
+for _ in $(seq 1 60); do grep -q '^exit ' "$dir/browser.log" 2> /dev/null && break; sleep 0.5; done
 echo $? > "$dir/status"
 kill $hostpid $xvfb 2> /dev/null
 INNER
@@ -102,7 +141,7 @@ notrun=0
 if grep -q '_dbus_check_is_valid_utf8' "$log"; then
   # A known CNA defect ends the run at the first menu request; what depends on the menu is not verified, not passed.
   bad "a tray host reading the menu made the museum abort (dangling entry labels, docs/CNA_FINDINGS.md)"
-  notrun=7
+  notrun=10
   echo "summary: $passed passed, $failed failed, $notrun not run because of it (logs: $dir)"
   python3 tools/record_profile.py tray --passed $passed --failed $failed --not-run $notrun --note "CNA: a tray host's menu request aborts the game (dangling labels)" || true
   exit 1
@@ -114,6 +153,11 @@ check "SetEntryEnabled on the first entry" "tray: first entry disabled" "$log"
 check "the icon was removed" "tray: icon removed" "$log"
 [ "$(cat "$dir/status" 2> /dev/null)" = 0 ] && ok "the museum exited cleanly" || bad "the museum exited with status $(cat "$dir/status" 2> /dev/null)"
 check "the host read the tooltip back over D-Bus (the museum survives it)" "tooltip: CNA 3D Museum: Devices and the System" "$host"
+grep -qE 'UrlLauncher.Open\(file://.*/Textures/checker.png\) returned true' "$log" && ok "UrlLauncher.Open handed the local page over" || bad "UrlLauncher: $(grep -a 'UrlLauncher' "$log" | tail -1 | cut -c1-160)"
+grep -qE '^chosen by mime-default: (file://)?/.*/Textures/checker.png$' "$dir/browser.log" 2> /dev/null && ok "xdg-open chose the browser from the MIME default for image/png" \
+  || bad "browser choice: $(head -1 "$dir/browser.log" 2> /dev/null || echo 'no browser was started')"
+grep -qE '<img [^>]*src="file://[^"]*/Textures/checker.png"' "$dir/browser.log" 2> /dev/null && grep -q '^exit 0$' "$dir/browser.log" \
+  && ok "the browser loaded the page (its DOM shows the picture)" || bad "browser page: $(grep -v '^chosen' "$dir/browser.log" 2> /dev/null | head -2 | tr '\n' ' ' | cut -c1-160)"
 grep -qE '\[museum\]\[stats\].*exhibit errors 0 .*script errors 0' "$log" && ok "final stats with 0 exhibit and 0 script errors" || bad "stats: $(grep -a '\[stats\]\|script-error' "$log" | tail -2 | tr '\n' ' ' | cut -c1-160)"
 echo "summary: $passed passed, $failed failed (logs: $dir)"
 python3 tools/record_profile.py tray --passed $passed --failed $failed || true

@@ -9,11 +9,11 @@ is generated in `build/api-audit/coverage-evidence.json`.
 
 Museum catalogue SHA-256: `39d61a9b15eda78238265dafa87b97e2c0c0779572b09de0e60ac48491d8faac`; exhibit sources SHA-256: `db0c15336bf771d95d64b0a03344df3848d58d746fc27e68753c9af1b9fe5160`
 
-CNA revision: `7b028ebe817a544be3030ff43dfdfe9568ef0113` (`v0.1.0-641-g7b028ebe8`)
+CNA revision: `93baa9363c0dafac23ad37f72ff876424cbcbe66` (`v0.1.0-680-g93baa9363`)
 
 Claims: **2904**; exact declaration matches: **2404**; member/overload families: **490**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
 
-Public declarations: **19856**; linked by at least one catalogue name: **3778**; implementation-verified: **3263**; executed: **0**; correctness-verified: **0**.
+Public declarations: **19858**; linked by at least one catalogue name: **3778**; implementation-verified: **3263**; executed: **0**; correctness-verified: **0**.
 
 Implementation source located through the exhibit registry for **320 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
 Reviewed implementation records: **3717**; fully implementation-verified claims: **2570**. Reviewed claim-room pairs: **3604** of **3604**; fully verified pairs: **3090**.
@@ -32,7 +32,7 @@ Correctness oracles: **5**; fully correctness-verified claims: **0**; correctnes
 | `devices-ext` | 84 | 41 | 43 |
 | `diagnostics` | 224 | 37 | 187 |
 | `gamer-services` | 690 | 120 | 570 |
-| `graphics` | 2912 | 784 | 2128 |
+| `graphics` | 2914 | 784 | 2130 |
 | `graphics-ext` | 106 | 16 | 90 |
 | `input` | 897 | 166 | 731 |
 | `inspector` | 189 | 19 | 170 |
@@ -403,7 +403,7 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 
 ## Public API areas
 
-**542** public headers (16970 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
+**542** public headers (16972 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
 `audit/area_classification.json` (first match wins; the check fails for an unclassified header or a stale rule):
 
 | Status | Headers | Declarations | Meaning |

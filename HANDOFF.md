@@ -39,7 +39,7 @@ The user resumed the goal on 2026-10-19 ("read the handoff and continue until th
 `plan.md` is the authoritative backlog with per-item status and evidence; read it first. Every row is DONE, NOT_APPLICABLE or
 BLOCKED_EXTERNAL with its blocker named. In short:
 
-- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 856 declarations (CNA next 7b028ebe8 in the worktree); the declarations whose
+- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 858 declarations (CNA next 93baa9363 in the worktree); the declarations whose
   signatures name internal types are classified in `audit/internal_type_classification.json` (A11). A new one appears
   whenever CNA adds such a member: `--check` names its id; classify it (the latest, `ContentManager::ReadXnbHeader`, is
   public only through `DEF_PROP`'s `public:`, a CNA finding).
@@ -68,7 +68,7 @@ BLOCKED_EXTERNAL with its blocker named. In short:
   WebGPU, the notification channel in a browser, Float16 on the Android emulator): those are recorded, not hidden.
 - **CNA defects** found by the museum are in `docs/CNA_FINDINGS.md` with the exact change each needs. CNA is owned
   by another agent: record, never edit. Entries move to "Fixed" when a museum run shows the fix.
-- **CNA worktree (since 2026-10-21):** at the owner's request `build/` is configured with `-DCNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next`, a detached `git worktree` of CNA's `next` branch beside the checkout (created with `git -C ../cna worktree add --detach ../cna-next <commit>`; the uninitialised submodule directories `third_party/SDL`, `SDL_mixer` and `draco` are copied in from `../cna`, as CNA's configure copies SDL and refuses symlinks). The other agent's edits in `../cna` no longer reach the museum; to move on, check out a newer commit of `next` in the worktree (`git -C ../cna-next checkout --detach <commit>`) and rebuild. `tools/generate_api_inventory.py` and `tools/execution_coverage.py` read `CNA_ROOT_DIR` from the build tree's cache, so the inventory follows it.
+- **CNA worktree (since 2026-10-21):** at the owner's request `build/` is configured with `-DCNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next`, a detached `git worktree` of CNA's `next` branch beside the checkout (created with `git -C ../cna worktree add --detach ../cna-next <commit>`; the uninitialised submodule directories `third_party/SDL`, `SDL_mixer` and `draco` are copied in from `../cna`, as CNA's configure copies SDL and refuses symlinks). The other agent's edits in `../cna` no longer reach the museum; since 2026-10-22 it is at `93baa9363` (CNA fixed host migration, join in progress and the tray labels at the museum's request, sent with `codex queue` to the cna-demos session); to move on, check out a newer commit of `next` in the worktree (`git -C ../cna-next checkout --detach <commit>`) and rebuild. `tools/generate_api_inventory.py` and `tools/execution_coverage.py` read `CNA_ROOT_DIR` from the build tree's cache, so the inventory follows it.
 - **CNA's working tree moves:** every build compiles `../cna` as it is on disk, including another agent's uncommitted edits,
   and the inventory reads its headers. When CNA adds a declaration, `check_all`'s inventory step fails until
   `tools/generate_api_inventory.py --write` (and `tools/audit_api_coverage.py --write` after the rebuild) runs; while CNA

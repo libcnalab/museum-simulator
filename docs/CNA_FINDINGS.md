@@ -21,27 +21,6 @@ are named in the code where they are used and listed here; nothing is hidden beh
 - **Seen in the museum:** `math-checks`, check "BoundingFrustum.Intersects(Ray from outside)" (FAIL); the by-reference
   overload agrees with the value one for a ray from inside (PASS).
 
-### Host migration picks a gamer of the machine that just left
-- **Where:** `modules/net/src/Internal/ENetBackend.cpp`, `AttemptHostMigration`: survivors are every wire id except the
-  departing *host gamer*; the departing machine's other local gamers are still in `WireIdToGamer`, because
-  `HandleDisconnect` asks for the migration before `RemovePeerGamers`.
-- **What happens:** a host with two local gamers (ids 0 and 1) leaves; every client picks id 1, a gamer on the machine
-  that is gone, cannot reach it and ends the session with `HostEndedSession` although every client sees
-  `AllowHostMigration true` (`tools/net_check.sh`, round with two local gamers on the host).
-- **Needed change:** exclude every gamer of the departing peer (its machine), not only the host gamer, before choosing
-  the lowest remaining wire id.
-
-### A gamer joining a game in progress stays in the lobby
-- **Where:** `modules/net/include/CNA/Internal/Net/NetPacketCodec.hpp`, `ServerWelcomeMessage` (wire ids, roster and
-  session properties, but no session state), and `ENetBackend`'s `HandleServerWelcome`. `StartGame` announces Playing with
-  `BroadcastStateChange` only to the peers connected at that moment.
-- **What happens:** with `AllowJoinInProgress` the host starts the game, a second museum joins: the joiner's
-  `SessionState` is `Lobby` and it never raises `GameStarted`, while the host plays (`tools/net_check.sh`, round lifecycle:
-  "Joined: ... AllowJoinInProgress true, state Lobby").
-- **XNA 4.0:** a gamer that joins in progress joins a session whose `SessionState` is `Playing`.
-- **Needed change:** carry the session state in `ServerWelcomeMessage` (and apply it in `HandleServerWelcome`, raising
-  nothing for the joiner, as XNA's joiner does not get GameStarted replayed), or send a state change to the new peer.
-
 ### PbrEffect differs between renderers (rv-shading)
 The same face-on quad (`VertexPositionNormalTexture`), one directional light along -Z, camera in front (`tools/renderer_check.sh`):
 - **OPENGLES3, OPENGL33, SOFTWARE, FNA3D:** red dielectric 151,10,10; MetallicFactor 0 against 1 on a grey base 148 against
@@ -335,20 +314,6 @@ pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/
 - **Needed change:** find the sampler binding that outlives its texture or sampler in FNA3D's SDL_GPU driver as CNA wires
   it (the deferred state is bound at draw time, after rv-formats created and released many textures).
 
-### A tray host reading the menu makes the game abort (dangling entry labels)
-- **Where:** `modules/platform/src/Sdl3/Sdl3Tray.cpp` passes `label.c_str()` of its `std::string` parameter to
-  `SDL_InsertTrayEntryAt` (line 73) and `SDL_SetTrayEntryLabel` (line 89); SDL's D-Bus tray backend
-  (`third_party/SDL/src/tray/unix/SDL_dbustray.c`, `InsertTrayEntryAt` and `SetTrayEntryLabel`) stores the pointer
-  (`item->utf8 = label`) instead of a copy.
-- **What happens:** when a StatusNotifier host asks for the menu (`com.canonical.dbusmenu` layout or item properties), SDL
-  serialises the freed label memory and libdbus aborts the process: `dbus_message_iter_append_basic() ... assertion
-  "_dbus_check_is_valid_utf8 (*string_p)" failed` (stack: `MenuAppendItemProperties` → `MenuMessageHandler` →
-  `dbus_connection_dispatch` → `SDL_UpdateTrays` → `Game::PollEvents`). Reproduced on 2026-10-21 by `tools/tray_check.sh`:
-  a private session bus with a minimal watcher and host; the item registers, its plain properties read back, and the
-  first menu request aborts dev-tray (exit 134). On a desktop with a tray this happens when the user opens the menu.
-- **Needed change:** keep each entry's label alive for the entry's lifetime in `Sdl3Tray` (store the strings and pass their
-  `c_str()`), or copy the label in SDL's D-Bus backend as its other backends do.
-
 ### Native C API
 The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
 that the room starts as a child process because a process hosts one game) check every C header family against the
@@ -425,6 +390,14 @@ documents, where XNA also XORs the button states; the checks test the hash contr
 
 ## Fixed in CNA after the museum reported them
 
+- **Host migration picked a gamer of the machine that just left** (`AttemptHostMigration`, CNA `cd9868526`,
+  MUSEUM-NET-001): with two local gamers on the departing host, `tools/net_check.sh` now sees `HostChanged: Guest ->
+  Visitor` and B keeps its session (2026-10-22).
+- **A gamer joining a game in progress stayed in the lobby** (`ServerWelcomeMessage` without the session state, CNA
+  `04fb4978a`, MUSEUM-NET-002): `tools/net_check.sh` round lifecycle passes, 23 passed, 0 failed (2026-10-22, at `93baa9363`).
+- **A tray host reading the menu made the game abort** (dangling entry labels in `Sdl3Tray`, CNA `93baa9363`,
+  MUSEUM-TRAY-001): `tools/tray_check.sh` reads the menu, clicks "Say hello", toggles and removes the icon and reads the
+  tooltip; the museum exits 0 (13 passed, 0 failed, twice, 2026-10-22).
 - **A missing content asset left no canonical exception type (C API).** After `cna_content_manager_load_texture2d` of a missing asset, `cna_error_copy_last_exception_type_ext` now reports `Microsoft.Xna.Framework.Content.ContentLoadException`: the cx-capi game probe's check passes and the probe reports 63 checks, 1 failed (was 2), in the final battery on 2026-10-20.
 - StorageContainer members after `Dispose` now throw `ObjectDisposedException` as in XNA (CNA `5865ae938`); verified by
   `tests/scenarios/storage_contracts.json` (FileExists, CreateFile and GetFileNames after Dispose: PASS).

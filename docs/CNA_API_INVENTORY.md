@@ -9,13 +9,13 @@ and build-time content pipeline APIs, plus the native C ABI. Paths containing `I
 `Detail` (case-insensitive) are excluded unless a reviewed public facade exports declarations
 physically defined there.
 
-CNA revision: `7b028ebe817a544be3030ff43dfdfe9568ef0113` (`v0.1.0-641-g7b028ebe8`)
+CNA revision: `93baa9363c0dafac23ad37f72ff876424cbcbe66` (`v0.1.0-680-g93baa9363`)
 
-Public-header SHA-256: `3cb92c0590146330c6674c52e1a9346f93e9d2dbd741df85e762812764d7ab06`
+Public-header SHA-256: `346459f5b4bc5c4c2d1d138a9b088403e7ea097db5e14d255a5b21437aa1d518`
 
 Doxygen: `1.9.8`
 
-Snapshot: **699 headers**, **19856 declarations** (**12946 C++**, **6910 C**), **226 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
+Snapshot: **699 headers**, **19858 declarations** (**12948 C++**, **6910 C**), **227 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
 The snapshot also records **71 public declarations whose signatures still reference internal/detail types**; these declarations remain in the denominator, while the referenced internal types do not.
 One reviewed detail header is included through its public `IntermediateSerializer.hpp` facade.
 
@@ -34,7 +34,7 @@ The complete deterministic JSON is generated in
 | `devices-ext` | 17 | 1 | 84 |
 | `diagnostics` | 2 | 0 | 224 |
 | `gamer-services` | 52 | 16 | 690 |
-| `graphics` | 141 | 36 | 2912 |
+| `graphics` | 141 | 37 | 2914 |
 | `graphics-ext` | 11 | 2 | 106 |
 | `input` | 51 | 5 | 897 |
 | `inspector` | 3 | 0 | 189 |
