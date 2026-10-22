@@ -9,11 +9,11 @@ is generated in `build/api-audit/coverage-evidence.json`.
 
 Museum catalogue SHA-256: `39d61a9b15eda78238265dafa87b97e2c0c0779572b09de0e60ac48491d8faac`; exhibit sources SHA-256: `ce641be5d5c69f3d7344d37ef914b4344cd2852eed9a4cbec2d85af5d50dd5c0`
 
-CNA revision: `5b6aab98120e4b8a9c6f4b8b41e367ecff87ec04` (`v0.1.0-683-g5b6aab981`)
+CNA revision: `a6f9e9b2e66c87434011e1646a7f74cb1d81f354` (`v0.1.0-700-ga6f9e9b2e`)
 
 Claims: **2904**; exact declaration matches: **2404**; member/overload families: **490**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
 
-Public declarations: **19858**; linked by at least one catalogue name: **3778**; implementation-verified: **3263**; executed: **2348**; correctness-verified: **0**.
+Public declarations: **19849**; linked by at least one catalogue name: **3778**; implementation-verified: **3263**; executed: **2348**; correctness-verified: **0**.
 
 Implementation source located through the exhibit registry for **320 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
 Reviewed implementation records: **3717**; fully implementation-verified claims: **2570**. Reviewed claim-room pairs: **3604** of **3604**; fully verified pairs: **3090**.
@@ -24,7 +24,7 @@ Correctness oracles: **5**; fully correctness-verified claims: **0**; correctnes
 |---|---:|---:|---:|
 | `audio` | 321 | 80 | 241 |
 | `c-api` | 6910 | 892 | 6018 |
-| `content` | 1550 | 229 | 1321 |
+| `content` | 1541 | 229 | 1312 |
 | `content-pipeline` | 2250 | 484 | 1766 |
 | `core` | 128 | 35 | 93 |
 | `design` | 83 | 17 | 66 |
@@ -403,7 +403,7 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 
 ## Public API areas
 
-**542** public headers (16972 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
+**542** public headers (16963 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
 `audit/area_classification.json` (first match wins; the check fails for an unclassified header or a stale rule):
 
 | Status | Headers | Declarations | Meaning |

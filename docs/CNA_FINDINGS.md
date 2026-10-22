@@ -60,18 +60,6 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
 - **Needed change:** implement vertex-stage sampling (and the float vertex-texture formats) on both, or make HiDef device
   creation report the missing feature; the room logs both as SKIP with these messages.
 
-### Haptics.OpenEXT cannot open an id that Haptics.GetHapticsEXT listed (SDL's Linux backend)
-- **Where:** `modules/input/src/CnaExt/Haptics.cpp`: `GetHapticsEXT`, `OpenEXT` (and `IsMouseHapticEXT`) each hold the haptic
-  subsystem only for the call (`ScopedHapticSubsystem`). When the last reference goes, `Sdl3Platform::ReleaseSubsystem` calls
-  `SDL_QuitSubSystem(SDL_INIT_HAPTIC)`, SDL frees its device list, and the next acquisition rescans and hands out new
-  instance ids.
-- **What happens:** with a real kernel force-feedback device (a virtual one through `/dev/uinput`, `tools/haptics_check.sh`)
-  dev-haptics lists `1 device(s), #3 ...`, then `#5 ...` for the same device on the next listing, and `OpenEXT(5)` returns a
-  closed device because its own listing already calls it `#7`: listing a device and then opening it can never work unless
-  something else keeps `SDL_INIT_HAPTIC` initialised. The fake backend in CNA's own tests keeps its ids, so they pass.
-- **Needed change:** keep the ids stable across calls: hold the haptic subsystem while the platform's haptics service is
-  alive (or from the first `GetHapticsEXT` until shutdown), or map SDL's ids to stable ones (for example by device path).
-
 ### D3D9: a failed full-screen Reset is followed by a fatal GetRenderTarget error (seen under Wine)
 - **What happens:** the Windows build under Wine 10 on an Xvfb screen of 1280x720 with `--fullscreen` on DIRECTX9: `D3D9 Reset
   (resize to 800x480) failed, hr=0x8876086C -- keeping previous size, retrying next frame`, then on the same frame
@@ -93,8 +81,9 @@ OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Sing
 - **Museum workaround:** `DeviceLab` holds `std::optional<HapticDevice>` filled from `Haptics::OpenEXT`.
 - **2026-10-22:** CNA `974c1ac08` declares the constructor in the header and defines it in the .cpp. A probe holding a
   default-constructed `HapticDevice` member, compiled with the museum's own flags (`-fsyntax-only`), fails with the error above
-  against the header at `5b6aab981` and compiles against the header at `974c1ac08`. Linking against a library built at that
-  commit is not yet checked (the worktree is still at `5b6aab981`), so the entry stays here.
+  against the header at `5b6aab981` and compiles against the header at `974c1ac08`. The museum is now built at `a6f9e9b2e`,
+  which contains it, but still holds `std::optional<HapticDevice>`, so no museum binary links the new constructor yet; the
+  entry stays here until it does.
 
 ### VertexTypeRegistryEXT::Resolve names the refused type in its mangled form
 - **What happens:** `Resolve(System::Type::From<T>())` for an unregistered `T` throws
@@ -298,18 +287,6 @@ pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/
   a gamer whose account is going away should fail with XNA's exception for a signed-out gamer.
 - **Museum handling:** the players room catches a failed `GetProfile` per card and shows it there.
 
-### `DEF_PROP` in a private section makes the members after it public
-- **Where:** `modules/content/include/Microsoft/Xna/Framework/Content/ContentManager.hpp`: the class opens with `private:`
-  and declares `DEF_PROP(std::string, RootDirectory, ...)` there; sharp-runtime's `DEF_PROP` (`SharpRuntime/Prop.hpp:89-91`)
-  expands to `public:` before the getter and setter and never restores the previous access.
-- **What happens:** every member declared after it up to the next access specifier is public in the compiled class:
-  `BuildAssetPath`, `ResolveExistingAssetPath`, `TryReadAssetBytes`, `NormalizeKey`, `TryOpenCompiledStream`,
-  `ReadStreamToEnd`, `LoadXnbAssetUntyped` and the new `ReadXnbHeader`, which returns the internal
-  `CNA::Internal::Xnb::XnbHeader` (found by `tools/generate_api_inventory.py --check` on 2026-10-20 as a public declaration
-  naming an internal type; the museum classifies it in `audit/internal_type_classification.json`).
-- **Needed change:** declare properties in a public section (or follow `DEF_PROP` with an explicit `private:`), and check
-  the other headers that place `DEF_PROP` in a private or protected section.
-
 ### FNA3D's SDL_GPU (Vulkan) backend crashed once binding fragment samplers
 - **Where:** CNA's FNA3D renderer on the machine's GPU (`MUSEUM_GPU=1`, radeonsi/RADV), where FNA3D picks its SDL_GPU
   driver: `GraphicsDevice::DrawUserPrimitives` → `SDLGPU_DrawPrimitives` → `SDLGPU_INTERNAL_BindDeferredState` →
@@ -396,6 +373,14 @@ documents, where XNA also XORs the button states; the checks test the hash contr
 
 ## Fixed in CNA after the museum reported them
 
+- **Haptics.OpenEXT could not open an id that GetHapticsEXT listed** (the haptic subsystem was quit between calls and
+  SDL renumbered the devices; CNA `272696e8b` + `a6f9e9b2e`, which also fixed `272696e8b`'s failing SDL budget audit):
+  `tools/haptics_check.sh` against a virtual /dev/uinput force-feedback device passes 14 of 14 at `a6f9e9b2e` - listed and
+  opened, rumble as a sine periodic effect, constant effect uploaded at level 12000, re-uploaded at 16000, played, stopped and
+  erased, gain 32767 for SetGainEXT(50), autocenter 0, clean exit (2026-10-22).
+- **`DEF_PROP` in ContentManager's private section made its loading helpers public** (CNA `b0b0207e6`): at `a6f9e9b2e` the
+  inventory no longer lists `ReadXnbHeader` and the other helpers (19 849 declarations, 9 fewer), and its internal-type
+  classification is removed (2026-10-22).
 - **Browser WebGPU ended the program on `rgba16unorm`** (no `texture-formats-tier1`; CNA `b6fc8e441`, MUSEUM-WEBGPU-001) and
   **reported "Destroyed texture ... used in a submit"** (canvas backbuffer across browser waits; CNA `31a3d54b8`,
   MUSEUM-WEBGPU-002): at CNA `5b6aab981` the browser WebGPU tour visits all 320 rooms (no rooms left out) with 0

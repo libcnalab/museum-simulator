@@ -427,12 +427,6 @@
       "declaration": "Microsoft::Xna::Framework::Graphics::VertexBuffer::GetRenderer() const",
       "category": "renderer-plumbing",
       "museumUse": "not used by the museum"
-    },
-    {
-      "id": "CPP-8726ED2854C4",
-      "declaration": "Microsoft::Xna::Framework::Content::ContentManager::ReadXnbHeader",
-      "category": "pipeline-internal-type",
-      "museumUse": "not used by the museum; public only by accident: it follows DEF_PROP(RootDirectory) in ContentManager's private section, and DEF_PROP emits public: (docs/CNA_FINDINGS.md)"
     }
   ]
 }

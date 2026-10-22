@@ -9,14 +9,14 @@ and build-time content pipeline APIs, plus the native C ABI. Paths containing `I
 `Detail` (case-insensitive) are excluded unless a reviewed public facade exports declarations
 physically defined there.
 
-CNA revision: `5b6aab98120e4b8a9c6f4b8b41e367ecff87ec04` (`v0.1.0-683-g5b6aab981`)
+CNA revision: `a6f9e9b2e66c87434011e1646a7f74cb1d81f354` (`v0.1.0-700-ga6f9e9b2e`)
 
-Public-header SHA-256: `346459f5b4bc5c4c2d1d138a9b088403e7ea097db5e14d255a5b21437aa1d518`
+Public-header SHA-256: `77504ade90b26238cb3ddd0487c50132ab8caf5a20291873ee0b79aaa9cacbf1`
 
 Doxygen: `1.9.8`
 
-Snapshot: **699 headers**, **19858 declarations** (**12948 C++**, **6910 C**), **227 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
-The snapshot also records **71 public declarations whose signatures still reference internal/detail types**; these declarations remain in the denominator, while the referenced internal types do not.
+Snapshot: **699 headers**, **19849 declarations** (**12939 C++**, **6910 C**), **229 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
+The snapshot also records **70 public declarations whose signatures still reference internal/detail types**; these declarations remain in the denominator, while the referenced internal types do not.
 One reviewed detail header is included through its public `IntermediateSerializer.hpp` facade.
 
 The complete deterministic JSON is generated in
@@ -26,7 +26,7 @@ The complete deterministic JSON is generated in
 |---|---:|---:|---:|
 | `audio` | 22 | 11 | 321 |
 | `c-api` | 60 | 0 | 6910 |
-| `content` | 56 | 47 | 1550 |
+| `content` | 56 | 48 | 1541 |
 | `content-pipeline` | 101 | 6 | 2250 |
 | `core` | 15 | 10 | 128 |
 | `design` | 14 | 2 | 83 |
@@ -34,7 +34,7 @@ The complete deterministic JSON is generated in
 | `devices-ext` | 17 | 1 | 84 |
 | `diagnostics` | 2 | 0 | 224 |
 | `gamer-services` | 52 | 16 | 690 |
-| `graphics` | 141 | 37 | 2914 |
+| `graphics` | 141 | 38 | 2914 |
 | `graphics-ext` | 11 | 2 | 106 |
 | `input` | 51 | 5 | 897 |
 | `inspector` | 3 | 0 | 189 |
@@ -66,7 +66,7 @@ fails when a new leaking declaration appears or a classified one stops leaking.
 | `defaulted-internal-parameter` | 1 | A public constructor whose trailing parameter has an internal type with a default value. Callers that rely on the default never name the internal type; only the defaulted parameter is upstream leakage. |
 | `public-alias-or-proxy` | 2 | A public alias or a returned proxy implemented in a detail namespace. Applications use it through the public name (or the proxy's implicit conversion) without naming the detail type, so it counts as ordinary public API. |
 | `renderer-plumbing` | 25 | A backend hook (renderer objects, GPU draw parameters, renderer-thread leases) that is public or protected only so CNA's own renderers and effects can reach it. It is not application API: the museum must not call it, it is not demonstrated, and it is not counted as missing museum coverage. Upstream fix: make it private with friend access or move it behind an internal accessor. |
-| `pipeline-internal-type` | 19 | Public content-pipeline API whose signature returns, takes or exposes an internal XNB codec type. An application can only use the result by touching CNA::Internal::Xnb fields, so every use is upstream leakage. Upstream fix: a public result/options type (for ContentCompiler::Compile, e.g. a public CompiledXnb { bytes, rootReaderName }) or a public alias in the pipeline namespace. |
+| `pipeline-internal-type` | 18 | Public content-pipeline API whose signature returns, takes or exposes an internal XNB codec type. An application can only use the result by touching CNA::Internal::Xnb fields, so every use is upstream leakage. Upstream fix: a public result/options type (for ContentCompiler::Compile, e.g. a public CompiledXnb { bytes, rootReaderName }) or a public alias in the pipeline namespace. |
 
 Museum use of these declarations:
 

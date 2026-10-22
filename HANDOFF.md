@@ -37,10 +37,9 @@ The user resumed the goal on 2026-10-19 ("read the handoff and continue until th
 ## Current state (2026-10-22)
 
 `plan.md` is the authoritative backlog with per-item status and evidence; read it first. Every row is DONE, NOT_APPLICABLE or
-BLOCKED_EXTERNAL with its blocker named; the four still blocked (G06, I01, P08, P09) need hardware this machine does not
-have. In short:
+BLOCKED_EXTERNAL with its blocker named; the three still blocked (G06, P08, P09) need hardware this machine does not have. In short:
 
-- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 858 declarations (CNA next 5b6aab981 in the worktree); the declarations whose
+- **Denominator** (`tools/generate_api_inventory.py`): 699 public headers, 19 849 declarations (CNA next a6f9e9b2e in the worktree); the declarations whose
   signatures name internal types are classified in `audit/internal_type_classification.json` (A11). A new one appears
   whenever CNA adds such a member: `--check` names its id; classify it (the latest, `ContentManager::ReadXnbHeader`, is
   public only through `DEF_PROP`'s `public:`, a CNA finding).
@@ -72,7 +71,11 @@ have. In short:
   are recorded, not hidden. Battery of 2026-10-22 against `5b6aab981`: `build/battery-5b6a/summary.txt` and plan D07.
 - **CNA defects** found by the museum are in `docs/CNA_FINDINGS.md` with the exact change each needs. CNA is owned
   by another agent: record, never edit. Entries move to "Fixed" when a museum run shows the fix.
-- **CNA worktree (since 2026-10-21):** at the owner's request `build/` is configured with `-DCNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next`, a detached `git worktree` of CNA's `next` branch beside the checkout (created with `git -C ../cna worktree add --detach ../cna-next <commit>`; the uninitialised submodule directories `third_party/SDL`, `SDL_mixer` and `draco` are copied in from `../cna`, as CNA's configure copies SDL and refuses symlinks). The other agent's edits in `../cna` no longer reach the museum; since 2026-10-22 it is at `5b6aab981` (CNA fixed host migration, join in progress and the tray labels at the museum's request, sent with `codex queue` to the cna-demos session); to move on, check out a newer commit of `next` in the worktree (`git -C ../cna-next checkout --detach <commit>`) and rebuild. `tools/generate_api_inventory.py` and `tools/execution_coverage.py` read `CNA_ROOT_DIR` from the build tree's cache, so the inventory follows it.
+- **CNA worktree (since 2026-10-21):** at the owner's request `build/` is configured with `-DCNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next`, a detached `git worktree` of CNA's `next` branch beside the checkout (created with `git -C ../cna worktree add --detach ../cna-next <commit>`; the uninitialised submodule directories `third_party/SDL`, `SDL_mixer` and `draco` are copied in from `../cna`, as CNA's configure copies SDL and refuses symlinks). The other agent's edits in `../cna` no longer reach the museum; since 2026-10-22 evening it is at `a6f9e9b2e` (CNA fixed host migration, join in progress and the tray labels at the museum's request, sent with `codex queue` to the cna-demos session); to move on, check out a newer commit of `next` in the worktree (`git -C ../cna-next checkout --detach <commit>`) and rebuild. `tools/generate_api_inventory.py` and `tools/execution_coverage.py` read `CNA_ROOT_DIR` from the build tree's cache, so the inventory follows it.
+- **Mixed state at the end of 2026-10-22:** build/ is built at CNA `a6f9e9b2e` (to verify the haptics fix); build-probe
+  and the browser tree are still at `5b6aab981`, where the last full battery ran (`build/battery-5b6a/`). The build/
+  profiles are therefore stale until the battery runs again; the execution run is current for build-probe. To make all
+  of it current: rebuild build-probe and the browser tree, rerun the execution coverage run, then the battery.
 - **Every build tree follows the worktree:** build/ and build-probe have `-DCNA_ROOT_DIR=…/cna-next`; the browser tree
   (build-consumer) takes it from `CNA_ROOT_DIR=… tools/build_web.sh`. The Android and MinGW trees were last built from
   `../cna` and still are; their profiles name the binary they ran.
