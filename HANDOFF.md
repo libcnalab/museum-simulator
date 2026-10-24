@@ -1,6 +1,6 @@
 # Museum Simulator: Handoff for the Next Agent
 
-Updated: 2026-10-23 (Europe/Prague). Museum branch `develop`, pushed to `origin/develop` (use `git rev-parse HEAD` as the
+Updated: 2026-10-24 (Europe/Prague). Museum branch `develop`, pushed to `origin/develop` (use `git rev-parse HEAD` as the
 authoritative revision).
 
 ## 1. What this project is and what was asked
@@ -193,3 +193,15 @@ git diff --check
    - add a museum check that reads EnvironmentMapEffect's `Texture` and `EnvironmentMap` parameters by name;
    - rebuild the Android and MinGW trees from the worktree when the owner wants those profiles at the current CNA.
 4. Ask the owner before any long rebuild round.
+
+## 9. Continuation checkpoint — 2026-10-24
+
+The current CNA repair dispositions and the museum-side targeted rerun are recorded in
+[`docs/CNA_HEAD_REVALIDATION_2026-10-24.md`](docs/CNA_HEAD_REVALIDATION_2026-10-24.md).
+The targeted off-screen GPU run used the previous consumer binary built against CNA
+`a6f9e9b2e`; the current native and web builds are rebuilt against the latest published CNA
+HEAD `ba707082e`. The targeted run passed `capi_native`, all eight
+`workshop_*` scenarios, `vertextype`, `volume_shader` and `storage_contracts`. `notifications`
+remains pending a rebuild against the newer CNA notification fixes. No new museum backlog row
+was created: the only remaining museum plan rows are the three documented hardware-blocked
+rows G06, P08 and P09.

@@ -21,8 +21,13 @@ realizovatelným úkolem, dokud není splněna definice dokončení níže.
 - A02 inventář a A04 drift gate jsou hotové. A03 má prvních 99 ručně kontrolovaných
   implementačních cest; dva aktuální OPENGLES3 běhy vykonaly všech 81 takto doložených
   CNA deklarací a 8 deklarací už má konkrétní výsledkový oracle.
-- **Další krok:** škálovat A03/A05 call-site revizi na zbývající claimy, poté přidat
-  běhové a výsledkové důkazy a první nové exponáty C01/G01.
+- **Stav 2026-10-24:** původní realizovatelný backlog je uzavřen. Cílený běh přes
+  `MUSEUM_GPU=1` proti předchozí binárce s CNA `a6f9e9b2e` prošel pro `capi_native`,
+  všech osm `workshop_*`, `vertextype`, `volume_shader` a `storage_contracts`.
+  `notifications` čeká na rebuild proti publikovanému CNA `ba707082e`; evidence je v
+  `docs/CNA_HEAD_REVALIDATION_2026-10-24.md`. Zbývají jen G06, P08 a P09 jako
+  `BLOCKED_EXTERNAL` a CNA kontroly vyžadující nový sanitizer/platformní nebo opakovaný
+  GPU běh.
 
 ## Pravidla práce a dokončení
 
