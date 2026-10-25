@@ -46,11 +46,12 @@ realizovatelným úkolem, dokud není splněna definice dokončení níže.
    frameworkové chyby aplikovanými workaroundy bez pojmenování. Související chyby CNA
    minimalizovat a opravit v jeho repozitáři, pokud to dovolují oprávnění; jinak zaznamenat
    reprodukci a přesný potřebný zásah. Respektovat cizí rozpracované změny.
-7. Build muzea nejvýše 2 úlohy; jediná sdílená ccache `/rv/cnaccache`, base `/rv`;
+7. Build muzea nejvýše 8 úloh (vlastník 2026-10-25, dříve 2); jediná sdílená ccache `/rv/cnaccache`, base `/rv`;
    používat existující `build`, `build-probe`, `build-consumer` a oprávněné sanitizerové
    stromy. Žádná kompilace v `/tmp`, žádný zbytečný clean rebuild ani nové klony závislostí.
-8. Grafické testy na privátním displeji, nikdy na živém desktopu. Nespouštět více
-   náročných testů/buildů současně. Pro skutečné GPU použít odpovídající privátní runner.
+8. Grafické testy na privátním displeji, nikdy na živém desktopu. Více náročných testů/buildů
+   současně jen tehdy, když to aktuální zatížení CPU a volná RAM dovolí (vlastník 2026-10-25;
+   ověřit `uptime` a `free -g`). Pro skutečné GPU použít odpovídající privátní runner.
 9. Fixture obsah, lokální testovací účty a izolované datové adresáře. Automatické
    testy nesmějí skenovat osobní Music/Pictures, používat soukromé účty nebo posílat
    zprávy skutečným lidem. Systémové dialogy a zařízení spouštět v produktu explicitním

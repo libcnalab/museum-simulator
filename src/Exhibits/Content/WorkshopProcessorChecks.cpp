@@ -174,6 +174,8 @@ public:
         try {
             context.AddDependency(outsideDependencyPath);
             o.outsideDependency = "accepted";
+        } catch (const Xna::PipelineException& e) {
+            o.outsideDependency = std::string("PipelineException: ") + Checks::Short(e.what(), 100);
         } catch (const std::exception& e) {
             o.outsideDependency = "thrown: " + What(e);
         }
@@ -412,7 +414,10 @@ void ProcessorContextChecks(Checks& checks, Services& services)
                o.convertError.empty() && o.convertSameObject && o.convertedTexture == built("plaque_material_0"));
     checks.Add("Convert to an unknown processor", "InvalidOperationException (XNA: ProcessorManager.ValidateProcessorTypes, CantFindProcessor)", o.unknownProcessor, o.unknownProcessor.rfind("InvalidOperationException", 0) == 0);
     checks.Add("Convert with an empty processor name", "ArgumentNullException (XNA: processorName)", o.emptyProcessor, o.emptyProcessor.rfind("ArgumentNullException", 0) == 0);
-    checks.Add("AddDependency of an absolute path outside the source root", "accepted (XNA's BuildCoordinator keeps an outside path absolute)", o.outsideDependency, o.outsideDependency == "accepted");
+    // XNA's BuildCoordinator keeps an outside absolute path as it is; CNA keeps every dependency inside the build's source roots on
+    // purpose and refuses the rest as XNA refuses a path it cannot use (ContentProcessorContext.hpp, AddDependency).
+    checks.Add("AddDependency of an absolute path outside the source root", "PipelineException (CNA's documented source-root rule; XNA accepts it)", o.outsideDependency,
+               o.outsideDependency.rfind("PipelineException", 0) == 0);
     checks.Add("AddDependency of a relative path", "PipelineException (XNA: GetRelativePath refuses a path that is not absolute)", o.relativeDependency, o.relativeDependency.rfind("PipelineException", 0) == 0);
     if (!o.buildError.empty()) checks.Add("BuildAsset / BuildAndLoadAsset", "no exception", o.buildError, false);
     checks.Add("BuildAsset<TextureContent, TextureContent>(plaque.png, \"TextureProcessor\")", built("plaque_0") + " (XNA's generated name: the source's name and index 0)", o.picture, o.picture == built("plaque_0"));

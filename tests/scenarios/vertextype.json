@@ -4,9 +4,12 @@
   "expect": [
     "rv-vertextype Register then TryResolve: PASS",
     "rv-vertextype Resolve(unregistered type): PASS",
+    "rv-vertextype the refusal names the type as the source spells it: PASS",
     "rv-vertextype VertexBuffer(device, Type, 6, WriteOnly): PASS",
     "rv-vertextype Draw from the Type-made buffer: PASS (expected teal 40,200,120 inside, black outside, got 40,200,120 / 0,0,0)",
     "rv-vertextype DynamicVertexBuffer(device, Type, 6, WriteOnly): PASS"
   ],
-  "forbid": ["rv-vertextype Register then TryResolve: FAIL"]
+  "forbid": [
+    "rv-vertextype Register then TryResolve: FAIL"
+  ]
 }

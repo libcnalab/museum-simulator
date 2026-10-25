@@ -30,7 +30,7 @@
     "wk-contentproject BuildContent with no RootDirectory or OutputDirectory: PASS",
     "wk-contentproject CleanContent properties and XnaTypeName: PASS",
     "wk-contentproject CleanContent.Execute: what it removes: PASS",
-    "wk-contentproject CleanContent.Execute: what it leaves: FAIL",
+    "wk-contentproject CleanContent.Execute: what it leaves: PASS",
     "wk-contentproject the build configuration in the intermediate directory: PASS",
     "wk-contentproject CleanContent again: PASS",
     "wk-contentproject CleanContent of a directory that does not exist: PASS",
@@ -48,6 +48,7 @@
   ],
   "forbid": [
     ": the group itself: FAIL",
-    "the check run itself: FAIL"
+    "the check run itself: FAIL",
+    ": FAIL ("
   ]
 }

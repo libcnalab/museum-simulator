@@ -5,7 +5,10 @@
 # into the GTK file chooser and clicks message box buttons with the pointer. HOME, the XDG directories and the runtime
 # directory point into build/dialogs-check, so GTK reads and writes no personal settings, bookmarks or recent files.
 #   1. FileDialog.ShowOpenFile/ShowSaveFile/ShowOpenFolder through the portal return exactly the typed path; Escape cancels.
-#   2. MessageBox.ShowSimple is dismissed with a click on its button; MessageBox.Show reports each of its three buttons.
+#   2. MessageBox.ShowSimple is dismissed with a click on its button; MessageBox.Show reports each of its three buttons. SDL
+#      shows these through Zenity when it is installed (a GTK dialog).
+#   3. A second museum without Zenity on its PATH gets SDL's own X11 message box, where the keyboard chooses: Return the
+#      first button, Escape the last (CNA marks both; Zenity ignores such hints, docs/devices-ext.md).
 #   tools/dialogs_check.sh      exit 0 when every check passed; 77 when a prerequisite is absent
 set -u
 cd "$(dirname "$0")/.." || exit 2
@@ -149,6 +152,24 @@ dismiss() {   # dismiss INDEX LABEL: clicks the INDEXth button (in reading order
   say "message box still open: closing it ($2)"; shot stuck-box
   xdotool windowclose "$w" 2> /dev/null
 }
+keyed() {   # keyed KEY: answers the next SDL X11 message box with one key, as a person who does not reach for the pointer
+  # xdotool cannot read that window's UTF-8 name, xwininfo can.
+  local w=""
+  for _ in $(seq 1 120); do
+    w=$(xwininfo -root -tree 2> /dev/null | awk '/"CNA Museum message"/ { print $1; exit }')
+    [ -n "$w" ] && break
+    kill -0 $museum 2> /dev/null || return
+    sleep 0.5
+  done
+  [ -n "$w" ] || { say "no X11 message box"; shot missing-box; return; }
+  local before; before=$(grep -ac 'MessageBox.Show' "$keylog")
+  sleep 0.5
+  xdotool windowfocus --sync "$w" key "$1"
+  say "pressed $1 in the X11 message box"
+  for _ in $(seq 1 20); do [ "$(grep -ac 'MessageBox.Show' "$keylog")" -gt "$before" ] && return; sleep 0.25; done
+  say "X11 message box still open after $1: closing it"; shot stuck-box
+  xdotool windowclose "$w" 2> /dev/null
+}
 box=0
 
 answer "^Open File\$" "$dir/home/files/picked.png"
@@ -160,6 +181,16 @@ dismiss 0 simple
 for i in 0 1 2; do dismiss $i show; done
 wait $museum
 echo $? > "$dir/status"
+keylog=$dir/museum-keys.log
+mkdir -p "$dir/no-zenity"
+PATH=$dir/no-zenity LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=${LP_NUM_THREADS:-3} SDL_VIDEODRIVER=x11 \
+  /usr/bin/timeout -k 10 "${MUSEUM_TIMEOUT:-300}" "$bin" --room dev-dialogs --no-audio --fixed-step 0.02 \
+  --script "wait:30;press:MessageBox.Show (Yes;wait:10;press:MessageBox.Show (Yes;wait:10;stats;quit" > "$keylog" 2>&1 &
+museum=$!
+keyed Return
+keyed Escape
+wait $museum
+echo $? > "$dir/status-keys"
 INNER
 
 passed=0 failed=0
@@ -175,6 +206,10 @@ has "MessageBox.ShowSimple returned" && grep -q '^clicked button 0 .*(simple)' "
 results=$(grep -aoE 'MessageBox.Show returned button -?[0-9]+ \([A-Za-z]+\)' "$log" | sed 's/MessageBox.Show returned button //' | tr '\n' ' ')
 # The three clicks went to the buttons in reading order; each must report a different one of Yes, No and Cancel.
 [ "$(grep -aoE 'MessageBox.Show returned button [0-2] ' "$log" | sort -u | wc -l)" = 3 ] && [ "$(grep -c '^clicked button .*(show)' "$driver")" = 3 ] && ok "MessageBox.Show reported each button clicked with the pointer: $results(in reading order)" || bad "MessageBox.Show: $results"
+# CNA marks the first button the Return default and the last the Escape default (docs/devices-ext.md).
+keys=$(grep -aoE 'MessageBox.Show returned button -?[0-9]+ ' "$dir/museum-keys.log" 2> /dev/null | sed 's/MessageBox.Show returned button //' | tr -d ' ' | tr '\n' ' ')
+grep -q '^pressed Return' "$driver" && grep -q '^pressed Escape' "$driver" && [ "$keys" = "0 2 " ] && [ "$(cat "$dir/status-keys" 2> /dev/null)" = 0 ] &&
+  ok "SDL's X11 message box: Return chose the first button, Escape the last" || bad "SDL's X11 message box by keyboard: Return, Escape gave ${keys:-nothing} (expected 0 2; exit $(cat "$dir/status-keys" 2> /dev/null))"
 [ "$(cat "$dir/status" 2> /dev/null)" = 0 ] && ok "the museum exited cleanly" || bad "the museum exited with status $(cat "$dir/status" 2> /dev/null)"
 grep -qE '\[museum\]\[stats\].*exhibit errors 0 .*script errors 0' "$log" && ok "final stats with 0 exhibit and 0 script errors" || bad "stats: $(grep -a '\[stats\]\|script-error' "$log" | tail -2 | tr '\n' ' ' | cut -c1-160)"
 echo "summary: $passed passed, $failed failed (logs: $dir)"

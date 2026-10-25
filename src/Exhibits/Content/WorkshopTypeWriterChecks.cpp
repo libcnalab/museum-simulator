@@ -614,11 +614,18 @@ void TypeWriterChecks(Checks& checks, Services& services)
         for (int i = 0; i < 4; ++i) broken[6 + static_cast<std::size_t>(i)] = static_cast<std::uint8_t>(size >> (8 * i));
         (void)Load(services, broken, "specimen");
     });
-    checks.ExpectThrow<ContentLoadException>("unsupported XNB version byte (4)", "ContentLoadException (XNA: BadXnbVersion)", [&] {
-        std::vector<std::uint8_t> broken = bytes;
-        broken[4] = 4;
-        (void)Load(services, broken, "specimen");
-    });
+    {   // Version 4 is XNA 3.x's container. XNA 4.0 refuses it (BadXnbVersion); CNA reads it on purpose, with the legacy
+        // SurfaceFormat numbering (docs/xnb-interoperability.md, "Version").
+        std::string got = "loaded";
+        try {
+            std::vector<std::uint8_t> legacy = bytes;
+            legacy[4] = 4;
+            (void)Load(services, legacy, "specimen");
+        } catch (const std::exception& e) {
+            got = Checks::Short(std::string("thrown: ") + e.what(), 140);
+        }
+        checks.Add("XNB version byte 4 (XNA 3.x's container)", "loaded (CNA's documented legacy read; XNA 4.0: BadXnbVersion)", got, got == "loaded");
+    }
     RegisterReaders(1);
     checks.ExpectThrow<ContentLoadException>("reader TypeVersion 1, file written with 2", "ContentLoadException (XNA: ReadTypeManifest, BadXnbTypeVersion)", [&] { (void)Load(services, bytes, "specimen"); });
     RemoveReaders();

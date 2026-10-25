@@ -4,11 +4,12 @@
   "script": "goto:wk-cnbloader;wait:30;press:Run the checks again;wait:20;stats;quit",
   "expect": [
     "wk-cnbloader ContentTypeSerializerAttribute::XnaTypeName, TypeId, IsDefaultAttribute: PASS",
-    "wk-cnbloader two ContentTypeSerializerAttribute instances: Equals, Match: FAIL",
+    "wk-cnbloader two ContentTypeSerializerAttribute instances: Equals, Match: PASS",
     "wk-cnbloader AddTypeSerializer, then FindTypeSerializer(\"Museum.Workshop.Seismogram\"): PASS"
   ],
   "forbid": [
     ": the group itself: FAIL",
-    "the check run itself: FAIL"
+    "the check run itself: FAIL",
+    ": FAIL ("
   ]
 }

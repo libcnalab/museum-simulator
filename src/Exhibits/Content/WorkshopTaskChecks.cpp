@@ -119,21 +119,19 @@ void BuildTaskChecks(Checks& checks, Services& services)
                    item.GetMetadata("Processor").empty() && !item.HasMetadata("Processor") && item.HasMetadata("name"));
         checks.Add("MetadataNames keeps the spelling written", "Importer, Name, ProcessorParameters_ColorKeyColor (name order)", Join(item.MetadataNames()),
                    item.MetadataNames() == std::vector<std::string>{"Importer", "Name", "ProcessorParameters_ColorKeyColor"});
-        // TaskItem::operator== is declared "= default" over System::Object, which has no operator==, so it is implicitly deleted and
-        // cannot be called (docs/CNA_FINDINGS.md); the copy is compared through its public members instead.
+        // TaskItem::operator== compares the path and every metadata entry (callable since CNA 48a5c75eb: it was "= default" over
+        // System::Object, which has no operator==, and so implicitly deleted).
         Tasks::TaskItem copy = item;
-        const auto same = [](const Tasks::TaskItem& x, const Tasks::TaskItem& y) {
-            if (x.getItemSpecProperty() != y.getItemSpecProperty() || x.MetadataNames() != y.MetadataNames()) return false;
-            for (const std::string& n : x.MetadataNames())
-                if (x.GetMetadata(n) != y.GetMetadata(n)) return false;
-            return true;
-        };
-        const bool equalBefore = same(copy, item);
+        const bool equalBefore = copy == item;
         copy.SetMetadata("importer", "PngImporter");
         checks.Add("SetMetadata under another case replaces the value", "a copy equal before, different after, still one Importer entry (spelling kept: Importer)",
-                   std::string(equalBefore ? "equal" : "different") + ", " + (same(copy, item) ? "equal" : "different") + ", " + std::to_string(copy.MetadataNames().size()) + " names, Importer = " + copy.GetMetadata("Importer"),
-                   equalBefore && !same(copy, item) && copy.MetadataNames().size() == 3 && copy.GetMetadata("Importer") == "PngImporter");
-        checks.Info("TaskItem::operator==", "callable (declared, documented: compares the path and every metadata entry)", "implicitly deleted: \"= default\" over System::Object, which has no operator==; does not compile");
+                   std::string(equalBefore ? "equal" : "different") + ", " + (copy == item ? "equal" : "different") + ", " + std::to_string(copy.MetadataNames().size()) + " names, Importer = " + copy.GetMetadata("Importer"),
+                   equalBefore && !(copy == item) && copy.MetadataNames().size() == 3 && copy.GetMetadata("Importer") == "PngImporter");
+        Tasks::TaskItem moved("elsewhere.png");
+        for (const std::string& n : item.MetadataNames()) moved.SetMetadata(n, item.GetMetadata(n));
+        checks.Add("TaskItem::operator==", "a copy equal, the same metadata on another path different",
+                   std::string(Tasks::TaskItem(item) == item ? "copy equal" : "copy different") + ", " + (moved == item ? "other path equal" : "other path different"),
+                   Tasks::TaskItem(item) == item && !(moved == item));
         copy.setItemSpecProperty("plaque.png");
         checks.Add("setItemSpecProperty, GetTypeName", "plaque.png; Microsoft.Build.Framework.ITaskItem's stand-in names itself", copy.getItemSpecProperty() + "; " + copy.GetTypeName(),
                    copy.getItemSpecProperty() == "plaque.png" && !copy.GetTypeName().empty());

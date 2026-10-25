@@ -173,7 +173,8 @@ WingSpec DevicesWing()
                       "HttpNotificationEventArgs", "HttpNotificationEventArgs.Body", "HttpNotificationEventArgs.BodyAsString", "HttpNotificationChannel.DispatchPendingNotificationsEXT",
                       "HttpNotificationChannel.BindToShellToast", "HttpNotificationChannel.IsShellToastBound", "RawPushNotificationMessage", "RawPushNotificationMessage.RawData",
                       "RawPushNotificationMessage.SendAsync", "ToastPushNotificationMessage", "ToastPushNotificationMessage.Title", "ToastPushNotificationMessage.SubTitle",
-                      "ToastPushNotificationMessage.SendAsync", "MessageSendPriority"};
+                      "ToastPushNotificationMessage.SendAsync", "MessageSendPriority", "HttpNotificationChannel.ErrorOccurred", "NotificationChannelErrorEventArgs",
+                      "NotificationChannelErrorEventArgs.ErrorType", "NotificationChannelErrorEventArgs.ErrorCode", "NotificationChannelErrorEventArgs.Message", "ChannelErrorType"};
             r.origin = ApiOrigin::Xna;
             return r;
         }(),

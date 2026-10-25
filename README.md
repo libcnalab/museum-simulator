@@ -97,7 +97,7 @@ MUSEUM_CMAKE_ARGS="-DCNA_CNAEXT=OFF" RECONFIGURE=1 tools/build.sh    # build wit
 ```
 
 `MUSEUM_CMAKE_ARGS` accepts shell quoting, so a value containing spaces stays one CMake argument (for example
-`MUSEUM_CMAKE_ARGS='-DCMAKE_CXX_FLAGS="-O1 -g1"'`). The build script uses at most two compile jobs by default;
+`MUSEUM_CMAKE_ARGS='-DCMAKE_CXX_FLAGS="-O1 -g1"'`). The build script uses at most eight compile jobs by default;
 `JOBS` may lower that limit but must not raise it for this project.
 
 The museum switches on three CNA options in its `CMakeLists.txt`: `CNA_CNAEXT` (DebugDraw and the post-process

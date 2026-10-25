@@ -347,8 +347,9 @@ private:
             Skip("3D pipeline", "this renderer has no 3D pipeline");
             return;
         }
-        // Every pixel check reads a render target back. A renderer that refuses that (HEADLESS rasterises nothing, and no
-        // capability says so beforehand: docs/CNA_FINDINGS.md) gets one SKIP naming the cause instead of silent rooms.
+        // Every pixel check reads a render target back. A renderer that refuses that (HEADLESS rasterises nothing, and says so
+        // through RendererFeature::RenderTargetReadback, which rv-capabilities holds to a real readback) gets one SKIP naming
+        // the cause instead of silent rooms.
         {
             RenderTarget2D& probe = Target(d, false);
             Begin(d, probe, Color(0, 0, 0, 255));
@@ -1263,6 +1264,32 @@ private:
 
     void Capabilities(GraphicsDevice& d)
     {
+        {   // Not through Claim: a refused readback is the very thing this one answers, so it can never be a SKIP here.
+            const CNA::RendererFeatureInfo& readback = d.GetRendererCapabilityProfileEXT().GetFeature(CNA::RendererFeature::RenderTargetReadback);
+            static const char* kinds[] = {"Unknown", "Unsupported", "Supported", "Restricted"};
+            const std::string name = std::string(CNA::GetRendererFeatureName(CNA::RendererFeature::RenderTargetReadback)) + " (" + kinds[std::min(static_cast<int>(readback.support), 3)] + ")";
+            std::string outcome;
+            bool worked = false;
+            try {
+                RenderTarget2D rt(d, 4, 4, false, SurfaceFormat::Color, DepthFormat::None);
+                d.SetRenderTarget(&rt);
+                d.Clear(Color(30, 160, 90, 255));
+                d.SetRenderTarget(nullptr);
+                std::vector<Color> px(16);
+                rt.GetData(px.data(), 16);
+                outcome = "GetData returned " + Rgb(px[5]) + " for a target cleared to 30,160,90";
+                worked = Dist(px[5], 30, 160, 90) < 2;
+            } catch (const std::exception& e) {
+                outcome = std::string("refused: ") + e.what();
+            }
+            d.SetRenderTarget(nullptr);
+            if (readback.support == CNA::RendererFeatureSupport::Supported)
+                Add(name, "the cleared colour reads back", outcome.substr(0, 90), worked, std::nullopt);
+            else if (readback.support == CNA::RendererFeatureSupport::Unsupported)
+                Add(name, "the readback refuses", outcome.substr(0, 90), !worked && outcome.rfind("refused: ", 0) == 0, std::nullopt);
+            else
+                Add(name, "a declared answer (Supported or Unsupported)", outcome.substr(0, 90), false, std::nullopt);
+        }
         Claim(d, CNA::RendererFeature::WireFrameRasterization, [&] {
             RasterizerState wire;
             wire.setFillModeProperty(FillMode::WireFrame);
@@ -1380,6 +1407,12 @@ private:
             refusal = std::string("another exception: ") + e.what();
         }
         Add("Resolve(unregistered type)", "ArgumentException", refusal.substr(0, 90), refused, std::nullopt);
+#if defined(__GNUG__)
+        const std::string spelled = "'(anonymous namespace)::UnregisteredVertex'";   // how GCC's and Clang's demanglers spell it
+#else
+        const std::string spelled = "UnregisteredVertex";
+#endif
+        Add("the refusal names the type as the source spells it", spelled, refusal.substr(0, 120), refusal.find(spelled) != std::string::npos, std::nullopt);
         Add("sizeof(GlowVertex) against its stride", "different (the vtable)", std::to_string(sizeof(GlowVertex)) + " vs 20 bytes", true, std::nullopt, true);
 
         // A buffer made from the type, filled with plain data, drawn as a centred quad in one colour.

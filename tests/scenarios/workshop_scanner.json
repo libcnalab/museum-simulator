@@ -9,12 +9,14 @@
     "wk-processor ProcessorAttributes[\"PlaqueProcessor\"].DisplayName: PASS",
     "wk-processor ProcessorParameters[\"PlaqueProcessor\"]: PASS",
     "wk-processor Update with the same list again: PASS",
-    "wk-processor Update naming a catalog that does not exist: FAIL",
-    "wk-processor a scanner with no registry: Update({}): PASS"
+    "wk-processor Update naming a catalog that does not exist: PASS",
+    "wk-processor a scanner with no registry: Update({}): PASS",
+    "wk-processor AddDependency of an absolute path outside the source root: PASS"
   ],
   "forbid": [
     ": the group itself: FAIL",
-    "the check run itself: FAIL"
+    "the check run itself: FAIL",
+    ": FAIL ("
   ],
   "timeout": 300
 }

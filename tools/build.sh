@@ -10,7 +10,8 @@
 #   MUSEUM_CMAKE_ARGS    shell-quoted extra arguments for the configure step
 #   RECONFIGURE=1        run cmake again even if the tree is already configured
 #   VERBOSE=1            stream the full build output instead of only diagnostics
-#   JOBS=N               parallel jobs (default and maximum: 2)
+#   JOBS=N               parallel jobs (default and maximum: 8, the owner's limit since 2026-10-25; lower it for a
+#                        sanitizer tree or a busy machine)
 #
 # ccache is used when it is on PATH. Cache location and size follow the user's own ccache
 # configuration (CCACHE_DIR, ccache.conf); nothing is overridden here.
@@ -21,12 +22,12 @@ build_dir=${BUILD_DIR:-build}
 targets=("$@")
 [ ${#targets[@]} -gt 0 ] || targets=(cna-3d-museum)
 
-jobs=${JOBS:-2}
+jobs=${JOBS:-8}
 case $jobs in
-  ''|*[!0-9]*) echo "error: JOBS must be 1 or 2" >&2; exit 2 ;;
+  ''|*[!0-9]*) echo "error: JOBS must be a number from 1 to 8" >&2; exit 2 ;;
 esac
-if [ "$jobs" -lt 1 ] || [ "$jobs" -gt 2 ]; then
-  echo "error: JOBS must be 1 or 2 (this project is limited to two compile jobs)" >&2
+if [ "$jobs" -lt 1 ] || [ "$jobs" -gt 8 ]; then
+  echo "error: JOBS must be from 1 to 8 (this project is limited to eight compile jobs)" >&2
   exit 2
 fi
 

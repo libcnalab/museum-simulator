@@ -32,6 +32,8 @@
 #include "Microsoft/Xna/Framework/Graphics/IEffectMatrices.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SkinnedEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SpriteEffect.hpp"
+#include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
+#include "Microsoft/Xna/Framework/Graphics/TextureCube.hpp"
 
 using namespace Microsoft::Xna::Framework;
 using namespace Microsoft::Xna::Framework::Graphics;
@@ -80,6 +82,7 @@ public:
         p.AddSlider("Scroll the parameter list", 0.0f, 1.0f, scroll_, [this](float v) { scroll_ = v; });
         p.AddButton("Configure through the interfaces", [this] { ConfigureThroughInterfaces(); });
         p.AddButton("Clone the effect", [this] { CloneIt(); });
+        p.AddButton("Check: EnvironmentMapEffect's textures by parameter name", [this] { CheckTextureParameters(); });
         p.AddReadout("Interfaces", [this] { return interfaces_; });
         p.AddReadout("Via interfaces", [this] { return configured_; });
         p.AddReadout("Clone", [this] { return cloned_; });
@@ -293,6 +296,38 @@ private:
             cloned_ = r;
         } catch (const std::exception& e) {
             cloned_ = std::string("Clone threw: ") + e.what();
+        }
+    }
+
+    // XNA's EnvironmentMapEffect keeps both textures in its parameter collection: Parameters["Texture"] (Texture2D) and
+    // Parameters["EnvironmentMap"] (TextureCube), and its Texture and EnvironmentMap properties read and write those parameters.
+    void CheckTextureParameters()
+    {
+        const auto check = [this](const std::string& name, const std::string& expected, const std::string& got, bool pass) {
+            Museum::Log("check", "%s %s: %s (expected %s, got %s)", R().key.c_str(), name.c_str(), pass ? "PASS" : "FAIL", expected.c_str(), got.c_str());
+        };
+        try {
+            GraphicsDevice& d = *S().device;
+            EnvironmentMapEffect fx(d);
+            EffectParameter* texture = fx.getParametersProperty()["Texture"];
+            EffectParameter* environment = fx.getParametersProperty()["EnvironmentMap"];
+            const auto type = [](const EffectParameter* p) { return p == nullptr ? std::string("missing") : std::string(TypeName(p->getParameterTypeProperty())); };
+            check("Parameters[\"Texture\"], Parameters[\"EnvironmentMap\"]", "Texture2D, TextureCube", type(texture) + ", " + type(environment),
+                  texture != nullptr && environment != nullptr && texture->getParameterTypeProperty() == EffectParameterType::Texture2D &&
+                      environment->getParameterTypeProperty() == EffectParameterType::TextureCube);
+            if (texture == nullptr || environment == nullptr) return;
+            Texture2D surface(d, 1, 1), other(d, 1, 1);
+            TextureCube cube(d, 1, false, SurfaceFormat::Color), otherCube(d, 1, false, SurfaceFormat::Color);
+            fx.setTextureProperty(&surface);
+            fx.setEnvironmentMapProperty(&cube);
+            const bool read = texture->GetValueTexture2D() == &surface && environment->GetValueTextureCube() == &cube;
+            check("the properties set, the parameters read", "the same Texture2D and TextureCube", read ? "the same" : "other textures", read);
+            texture->SetValue(&other);
+            environment->SetValue(&otherCube);
+            const bool written = fx.getTextureProperty() == &other && fx.getEnvironmentMapProperty() == &otherCube;
+            check("the parameters set, the properties read", "the same Texture2D and TextureCube", written ? "the same" : "other textures", written);
+        } catch (const std::exception& e) {
+            check("EnvironmentMapEffect texture parameters", "no exception", e.what(), false);
         }
     }
 

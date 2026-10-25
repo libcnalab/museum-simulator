@@ -366,11 +366,13 @@ void IncrementalBuildChecks(Checks& checks, Services& services)
         checks.Add("ProcessImportedSoundEffect: AsAuthored, then WholeSoundWhenUnset", "loop 0 + 0, then 0 + 80 (XNA's processor gives an unlooped source the whole sound)",
                    std::to_string(authored.loopStart) + " + " + std::to_string(authored.loopLength) + ", then " + std::to_string(whole.loopStart) + " + " + std::to_string(whole.loopLength),
                    authored.loopLength == 0u && whole.loopStart == 0u && whole.loopLength == 80u);
-        const Cnb::CnbSoundEffectData widened = Cnb::DecodeWavAsCnbSoundEffect(tone, "tone8.wav");
-        const auto s16 = [&](std::size_t i) { return widened.samples.size() >= (i + 1) * 2 ? static_cast<int>(static_cast<std::int16_t>(widened.samples[i * 2] | widened.samples[i * 2 + 1] << 8)) : -99999; };
-        checks.Add("DecodeWavAsCnbSoundEffect(tone8.wav): 8-bit widened exactly to Pcm16", "Pcm16, 80 frames; samples 0, 2560, 23040 ((u8 - 128) * 256 for 128, 138, 218)",
-                   std::string(widened.format == Cnb::CnbAudioFormat::Pcm16 ? "Pcm16" : (widened.format == Cnb::CnbAudioFormat::Pcm8 ? "Pcm8 (bytes kept)" : "other")) + ", " + std::to_string(widened.frameCount) + " frames; " + std::to_string(s16(0)) + ", " + std::to_string(s16(1)) + ", " + std::to_string(s16(9)),
-                   widened.format == Cnb::CnbAudioFormat::Pcm16 && widened.frameCount == 80u && s16(0) == 0 && s16(1) == 2560 && s16(9) == 23040);
+        // CnbSourceImport.hpp (CNA acc2ee55b): 8-bit PCM is stored as Pcm8 unchanged; 24-bit, 32-bit and float narrow to Pcm16
+        // with round-to-nearest and saturation, because no CNB schema stores those widths.
+        const Cnb::CnbSoundEffectData kept = Cnb::DecodeWavAsCnbSoundEffect(tone, "tone8.wav");
+        const auto u8 = [&](std::size_t i) { return kept.samples.size() > i ? static_cast<int>(kept.samples[i]) : -1; };
+        checks.Add("DecodeWavAsCnbSoundEffect(tone8.wav): 8-bit stored as Pcm8", "Pcm8, 80 frames; the bytes unchanged: 128, 138, 218",
+                   std::string(kept.format == Cnb::CnbAudioFormat::Pcm8 ? "Pcm8" : (kept.format == Cnb::CnbAudioFormat::Pcm16 ? "Pcm16" : "other")) + ", " + std::to_string(kept.frameCount) + " frames; " + std::to_string(u8(0)) + ", " + std::to_string(u8(1)) + ", " + std::to_string(u8(9)),
+                   kept.format == Cnb::CnbAudioFormat::Pcm8 && kept.frameCount == 80u && u8(0) == 128 && u8(1) == 138 && u8(9) == 218);
         const Cnb::CnbSoundEffectData loop = Cnb::ImportWavAsCnbSoundEffect(root / "loop16.wav");
         checks.Add("ImportWavAsCnbSoundEffect(loop16.wav)", "Pcm16 stereo, 40 frames, loop 10 + 20 from the smpl chunk", std::string(loop.format == Cnb::CnbAudioFormat::Pcm16 ? "Pcm16 " : "other ") + std::to_string(loop.channels) + " ch, " +
                                                                                                                                std::to_string(loop.frameCount) + " frames, loop " + std::to_string(loop.loopStart) + " + " + std::to_string(loop.loopLength),
@@ -382,12 +384,15 @@ void IncrementalBuildChecks(Checks& checks, Services& services)
             checks.Info("ImportWavAsImportedSound(deep24.wav)", "-", "refused: " + Checks::Short(e.what(), 140));
         }
         try {
+            // deep24.wav holds 0, 1000, 2000 ... 9000: divided by 256 and rounded (not truncated), 1000 is 4 and 6000 is 23.
             const Cnb::CnbSoundEffectData deep = Cnb::DecodeWavAsCnbSoundEffect(ReadBytes(root / "deep24.wav"), "deep24.wav");
-            checks.Add("DecodeWavAsCnbSoundEffect(deep24.wav, 24-bit PCM)", "ContentLoadException naming the width (CnbSourceImport.hpp: 24-bit refused by name, never truncated)",
-                       "accepted: " + std::string(deep.format == Cnb::CnbAudioFormat::Pcm16 ? "Pcm16" : "another format") + ", " + std::to_string(deep.frameCount) + " frames", false);
+            const auto s16 = [&](std::size_t i) { return deep.samples.size() >= (i + 1) * 2 ? static_cast<int>(static_cast<std::int16_t>(deep.samples[i * 2] | deep.samples[i * 2 + 1] << 8)) : -99999; };
+            checks.Add("DecodeWavAsCnbSoundEffect(deep24.wav, 24-bit PCM): narrowed to Pcm16", "Pcm16, 10 frames; 0, 4, 23, 35 (rounded to nearest)",
+                       std::string(deep.format == Cnb::CnbAudioFormat::Pcm16 ? "Pcm16" : "another format") + ", " + std::to_string(deep.frameCount) + " frames; " + std::to_string(s16(0)) + ", " +
+                           std::to_string(s16(1)) + ", " + std::to_string(s16(6)) + ", " + std::to_string(s16(9)),
+                       deep.format == Cnb::CnbAudioFormat::Pcm16 && deep.frameCount == 10u && s16(0) == 0 && s16(1) == 4 && s16(6) == 23 && s16(9) == 35);
         } catch (const ContentLoadException& e) {
-            checks.Add("DecodeWavAsCnbSoundEffect(deep24.wav, 24-bit PCM)", "ContentLoadException naming the width (CnbSourceImport.hpp: 24-bit refused by name, never truncated)", Checks::Short(e.what(), 140),
-                       std::string(e.what()).find("24") != std::string::npos);
+            checks.Add("DecodeWavAsCnbSoundEffect(deep24.wav, 24-bit PCM): narrowed to Pcm16", "Pcm16, 10 frames; 0, 4, 23, 35 (rounded to nearest)", "refused: " + Checks::Short(e.what(), 140), false);
         }
     });
 

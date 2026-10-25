@@ -125,9 +125,10 @@ static void GamerValueChecks(CProbe* p)
     cna_achievement_create_ext(cprobe_view("first-room"), cprobe_view("First Room"), cprobe_view("Enter a room"), CNA_TRUE, CNA_TRUE, INT64_C(630000000000000000), &first);
     cna_achievement_create_ext(cprobe_view("all-floors"), cprobe_view("All Floors"), cprobe_view("Visit every floor"), CNA_FALSE, CNA_FALSE, 0, &second);
     CNA_AchievementCollectionHandle collection = CNA_INVALID_HANDLE;
-    const CNA_AchievementHandle both[1] = {first};
-    cna_achievement_collection_create_ext(both, 1u, &collection);
-    cna_achievement_collection_add(collection, second);
+    const CNA_AchievementHandle both[2] = {first, second};
+    cna_achievement_collection_create_ext(both, 2u, &collection);
+    /* XNA's AchievementCollection is a read-only collection: Add refuses (CNA 4a756413f, CNA-DEMOS-ISSUE-077/078). */
+    const CNA_Result added = cna_achievement_collection_add(collection, first);
     int32_t achievements = 0;
     cna_achievement_collection_get_count(collection, &achievements);
     const CNA_Result keyed = cna_achievement_collection_get_by_key(collection, cprobe_view("all-floors"), &byKey);
@@ -155,12 +156,12 @@ static void GamerValueChecks(CProbe* p)
     CNA_LeaderboardIdentity identity;
     VERSIONED(identity);
     cna_leaderboard_identity_init(CNA_LEADERBOARD_KEY_BEST_TIME_RECENT, 2, &identity);
-    cprobe_got(p, "%d achievements, by key %u \"%s\", first earned %u shown early %u ticks %lld; presence mode %u value %d; leaderboard \"%s\" mode %d", (int)achievements,
-               (unsigned)keyed, name, info.is_earned, info.display_before_earned, (long long)info.earned_date_time_ticks, (unsigned)presence.presence_mode,
+    cprobe_got(p, "%d achievements, add %u, by key %u \"%s\", first earned %u shown early %u ticks %lld; presence mode %u value %d; leaderboard \"%s\" mode %d", (int)achievements,
+               (unsigned)added, (unsigned)keyed, name, info.is_earned, info.display_before_earned, (long long)info.earned_date_time_ticks, (unsigned)presence.presence_mode,
                (int)presence.presence_value, identity.key, (int)identity.game_mode);
     CPROBE_CHECK(p, "cna_achievement_create_ext/get_info/copy_name/destroy, cna_achievement_collection_create_ext/add/get_count/get_by_key/destroy, cna_gamer_presence_init, cna_leaderboard_identity_init",
-                 "2 achievements, \"all-floors\" -> \"All Floors\", the first earned and shown early with its ticks; presence NONE/0; key \"BestTimeRecent\" (XNA LeaderboardKey.ToString) mode 2",
-                 achievements == 2 && keyed == CNA_RESULT_SUCCESS && strcmp(name, "All Floors") == 0 && info.is_earned == CNA_TRUE && info.display_before_earned == CNA_TRUE &&
+                 "2 achievements, add refused (CNA_RESULT_NOT_SUPPORTED: read-only, as XNA), \"all-floors\" -> \"All Floors\", the first earned and shown early with its ticks; presence NONE/0; key \"BestTimeRecent\" (XNA LeaderboardKey.ToString) mode 2",
+                 achievements == 2 && added == CNA_RESULT_NOT_SUPPORTED && keyed == CNA_RESULT_SUCCESS && strcmp(name, "All Floors") == 0 && info.is_earned == CNA_TRUE && info.display_before_earned == CNA_TRUE &&
                      info.earned_date_time_ticks == INT64_C(630000000000000000) && presence.presence_mode == CNA_GAMER_PRESENCE_MODE_NONE && presence.presence_value == 0 &&
                      strcmp(identity.key, "BestTimeRecent") == 0 && identity.game_mode == 2);
     cprobe_got(p, "result %u, exception %s, \"%.90s\"", (unsigned)missing, missingType, missingMessage);

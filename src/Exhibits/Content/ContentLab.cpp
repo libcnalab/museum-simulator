@@ -751,11 +751,14 @@ private:
         Row row;
         row.name = "StorageDevice";
         try {
+            // Naming the application resolves no folder: only the calls that need the root report a missing one (CNA fffa552ad).
+            std::string named = "no exception";
             try {
                 Storage::StorageDevice::SetAppNameEXT("cna-3d-museum");
-            } catch (const Storage::StorageDeviceNotConnectedException&) {
-                // The name is set; the missing root is reported again by the calls below, which is where XNA reports it.
+            } catch (const std::exception& e) {
+                named = std::string("threw: ") + e.what();
             }
+            Museum::Log("storage", "SetAppNameEXT: %s", named.c_str());
             std::unique_ptr<System::IAsyncResult> sel = Storage::StorageDevice::BeginShowSelector(nullptr, nullptr);
             device_ = Storage::StorageDevice::EndShowSelector(sel.get());
             Museum::Log("storage", "device selected: IsConnected %s", device_->getIsConnectedProperty() ? "true" : "false");
@@ -764,8 +767,12 @@ private:
             row.detail = "root " + Storage::StorageDevice::GetStorageRootEXT() + "  connected " + (device_->getIsConnectedProperty() ? "yes" : "no") + "  free " + Fmt(static_cast<double>(device_->getFreeSpaceProperty()) / 1.0e9, "%.1f") + " of " + Fmt(static_cast<double>(device_->getTotalSpaceProperty()) / 1.0e9, "%.1f") + " GB";
             row.status = 0;
         } catch (const Storage::StorageDeviceNotConnectedException& e) {
-            // The storage root cannot be created (no writable per-user data folder): XNA's "device not connected".
             row.detail = std::string("StorageDeviceNotConnectedException: ") + e.what();
+            row.status = 1;
+        } catch (const System::IO::IOException& e) {
+            // XNA's EndOpenContainer builds the container's folder chain with DirectoryInfo.Create: a regular file in the way
+            // escapes as IOException, while IsConnected already said false.
+            row.detail = std::string("IOException: ") + e.what();
             row.status = 1;
         } catch (const std::exception& e) {
             row.detail = std::string("storage unavailable: ") + e.what();
@@ -952,7 +959,11 @@ private:
                       (void)device->EndOpenContainer(other.get());
                   }));
             std::unique_ptr<StorageDevice> second = StorageDevice::EndShowSelector(StorageDevice::BeginShowSelector(nullptr, nullptr).get());
-            check("EndOpenContainer on another device than BeginOpenContainer's", "ArgumentException", Thrown([&] { (void)second->EndOpenContainer(open.get()); }));
+            // XNA's EndOpenContainer marks the result ended before it compares the device, so the refused result is spent: it gets a
+            // result of its own, and a second End on it is CannotEndTwice.
+            std::unique_ptr<System::IAsyncResult> foreign = device->BeginOpenContainer("MuseumLabContracts", nullptr, nullptr);
+            check("EndOpenContainer on another device than BeginOpenContainer's", "ArgumentException", Thrown([&] { (void)second->EndOpenContainer(foreign.get()); }));
+            check("EndOpenContainer on the right device after that refusal", "InvalidOperationException", Thrown([&] { (void)device->EndOpenContainer(foreign.get()); }));
             check("EndOpenContainer(BeginOpenContainer(\"\"))", "ArgumentNullException", Thrown([&] { (void)device->EndOpenContainer(device->BeginOpenContainer("", nullptr, nullptr).get()); }));
             std::unique_ptr<Storage::StorageContainer> box = device->EndOpenContainer(open.get());
             check("EndOpenContainer twice on one result", "InvalidOperationException", Thrown([&] { (void)device->EndOpenContainer(open.get()); }));

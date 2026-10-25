@@ -1,0 +1,12 @@
+{
+  "description": "XmlSerializer round trips of XNA values: vectors, a quaternion, a matrix, Keys, and Color and Rectangle in XNA's own text",
+  "requires": "MUSEUM_PIPELINE",
+  "script": "goto:wk-xml;wait:30;stats;quit",
+  "expect": [
+    "wk-xml an XmlSerializer member list for Color: PASS",
+    "wk-xml an XmlSerializer member list for Rectangle: PASS",
+    "wk-xml XmlSerializer<Color> of (10, 20, 30, 40), read back: PASS",
+    "wk-xml XmlSerializer<Rectangle> of (1, 2, 3, 4), read back: PASS"
+  ],
+  "forbid": [": FAIL ("]
+}

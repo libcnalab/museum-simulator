@@ -1,5 +1,5 @@
 {
-  "description": "Push notification channel on loopback: open, raw and toast delivery, late send, unreachable address",
+  "description": "Push notification channel on loopback: open, raw and toast delivery, late send, unreachable address; in the browser, where nothing can listen, ErrorOccurred (ChannelOpenFailed) and refused sends",
   "script": "goto:dev-notify;wait:20;press:Open the channel;wait:5;press:Send a raw notification;wait:5;press:Send a toast notification;wait:10;press:BindToShellToast;wait:5;press:Close, then send to the closed channel;wait:5;press:Send to an address nobody listens on;wait:5;stats;quit",
   "expectRegex": [
     "\\[museum\\]\\[notify\\] open: ChannelUriUpdated 1 time\\(s\\), URI http://127\\.0\\.0\\.1:[0-9]+/museum-notify-room/, Find this room's channel",
@@ -10,5 +10,15 @@
     "[museum][notify] BindToShellToast: IsShellToastBound yes (recorded only: no shell displays it)",
     "[museum][notify] after Close: send refused, queued before Close and raised after it 0, URI null, Find null (no open channel of that name)",
     "[museum][notify] send to http://127.0.0.1:9/notify: refused"
-  ]
+  ],
+  "web": {
+    "replace": {
+      "[museum][notify] after Close: send refused, queued before Close and raised after it 0, URI null, Find null (no open channel of that name)": "[museum][notify] open: ChannelUriUpdated 0 time(s), URI null, Find null (no open channel of that name)"
+    },
+    "replaceRegex": {
+      "\\[museum\\]\\[notify\\] open: ChannelUriUpdated 1 time\\(s\\), URI http://127\\.0\\.0\\.1:[0-9]+/museum-notify-room/, Find this room's channel": "\\[museum\\]\\[notify\\] ErrorOccurred: ChannelOpenFailed, code -?[0-9]+: HttpNotificationChannel: listener setup failed",
+      "\\[museum\\]\\[notify\\] received 13 byte\\(s\\): museum raw #1": "\\[museum\\]\\[notify\\] open: ChannelUriUpdated 0 time\\(s\\), URI null",
+      "\\[museum\\]\\[notify\\] received [0-9]+ byte\\(s\\): <\\?xml.*<wp:Notification": "\\[museum\\]\\[notify\\] send to http://127\\.0\\.0\\.1:9/notify: refused"
+    }
+  }
 }

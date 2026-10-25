@@ -3,7 +3,8 @@
 // toast messages to it (RawPushNotificationMessage and ToastPushNotificationMessage, declared in PushNotificationSender.hpp),
 // and raises what arrived on the game's own thread through
 // DispatchPendingNotificationsEXT. Closing, reopening and sending to a closed channel are part of the round:
-// a closed channel must refuse new messages; what had already arrived is still raised by the next dispatch.
+// a closed channel must refuse new messages; what had already arrived is still raised by the next dispatch. Where no
+// socket can listen (the browser build), Open publishes no URI and the next dispatch raises ErrorOccurred (ChannelOpenFailed).
 //
 // Everything stays on 127.0.0.1, so the sweep may run it. Each step logs one [museum][notify] line with the
 // exact value it saw, which execution evidence keeps as the witness.
@@ -17,6 +18,7 @@
 #include "Microsoft/Xna/Framework/Graphics/SpriteBatch.hpp"
 #ifdef MUSEUM_PHONE
 #include "Microsoft/Phone/Notification/HttpNotificationChannel.hpp"
+#include "Microsoft/Phone/Notification/NotificationChannelErrorEventArgs.hpp"
 #include "Microsoft/Phone/Notification/PushNotificationSender.hpp"
 #endif
 
@@ -30,6 +32,21 @@ namespace Notify = Microsoft::Phone::Notification;
 #endif
 
 constexpr const char* kChannel = "museum-notify-room";
+
+#ifdef MUSEUM_PHONE
+const char* ErrorTypeName(Notify::ChannelErrorType type)
+{
+    switch (type) {
+        case Notify::ChannelErrorType::ChannelOpenFailed: return "ChannelOpenFailed";
+        case Notify::ChannelErrorType::PayloadFormatError: return "PayloadFormatError";
+        case Notify::ChannelErrorType::MessageBadContent: return "MessageBadContent";
+        case Notify::ChannelErrorType::NotificationRateTooHigh: return "NotificationRateTooHigh";
+        case Notify::ChannelErrorType::PowerLevelChanged: return "PowerLevelChanged";
+        case Notify::ChannelErrorType::Unknown: return "Unknown";
+    }
+    return "?";
+}
+#endif
 
 class NotificationLab final : public ScreenExhibit {
 public:
@@ -121,6 +138,11 @@ private:
                     if (body.find("<wp:Toast>") != std::string::npos) ++toast_;   // the toast payload PushNotificationSender writes
                     else ++raw_;
                     Museum::Log("notify", "received %zu byte(s): %s", e.getBodyProperty().size(), lastBody_.c_str());
+                });
+                errorToken_ = channel_->ErrorOccurred.Add([this](System::Object*, const Notify::NotificationChannelErrorEventArgs& e) {
+                    lastSend_ = std::string("ErrorOccurred: ") + ErrorTypeName(e.getErrorTypeProperty());
+                    Museum::Log("notify", "ErrorOccurred: %s, code %d: %s", ErrorTypeName(e.getErrorTypeProperty()), static_cast<int>(e.getErrorCodeProperty()),
+                                e.getMessageProperty().c_str());
                 });
             }
             channel_->Open();
@@ -215,6 +237,7 @@ private:
             channel_->Close();
             channel_->ChannelUriUpdated.Remove(uriToken_);
             channel_->HttpNotificationReceived.Remove(receivedToken_);
+            channel_->ErrorOccurred.Remove(errorToken_);
         } catch (const std::exception& e) {
             Museum::Log("notify", "closing: %s", e.what());
         }
@@ -226,7 +249,7 @@ private:
 #ifdef MUSEUM_PHONE
     std::unique_ptr<Notify::HttpNotificationChannel> channel_;
 #endif
-    std::size_t uriToken_ = 0, receivedToken_ = 0;
+    std::size_t uriToken_ = 0, receivedToken_ = 0, errorToken_ = 0;
     int uriEvents_ = 0, raw_ = 0, toast_ = 0, sent_ = 0;
     std::string uri_ = "-", lastBody_ = "-", lastSend_ = "-", toastBound_ = "no";
 };

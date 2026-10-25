@@ -18,7 +18,7 @@ is current and nothing failed.
 
 | What | Needed by | Notes |
 |---|---|---|
-| CMake ≥ 3.23, Ninja, a C++23 compiler, ccache, SDL3 development files | every build | builds use at most two jobs (`JOBS=2 tools/build.sh`) and the shared ccache |
+| CMake ≥ 3.23, Ninja, a C++23 compiler, ccache, SDL3 development files | every build | builds use at most eight jobs (`JOBS` of `tools/build.sh`, 8 by default) and the shared ccache |
 | `../cna` checkout | every build | the museum builds CNA from source; never edited from here |
 | `~/deps/FNA3D`, `~/deps/wgpu-native-v29.0.1.1` | FNA3D, WEBGPU (`build-probe`) | shared checkouts, nothing is downloaded |
 | Xvfb, `xvfb-run` | everything that renders | private virtual displays only |

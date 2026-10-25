@@ -4,357 +4,50 @@ The museum does not change CNA: another maintainer owns `../cna`. Each entry her
 against the CNA revision named in `docs/CNA_API_INVENTORY.md`, with the exact change it needs. Workarounds in the museum
 are named in the code where they are used and listed here; nothing is hidden behind one.
 
+On 2026-10-25 every finding that was open was rerun against CNA `9d49828f4` (`build/`, `build-probe/` and the trees named
+below, all built from `../cna`). The ones that held moved to "Fixed in CNA"; the ones CNA keeps on purpose and documents
+moved to "Documented differences".
+
 ## Open
-
-### BoundingFrustum.Intersects(Ray) works only for a ray that starts inside the frustum
-- **Where:** `modules/math/src/BoundingFrustum.cpp`, `BoundingFrustum::Intersects(const Ray&, std::optional<float>&)`.
-- **What happens:** if the ray's origin is inside, the result is 0 (correct). If the origin is outside (containment
-  `Disjoint`), CNA returns null even when the ray enters the frustum (an earlier revision threw
-  `ArgumentOutOfRangeException`); if the origin lies on a plane (`Intersects`), it throws `NotImplementedException`.
-  The math-checks room's ray from z = 10 towards a camera frustum at z = 6 gets null where XNA returns 4.5.
-- **XNA 4.0:** never throws here. It clips the ray against the six planes (slab test): for each plane with
-  `|dot(direction, normal)| >= 1e-5` it narrows `[tmin, tmax]` by `t = -(dot(position, normal) + D) / dot(direction, normal)`,
-  returns null when the interval empties or a parallel ray lies outside a plane, and otherwise returns `tmin` when it is
-  non-negative, else `tmax` when non-negative (`../xna4-decomp/.../Microsoft.Xna.Framework/BoundingFrustum.cs`,
-  `Intersects(ref Ray, out float?)`).
-- **Needed change:** replace the two throws with that clipping loop.
-- **Seen in the museum:** `math-checks`, check "BoundingFrustum.Intersects(Ray from outside)" (FAIL); the by-reference
-  overload agrees with the value one for a ray from inside (PASS).
-
-### SDL_GPU: no ShaderEffect source layout samples a volume, and one crashes
-`tex-volshader` draws slice 20 of a 32³ volume through `ShaderEffect.SetTexture(0, Texture3D)` and compares every pixel
-(storage itself is fine everywhere: `Texture3D.GetData` returns all 32 768 texels). GLSL ES on OPENGLES3/OPENGL33 and WGSL
-under the descriptor contract on WEBGPU (volume unit 0 at `@group(1) @binding(8)`, sampler at 40, scalars at
-`@group(3) @binding(0)`) pass, 0 of 1024 pixels off. On SDL_GPU (lavapipe) every documented layout fails:
-- SDL's native layout (vertex uniforms set 1, fragment sampler set 2 binding 0, fragment uniforms set 3): the sampler reads
-  the sprite's own texture, the volume is never bound (all 1024 pixels white).
-- the portable layout's volume binding (set 1 binding 8, as `shader_effect_per_unit_sampler_test.cpp` declares it) with
-  the native vertex shader (uniforms set 1 binding 0): **the process dies with a segmentation fault**.
-- the portable layout in both stages (scalar block set 3 binding 0): nothing is drawn (all pixels black) in a single-room
-  run, and the press-all tour on SDL_GPU died with a segmentation fault entering the room. The museum therefore runs no
-  volume shader on SDL_GPU and says so; the storage check still runs there.
-- **Needed change:** document the GLSL 450 layout a ShaderEffect source must use for a volume on SDL_GPU, and refuse a
-  layout CNA cannot map with a compile diagnostic instead of crashing (`SupportsTexture3DSamplingEXT` says true).
-
-### Vertex texture fetch (XNA HiDef) is missing on WEBGPU and SDL_GPU
-With the compiled-effects options on (`build-probe`), `fx-compiled` checks the fixtures exactly: `blur2tap` reflection and
-its arithmetic (Weight 0.5 and 0.25 on a flat colour) pass on OPENGLES3, FNA3D, WEBGPU and SDL_GPU, and the vs_3_0
-`vertextexture` effect draws a graph whose shape follows `VertexSamplerStates[2]` (PointClamp against PointWrap) on
-OPENGLES3 and FNA3D. XNA's HiDef profile includes vertex texture fetch from Single/Vector4 textures, but:
-- **WEBGPU:** creating the Vector4 vertex texture fails: `Texture: SurfaceFormat 15 is not implemented by the selected
-  graphics renderer`.
-- **SDL_GPU:** the draw is refused: `this compiled effect's vertex shader samples a texture; vertex-stage texture sampling
-  is unsupported by this renderer`.
-- **Needed change:** implement vertex-stage sampling (and the float vertex-texture formats) on both, or make HiDef device
-  creation report the missing feature; the room logs both as SKIP with these messages.
-
-### D3D9: a failed full-screen Reset is followed by a fatal GetRenderTarget error (seen under Wine)
-- **What happens:** the Windows build under Wine 10 on an Xvfb screen of 1280x720 with `--fullscreen` on DIRECTX9: `D3D9 Reset
-  (resize to 800x480) failed, hr=0x8876086C -- keeping previous size, retrying next frame`, then on the same frame
-  `IDirect3DDevice9::GetRenderTarget failed: D3DERR_NOTFOUND (SetViewport)` escapes `Game::Run()` and the game ends. Xvfb
-  cannot switch display modes, so the mode is honestly unavailable; with an 800x480 screen the same run works.
-- **Why it matters:** after a failed `Reset` a Direct3D 9 device accepts only `Reset`, `TestCooperativeLevel` and `Release`,
-  so "retrying next frame" must not issue other device calls in between. XNA reports an unusable mode from
-  `GraphicsDeviceManager.ApplyChanges` (`NoSuitableGraphicsDeviceException`) instead of a later unrelated failure.
-- **Needed change (suggestion):** treat a failed Reset as a lost device until a Reset succeeds (gate draws as for
-  `D3DERR_DEVICELOST`), or surface the unusable mode from ApplyChanges. Not seen on real Windows (none here).
-
-### A heap corruption crash in gs-avatar under OPENGLES3 (seen once, at CNA a6f9e9b2e)
-- **What happens:** in the execution coverage run `2026-10-22-opengles3-full-a6f9` (build-probe, one process per room)
-  `gs-avatar` ended with SIGSEGV after `pressall`; the core's stack is `malloc` inside Mesa's libgallium (25.0.7) called
-  from `EasyGLRenderer::DrawIndexedPrimitivesEx` ← `GraphicsDevice::DrawIndexedPrimitives` ← the museum's `StaticMesh::Draw`.
-  A crash inside `malloc` means the heap was damaged earlier, by any component.
-- **Not reproduced:** 13 more runs of the same script (8 with glibc's heap checking, `glibc.malloc.check=3`) and a separate
-  coverage run of the room all passed. The same room passed in every run at `5b6aab981`. Recorded so that a repeat can be
-  matched; an ASan run (build-asan) is the next step if it returns.
-
-### HapticDevice's inline default constructor cannot be compiled outside CNA (CNA-DEMOS-ISSUE-009)
-- **Where:** `modules/input/include/CNA/Input/HapticDevice.hpp`: `CNAEXT HapticDevice() = default;` with a
-  `std::unique_ptr<CNA::Platform::IPlatformHapticDevice>` member whose type no public header completes.
-- **What happens:** default-constructing a `HapticDevice` (for example as a class member) fails with
-  "invalid application of 'sizeof' to incomplete type 'CNA::Platform::IPlatformHapticDevice'".
-- **Needed change:** declare the default constructor in the header and define it (`= default`) in the .cpp, as the
-  move operations and destructor already are.
-- **Museum workaround:** `DeviceLab` holds `std::optional<HapticDevice>` filled from `Haptics::OpenEXT`.
-- **2026-10-22:** CNA `974c1ac08` declares the constructor in the header and defines it in the .cpp. A probe holding a
-  default-constructed `HapticDevice` member, compiled with the museum's own flags (`-fsyntax-only`), fails with the error above
-  against the header at `5b6aab981` and compiles against the header at `974c1ac08`. The museum is now built at `a6f9e9b2e`,
-  which contains it, but still holds `std::optional<HapticDevice>`, so no museum binary links the new constructor yet; the
-  entry stays here until it does.
-
-### VertexTypeRegistryEXT::Resolve names the refused type in its mangled form
-- **What happens:** `Resolve(System::Type::From<T>())` for an unregistered `T` throws
-  `ArgumentException: The vertex type 'N12_GLOBAL__N_118UnregisteredVertexE' is not a registered ...`.
-- **Needed change:** demangle (`abi::__cxa_demangle` on GCC/Clang), as sharp-runtime's TypeConverter refusals already do.
-- **Seen in:** `rv-vertextype` (the check passes: the refusal itself is correct).
-
-### SystemTray.IsSupported is true where no icon can be created
-- **What happens:** on Linux without a StatusNotifier host (no session bus), `SystemTray::getIsSupportedProperty()`
-  returns true, and `SystemTray("...")` then throws `CNA::Platform: CreateTray failed: Unable to create tray: no SNI support!`.
-- **Needed change:** either probe for a StatusNotifier watcher in `IsSupported`, or document that it reports the build's
-  capability only and creation can still be refused.
-- **Seen in:** `tools/devices_check.sh` (reported as UNAVAILABLE).
-
-### MessageBox.Show marks no default button
-- **What happens:** CNA passes every `SDL_MessageBoxButtonData` with `flags = 0`, so Return or Escape can only dismiss
-  the box (`-1`), never choose a button.
-- **Needed change (suggestion):** mark the first button `SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT` and the last
-  `..._ESCAPEKEY_DEFAULT`, or document that only a pointer click chooses.
-
-### EnvironmentMapEffect reflects no environment-map parameter
-- **What happens:** `EnvironmentMapEffect::CacheEffectParameters` (`modules/graphics/src/Xna/EnvironmentMapEffect.cpp`)
-  registers `EnvironmentMapAmount`, `EnvironmentMapSpecular`, `FresnelFactor`, colours, fog and matrices, but neither
-  `Texture` nor `EnvironmentMap`; the textures live only in C++ members. XNA's effect reads both from its parameter
-  collection (`Parameters["Texture"]`, `Parameters["EnvironmentMap"]`), so code that reflects or sets them by name finds
-  nothing in CNA.
-- **Needed change:** add the `Texture` (Texture2D) and `EnvironmentMap` (TextureCube) parameters and route the
-  properties through them, as the other stock effects do for their textures.
-
-- **2026-10-22:** CNA `28145a201` says it reflects and binds both texture parameters; no museum check reads them by
-  name yet, so it is not verified here.
-### No capability query for reading a render target back
-- **What happens:** `Texture2D::GetData` on a render target raises `System::NotSupportedException` on HEADLESS (which
-  rasterises nothing, by design). Neither `GraphicsCapability` nor `RendererCapabilityProfile`'s `RendererFeature`
-  list has an entry for render-target readback, so a program can only find out by trying.
-- **Needed change (suggestion):** a `RendererFeature::RenderTargetReadback` (and `GraphicsCapability` twin).
-- **Museum handling:** `SignFactory` treats that refusal as the renderer's declared limitation (signs keep their
-  background colour) and any other exception as an error.
-
-### WebGPU renderer cannot render without a window surface
-- **What happens:** with SDL's `offscreen` video driver (no display server; EGL and Vulkan work there, and OPENGLES3,
-  OPENGL33, FNA3D and SDL_GPU render on the GPU), creating the WEBGPU device fails with
-  `WebGPURenderer::Surface failed: missing native window (Headless)`.
-- **Needed change (suggestion):** when the window has no native handle, render into an offscreen texture (wgpu needs no
-  surface for that) and present by readback, or report the renderer unavailable through the fallback history so the
-  application can pick another; today the device creation exception is the only signal.
-
-### StorageDevice and StorageContainer skip XNA's argument, state and disposal checks
-Measured by the `ct-storage` button "Error paths and async results, checked against XNA 4.0" (scenario
-`tests/scenarios/storage_contracts.json`); each expectation is the code in `../xna4-decomp/.../Microsoft.Xna.Framework.Storage`:
-- `EndShowSelector` / `EndOpenContainer` called twice on one result: XNA `InvalidOperationException` (CannotEndTwice), CNA
-  returns a second device/container.
-- `BeginShowSelector(sizeInBytes < 0, ...)`: XNA `ArgumentOutOfRangeException`, CNA accepts it.
-- `EndOpenContainer` on another device than the one whose `BeginOpenContainer` produced the result: XNA `ArgumentException`,
-  CNA opens the container.
-- A result from the other Begin method, an empty display name, and empty paths (`CreateFile("")`, `FileExists("")`): XNA
-  `ArgumentNullException`, CNA the base `ArgumentException` (code catching `ArgumentNullException` misses it).
-- `DeleteDirectory` of a non-empty directory: XNA `IOException`, CNA lets `std::filesystem::filesystem_error` escape.
-- **Needed change:** an end-once flag on both result types,
-  the device check in `EndOpenContainer`, the size check, `ArgumentNullException` for null/empty names, and IOException
-  for the directory case. Agreeing already: async callbacks and `AsyncState`, path containment, `FileNotFoundException`,
-  `DeleteFile` of a missing file, `Disposing` raised once.
-
-### StorageDevice.SetAppNameEXT throws when no storage root can be created
-- **What happens:** `SetAppNameEXT` stores the name and then resolves and creates the root at once (for the isolated
-  storage override); with no writable per-user data folder it throws `StorageDeviceNotConnectedException`. Called
-  unguarded at start-up (as the museum did), it ends the program before any game code runs. Later storage calls throw the
-  same exception, which is the XNA place for it; local GamerServices achievements then fail with the same message.
-- **Needed change (suggestion):** resolve the root lazily (the isolated-storage override too), so that only the calls that
-  need the folder report the missing device.
-- **Museum handling:** `main` and `ct-storage` catch it; scenario `storage_not_connected` checks `IsConnected false` and
-  the exception from `EndOpenContainer`.
-
-### Content pipeline divergences found by the Pipeline Workshop (wk-* rooms; each is a FAIL check there)
-1. **Nested build names collide** (wk-processor): `Convert(material, "MaterialProcessor")` builds `plaque.png` as
-   `plaque_0`; a later `BuildAsset(plaque.png, "TextureProcessor")` with other parameters fails with
-   `nested build output 'plaque_0' collides with another output of this node`. XNA chooses names unique across the whole
-   build (`BuildCoordinator.ChooseOutputFilename`), so the second would be `plaque_1`. Cause: each
-   `XnaBridgeProcessorContext` keeps its own `generatedNames_`. Needed: share the generated-name set per build.
-2. **`BuildAndLoadAsset<TextureContent, TextureContent>(png, "TextureProcessor")`** throws PipelineException
-   (`processed to 'CNA.Content.Cnb.Texture2DData' where '...TextureContent' was expected`): the "TextureProcessor" alias
-   produces a CNA runtime type; XNA returns a Texture2DContent.
-3. **Convert errors:** an unknown processor name throws PipelineException (XNA: InvalidOperationException from
-   `ProcessorManager.ValidateProcessorTypes`); an empty name throws PipelineException (XNA: ArgumentNullException("processorName")).
-4. **AddDependency:** an absolute path outside the source root throws `std::invalid_argument` (XNA records it; CNA's
-   `ResolveSourceDependency` sandboxing is deliberate but undocumented as a difference); `"../escape.txt"` throws
-   `std::invalid_argument` (XNA: PipelineException, the path is not absolute). A `std::` exception escaping a public
-   pipeline API is itself unlike XNA.
-5. **MaterialProcessor with EffectMaterialContent:** with no Effect CNA skips silently; with an empty Effect file name it
-   throws PipelineException from BuildAsset. XNA throws InvalidContentException in both cases.
-6. **`ContentReader.ReadRawObject<Int32>`** throws "no content type reader is registered for the requested type" although
-   the manifest lists Int32Reader; XNA resolves it through `ContentTypeReaderManager.GetTypeReader(typeof(T))`.
-7. **Truncated XNB body** (size field patched to match): CNA throws `System::IO::EndOfStreamException`; XNA wraps the
-   IOException in ContentLoadException.
-8. **XNB version 4** loads without complaint; XNA 4.0 accepts only 5 (deliberate in CNA, `XnbHeader.hpp:48`; listed so
-   the difference is visible).
-9. **XmlSerializer has no member list for Color or Rectangle** (`XmlSerializationEXT.hpp` covers vectors, Quaternion and
-   Matrix): `XmlSerializer<Color>` and `XmlSerializer<Rectangle>` do not compile; .NET serializes both by reflection.
-10. **`BoneWeightCollection.NormalizeWeights()` keeps zero weights** (wk-animation): for A .2, B .5, C 0, D .1 CNA answers
-    B .625, A .25, D .125, **C 0**; XNA 4.0 (`BoneWeightCollection.NormalizeWeights(int)`) removes every weight `<= 0`
-    (and every one at index `>= maxWeights`) before summing, so C is gone. Needed in `VertexCollections.cpp`
-    `Normalize`: drop entries whose weight is `<= 0` in the same pass that truncates to `maxWeights`, and scale with
-    `weight * (1 / total)` as XNA does (CNA divides, which can differ in the last bit).
-11. **`PipelineComponentScanner.Update` answers false for a changed list** (wk-processor): after `Update({"Museum.Workshop"})`,
-    `Update({"Museum.Workshop", "No.Such.Catalog"})` records the error but returns false. XNA returns true whenever the
-    (empty-filtered) list differs from the previous call's (`AlreadyUpToDate` compares the list and the timestamps) and
-    only answers false for the same list. CNA's header documents "true when the set of components changed". Needed:
-    remember the previous list and return true whenever it differs, as XNA does.
-12. **Two `ContentTypeSerializerAttribute` instances are not `Equals`/`Match`** (wk-cnbloader): .NET `Attribute.Equals`
-    compares the type and every instance field, so two instances of this field-less attribute are equal (and `Match`
-    defaults to `Equals`). CNA inherits sharp-runtime's `System::Attribute::Equals`, which is reference equality.
-    Needed: `ContentTypeSerializerAttribute` (or `System::Attribute` for field-less attributes) compares
-    `typeid(other) == typeid(*this)`.
-13. **A built glTF whose images are embedded cannot be loaded** (wk-routes): `ContentPipeline::Build(uvsets.gltf)` (images as
-    data URIs, default `ModelProcessor`) succeeds with one output, no deployment files and runtime references
-    `uvsets_tex0.png`, `uvsets_tex1.png` that nothing produces; `cna-content build` publishes the same single
-    `uvsets.cnb`. `ContentManager.Load<Model>` then throws `ContentLoadException: could not load asset 'uvsets_tex0.png'`.
-    With `generateChildAssets = true` the two images are child outputs and the model loads. Needed: when the images are
-    embedded, deploy the extracted files (`ImportedModelDocument::generatedTextureFiles`) under the referenced names, or
-    generate the child assets automatically, or fail the build naming the dangling references.
-14. **`DecodeWavAsCnbSoundEffect` does not do what `CnbSourceImport.hpp` says** (wk-incremental): an 8-bit WAV comes back as
-    `CnbAudioFormat::Pcm8` with its bytes unchanged (documented: "8-bit unsigned PCM (widened exactly)" to Pcm16), and a
-    24-bit WAV is accepted and narrowed to Pcm16 (documented: "Refused, by name: 24-bit, 32-bit, IEEE float").
-    `ProcessImportedSoundEffect`'s comment also still promises Pcm16. The behaviour matches the later XNASWEEP-197 work
-    (Pcm8 in schema 2, `ImportedPcmNarrowsToPcm16`). Needed: correct the comments of `DecodeWavAsCnbSoundEffect`,
-    `ImportWavAsCnbSoundEffect` and `ProcessImportedSoundEffect` (or restore the documented refusal of wide PCM).
-15. **`Tasks::TaskItem::operator==` cannot be called** (wk-tasks): it is declared `= default`, but the base
-    `System::Object` has no `operator==`, so the defaulted operator is implicitly deleted and `item == other` does not
-    compile. Needed: define it explicitly over `itemSpec_` and `metadata_`.
-16. **BuildContent, CleanContent, GetLastOutputs and ContentProject do not link from `cna_content_pipeline`** (wk-tasks):
-    their definitions (`BuildContent.cpp`, `CleanContent.cpp`; `ContentProject.cpp` calls BuildContent's setters) call
-    `CNA::Content::Pipeline::RunContentCompiler`, which is defined only in `cna_content_compiler`
-    (`tools/content/content.cpp`), and `cna_content_pipeline` does not link it (the dependency runs the other way). A
-    game linking `cna_content_pipeline`, as this museum does, gets `undefined reference to RunContentCompiler` as soon as
-    it names one of them (`nm`: `U ...RunContentCompiler` in `BuildContent.cpp.o` and `CleanContent.cpp.o`). The same holds
-    for `RegisterBuiltInContentPipeline`. Needed in CNA: move the four task sources into `cna_content_compiler` (and say
-    "link CNA::ContentCompiler" in their headers), or move the coordinator into a library `cna_content_pipeline` links.
-    The museum now links `cna_content_compiler` explicitly (`MUSEUM_CONTENT_COMPILER`), and wk-contentproject runs all four.
-17. **A clean leaves the coordinator's lock file behind** (wk-contentproject): after `CleanContent.Execute` (and
-    `RunContentCompiler({"clean", out})`) the output directory still holds `.cna-content.lock`, which a build or the clean
-    itself created; the outputs and the manifest are removed correctly and foreign files are kept. XNA's CleanContent
-    deletes the outputs and its own cache file and leaves no pipeline file (`BuildItemCollection.DeleteStaleOutputFiles`,
-    `PathUtils.SafeDeleteFile(CacheFilename)`). Needed: the clean removes the lock file after releasing it (or the lock
-    lives under the intermediate directory).
-
-### Vendored ENet shifts a signed 1 by 31 places (UBSan)
-- **Where:** `third_party/enet/protocol.c`, `enet_protocol_handle_send_unsequenced`: `1 << (index % 32)` at lines 492
-  and 498, on the `enet_uint32` unsequenced window.
-- **What happens:** with an unsequenced packet whose window index is 31 the shift is undefined behaviour in C
-  (`runtime error: left shift of 1 by 31 places cannot be represented in type 'int'`, 9 times each in the
-  ASan+UBSan `tools/net_check.sh` run on 2026-10-20, packet round with `SendDataOptions.None`). GCC and Clang produce
-  the expected bit today, so no packet was lost, but the compiler may assume it never happens.
-- **Needed change:** `1u << (index % 32)` in both places.
-- **2026-10-22:** CNA `5b6aab981` (MUSEUM-NET-003) makes both shifts `1u << (index % 32)` (read in the worktree's source);
-  the museum has not rerun UBSan on it (the sanitizer trees were removed after P11), so the entry stays here until it does.
-
-### Data races found by ThreadSanitizer (build-tsan, 2026-10-20)
-Seen in the targeted TSan run (`tools/scenarios.py notifications inspector`, a 30-frame press-all tour of the au-*, dev-notify,
-pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/net_check.sh`; the network rounds were clean).
-- **`HttpNotificationChannel::Close` and its listener thread:** `Close()` (`modules/phone/src/HttpNotificationChannel.cpp:223`)
-  writes `listenSocket_ = -1` under the channel mutex while the listener thread started by `Open()` reads `listenSocket_` for
-  `::accept` in `Listen()` (line 180) without it (dev-notify, "Close, then send to the closed channel"). Needed: the listener works on the socket
-  value it was started with (or `listenSocket_` becomes atomic), and `Close` only shuts it down and joins.
-- **`SetMixerTrackMixCallback` against the mixer thread:** `context->mixCallback` and `mixUserdata`
-  (`modules/audio/src/Backend/Sdl3Mixer/MixerEngine.cpp:559-560`) are written by the game thread
-  (`SoundEffectInstance::Apply3D` → `INTERNAL_applyComposedTrackProperties` → `EnsureTrackDspState`) while SDL's audio thread
-  reads them in `MixCallback` (line 245) for a track that is already playing (every au-* room with 3D voices, 12 reports per
-  audio_check run). Needed: write them under the mixer lock the cooked callback runs under, or set them before the track plays.
-- **Static teardown of pending pan state while the audio thread still mixes:** at process exit `~PendingPanStateCleanup`
-  (`modules/audio/src/Xna/SoundEffect.cpp:236`, `DrainClaimed` line 218) deletes pending pan states while the SDL audio thread
-  still runs `FireAndForgetPanCallback` (line 154) through `MixCallback` (seen at the end of the notifications and Inspector
-  scenarios, which played fire-and-forget sounds). Needed: stop or lock the mixer before the static drain.
-
-### HttpNotificationChannel fails silently where no socket can listen (browser build)
-- **Where:** `modules/phone/src/HttpNotificationChannel.cpp`, `Open()`: when `socket`, `bind`/`listen` or `getsockname`
-  fails it logs a warning (or nothing, for `getsockname`) and returns.
-- **What happens:** in the browser build (Emscripten, no listening sockets) `dev-notify` opens the channel and nothing
-  follows: `ChannelUriUpdated` is raised 0 times, `ChannelUri` stays null and `Find` finds nothing, and the game is told
-  nothing (CNA's channel declares only `ChannelUriUpdated` and `HttpNotificationReceived`, no `ErrorOccurred`); a raw send to the unreachable `http://127.0.0.1:9/notify` reports accepted, where the native build reports it
-  refused (`tools/web_scenarios.py notifications`, 2026-10-20). XNA's channel reports a failed open through
-  `ErrorOccurred` with `NotificationChannelErrorType.ChannelOpenFailed`.
-- **Needed change:** add the channel's `ErrorOccurred` event (`NotificationChannelErrorEventArgs`), raise it with
-  ChannelOpenFailed when the channel cannot listen, and complete a send that could not connect as refused on every platform.
 
 ### Float16RenderTargets is reported on the Android emulator, whose half-float target reads back as NaN
 - **Where:** EasyGL's capability profile (OPENGLES3) on the Android emulator's guest GLES (`-gpu guest`, Android 15 image).
 - **What happens:** `GraphicsDevice` reports `GraphicsCapability.Float16RenderTargets` as supported, but in rv-capabilities
   two additive white quads drawn into a `HalfVector4` render target read back as `(0.000, NaN, 0.000, NaN)` instead of 2.0
   per channel (`tools/android_run.sh`, 2026-10-20). On the desktop OPENGLES3 renderer the same check passes.
-- **Needed change:** claim the capability only when the context can render to and read back RGBA16F
-  (`EXT_color_buffer_half_float`/`EXT_color_buffer_float`, and a half-float `glReadPixels` path that the implementation
-  accepts), or convert on readback.
+- **Needed change:** claim the capability only when the context can render to and read back RGBA16F, or convert on readback.
+- **2026-10-25:** CNA `53292f147` converts floating-point target readback on GLES. The Android tree is rebuilt against
+  `9d49828f4` (`tools/build_android.sh`), but the emulator could not run: `/dev/kvm` does not exist (the `kvm_amd` module
+  is not loaded on this machine since 2026-10-23). Rerun `tools/android_run.sh rv-capabilities` once it is.
 
-### A profile read just after a Guide sign-out reached the service without a token (seen once)
-- **Where:** `modules/gamer-services/src/Internal/GamerServicesBackend.cpp`, `tokenFor`: `No authenticated CNA gamer for this
-  operation.`
-- **What happens:** in `tools/online_party_check.sh` (2026-10-20) Visitor signed out from the Guide's Home page in gs-players;
-  `SignedInGamer.SignedOut` was raised, and the room's next profile refresh (a loop over `Gamer.SignedInGamers` calling
-  `GetProfile` and the presence, privileges and game-defaults getters) threw that message. A rerun of the same steps raised
-  no error, and its new log line shows `Gamer.SignedInGamers` empty when `SignedOut` is raised, so which gamer's call reached
-  the service is not known. The message names an internal state, not an XNA exception a game could expect.
-- **Needed change:** a call for a gamer in `Gamer.SignedInGamers` must not reach the service without that gamer's session;
-  a gamer whose account is going away should fail with XNA's exception for a signed-out gamer.
-- **Museum handling:** the players room catches a failed `GetProfile` per card and shows it there.
+<<SANITIZER>>
 
-### FNA3D's SDL_GPU (Vulkan) backend crashed once binding fragment samplers
-- **Where:** CNA's FNA3D renderer on the machine's GPU (`MUSEUM_GPU=1`, radeonsi/RADV), where FNA3D picks its SDL_GPU
-  driver: `GraphicsDevice::DrawUserPrimitives` → `SDLGPU_DrawPrimitives` → `SDLGPU_INTERNAL_BindDeferredState` →
-  SDL's `VULKAN_BindFragmentSamplers`, SIGSEGV (core dumped), in rv-effects' punctual-lights probe right after rv-formats.
-- **What happens:** once in four runs of `MUSEUM_GPU=1 BUILD_DIR=build-probe tools/renderer_check.sh FNA3D` on 2026-10-20
-  (the final battery: exit 139 after 60 checks); the next three runs of the same command, and rv-effects alone, finished
-  cleanly (78 PASS, 0 FAIL; 81 with `FNA3D_FORCE_DRIVER=OpenGL`). On llvmpipe FNA3D uses OpenGL and has not crashed.
-- **Needed change:** find the sampler binding that outlives its texture or sampler in FNA3D's SDL_GPU driver as CNA wires
-  it (the deferred state is bound at draw time, after rv-formats created and released many textures).
+## Documented differences (CNA's decision, not defects)
 
-- **2026-10-22:** CNA `c2664bad6` unbinds textures before native disposal; `renderer-FNA3D-gpu` passed (78/0) at `a6f9e9b2e`
-  after a segfault at `5b6aab981`. One clean run does not settle a crash seen in about one run in four, so the entry stays
-  until more runs pass.
-### Native C API
-The cx-capi room's C17 clients of CNA's C ABI (`src/CApi/`: the in-museum client, and the game probe `bin/cna-c-probe`
-that the room starts as a child process because a process hosts one game) check every C header family against the
-header documentation and, for XNA-mirroring routes, against XNA 4.0. The divergences below are FAIL checks there; the
-scenario `capi_native` expects exactly these FAIL lines (logged as `[museum][check] cx-capi <name>: FAIL`, and as
-`cx-capi game: <name>: FAIL` for the game probe).
+The museum checks each one against CNA's own documentation, so a change is still noticed.
 
-- **One process carries two CNA states.** `modules/c-api/CMakeLists.txt` links `cna_c_api` against the static component
-  archives (`target_link_libraries(cna_c_api PRIVATE cna_core cna_platform cna_runtime ...)`), so `libcna_c_api.so` embeds
-  its own copy of every process-wide CNA singleton, while a C++ host links the same code again through `libcna.so`. In the
-  museum (both libraries loaded) the C ABI does not see the host's state: the title the museum declares at static
-  initialisation (`CNA::AssemblyTitleAttributeEXT kAssemblyTitle{"CNA 3D Museum"}`, `src/Main.cpp`) reads back as `""`
-  through `cna_assembly_copy_title_ext`, although `core_ext.h` documents the title as process-wide; the renderer selection
-  reports not latched and `cna_graphics_renderer_get_active_ext` answers `CNA_RESULT_INVALID_STATE` although the museum's
-  GraphicsDevice exists; XNA's built-in type readers are not in the C copy's registry until a C content manager exists.
-  **Needed change:** when CNA itself is built as a shared library, link `cna_c_api` against that library (the `CNA`
-  target) instead of the component archives, so the process-wide state exists once; if two copies are intended, document
-  in `docs/c-api/CONSUMING.md` that a process must not combine the C ABI with CNA's C++ library and drop "process-wide"
-  from the affected route docs. Check: "one process, one CNA: cna_assembly_copy_title_ext sees the title the host
-  declared through CNA's C++ API".
-- **`cna_cnb_copy_decompressed` with `CNA_CNB_COMPRESSION_NONE` ignores the declared size.** `cnb.h` says the payload
-  "must expand to exactly `uncompressed_size`", checked against `max_uncompressed_size` before anything is allocated;
-  `DecompressCnbChunk` (`modules/content/src/Cnb/CnbChunkCompression.cpp`) returns the stored bytes unchanged for `None`
-  before either check, so 6 stored bytes declared as 5 succeed with 6 bytes. (The document parser checks
-  `stored_size == uncompressed_size` itself, so a parsed file is not affected; the standalone route is.)
-  **Needed change:** for `None`, throw `ContentLoadException` unless `uncompressedSize <= maxUncompressedSize` and
-  `stored.size() == uncompressedSize`. Check: "cna_cnb_is_compression_supported, copy_compression_name, ...".
-- **`MouseState.ToString` uses another format.** `modules/input/src/Xna/MouseState.cpp` returns
-  `[MouseState X=10, Y=20, Buttons=Left, Wheel=120]`; XNA 4.0 returns `{X:10 Y:20 Buttons:Left Wheel:120}`
-  (`string.Format("{{X:{0} Y:{1} Buttons:{2} Wheel:{3}}}", ...)`, the buttons space-separated or `None`), the same
-  `{Name:value}` style as every other XNA value type CNA already matches. **Needed change:** that format. Check:
-  "cna_mouse_state_get_string_size/copy_string(10, 20, 120, LEFT)".
-- **`GamePadState.ToString` returns the type name.** `modules/input/src/Xna/GamePadState.cpp` follows FNA
-  (`base.ToString()`), and `input_gamepad.h` states that "the canonical type does not override its string conversion";
-  XNA 4.0 does override it: `string.Format("{{IsConnected:{0}}}", _connected)`, i.e. `{IsConnected:True}`.
-  **Needed change:** return `{IsConnected:True|False}` and correct the header comment. Check: "cna_gamepad_state_copy_string
-  of a connected snapshot".
-- **`cna_achievement_collection_get_by_key` answers `CNA_RESULT_INTERNAL` for an unknown key.** The header documents
-  `CNA_RESULT_INVALID_ARGUMENT`; `AchievementCollectionGetByKey` (`modules/c-api/src/CnaCApiAchievements.cpp`) indexes
-  `AchievementCollection::operator[](const std::string&)`, which throws `System::IndexOutOfRangeException`, and the barrier
-  reports that as an internal fault ("Index was outside the bounds of the array."). **Needed change:** look the key up
-  first and return `CNA_RESULT_INVALID_ARGUMENT` when it is absent (or map `IndexOutOfRangeException` from that indexer
-  to `INVALID_ARGUMENT`). Check: "cna_achievement_collection_get_by_key with a key no achievement has".
-- **`cna_presentation_parameters_init` is not XNA's default.** Documented as "XNA-compatible defaults", it returns an
-  800x480 windowed back buffer (`PresentationParameters::PresentationParameters()` in
-  `modules/graphics/src/Xna/PresentationParameters.cpp`); XNA 4.0's constructor sets only `IsFullScreen = true` and leaves
-  the back buffer 0x0 (the 800x480 belongs to `GraphicsDeviceManager`'s defaults). **Needed change:** `isFullScreen_(true)`
-  and a 0x0 back buffer in the constructor, or document the desktop defaults as CNA's own instead of XNA-compatible.
-  Check (game probe): "cna_presentation_parameters_init (documented as XNA-compatible defaults), cna_presentation_parameters_clone".
-
-Not counted as failures (the checks follow CNA's own documentation): `devices.h` says "supported physical host targets
-report `CNA_DEVICE_TYPE_DEVICE`", while `Microsoft/Devices/Environment.hpp` and the implementation report `Emulator` on
-every desktop and browser target (the museum checks EMULATOR on Linux; the C header sentence should say desktops report
-`EMULATOR`). `cna_plane_get_hash_code` (and the other bounding-volume hashes) use CNA's own `size_t` combination rather
-than XNA's sum of float bit patterns, and `cna_mouse_state_get_hash_code` mixes only position and wheel as `input_mouse.h`
-documents, where XNA also XORs the button states; the checks test the hash contract (equal values, equal hashes) instead.
+- **XNB container version 4 loads** (wk-typewriter "XNB version byte 4"). XNA 4.0 refuses it (`BadXnbVersion`); CNA reads
+  XNA 3.x's container on purpose, with the legacy `SurfaceFormat` numbering (`docs/xnb-interoperability.md`, "Version").
+- **A clean leaves `.cna-content.lock`** (wk-contentproject "CleanContent.Execute: what it leaves"). XNA's CleanContent
+  leaves no pipeline file; CNA keeps the lock that serializes later builds and cleans of the output root
+  (`docs/content-pipeline.md`).
+- **`AddDependency` keeps dependencies inside the source roots** (wk-processor): a path outside them is refused with
+  `PipelineException` (XNA's type, CNA `889a31be4`), where XNA records an outside absolute path as it is
+  (`ContentProcessorContext.hpp`).
+- **`cna_cnb_copy_decompressed` with `CNA_CNB_COMPRESSION_NONE` ignores both declared sizes** (cx-capi): the C route copies
+  the stored bytes and enforces only the destination capacity, unlike the strict C++ `DecompressCnbChunk` (`cnb.h`,
+  `docs/c-api/CNB.md`, CNA `c57ecab8c`). The check pins exactly that, including the refused 5-byte destination with nothing
+  written.
+- **The WAV source importer keeps 8-bit PCM as `Pcm8` and narrows 24-bit, 32-bit and float to `Pcm16`** with
+  round-to-nearest (wk-incremental): the header promised the opposite until CNA `acc2ee55b` corrected it to the behaviour.
+- **`SystemTray.IsSupported` is the platform's tray capability, not a probe for a running StatusNotifier host**: the
+  constructor reports a missing host with `PlatformException` (`SystemTray.hpp`, `docs/devices-ext.md`, CNA `d7ed7592d`).
+  `tools/devices_check.sh` reports it UNAVAILABLE without a host; `tools/tray_check.sh` runs it against a private one.
+- **WEBGPU needs a native window surface.** Under SDL's `offscreen` driver a named WEBGPU fails with
+  `WebGPURenderer::Surface failed: missing native window`; an application that opts into fallback gets the failure in
+  `GraphicsRendererSelection::GetFallbackHistory()` as `InitializationFailed` and the next renderer
+  (`docs/webgpu-renderer.md`, CNA `376eb834b`). `MUSEUM_RENDERER_FALLBACK=1` (`src/Main.cpp`) is that opt-in: on
+  2026-10-25 the museum logged "renderer WEBGPU was passed over (InitializationFailed) ... using OPENGLES3 instead".
 
 ## Behaviour worth knowing (not defects)
 - `HttpNotificationChannel`: notifications that arrived while the channel was open but were not dispatched yet are still
@@ -372,8 +65,105 @@ documents, where XNA also XORs the button states; the checks test the hash contr
   is recorded as a difference to confirm, not as a defect.
 - `MeshHelper.CalculateNormals` sums the normalised normal of every triangle at a position (a quad split into two
   triangles counts twice at the corners its diagonal touches), exactly like XNA.
+- FNA3D refuses a `PbrEffect` draw whose vertices carry no tangent (`VertexPositionNormalTexture`) with
+  `NotSupportedException` (`FNA3D-MISSING-STOCK-INPUT`) wherever FNA3D picks its SDL_GPU driver (the GPU here): a missing
+  input cannot be built into that driver's pipeline. Its OpenGL driver (llvmpipe) and every other renderer supply a neutral
+  tangent. rv-shading reports it as INFO; CNA lists it in its `handoff.md` §5.2.
+- `MessageBox.Show` marks the first button the Return default and the last the Escape default. SDL shows the box through
+  Zenity when Zenity is installed, and Zenity ignores both hints (`docs/devices-ext.md`); `tools/dialogs_check.sh` therefore
+  clicks the Zenity buttons and checks the keys in a second museum without Zenity on its PATH, which gets SDL's own X11 box.
+- `StorageDevice.EndOpenContainer`, as XNA's, marks the result ended before it compares the device: a result refused for
+  the wrong device is spent, and a second End on it is `InvalidOperationException` (XNA IL: `endHasBeenCalled = true`
+  precedes the device check). ct-storage gives that check its own result.
+- Where no per-user data folder can be created (XDG_DATA_HOME below a regular file), `IsConnected` is false and
+  `EndOpenContainer` throws `IOException` from creating the container's folder chain, as XNA's `DirectoryInfo.Create` does
+  (CNA `c30925496`, measured against genuine XNA under Wine); `SetAppNameEXT` itself resolves nothing.
 
 ## Fixed in CNA after the museum reported them
+
+Verified on 2026-10-25 against CNA `9d49828f4` (the scenarios named are in `tests/scenarios/`; `tools/scenarios.py` 31 passed,
+0 failed, 1 skipped in `build/`, the skip being `compiled_effects`, which runs in `build-probe`):
+
+- **BoundingFrustum.Intersects(Ray) clipped no ray from outside the frustum** (CNA `9a5e5d896`): math-checks "Ray from
+  outside" gets XNA's 4.5, all 169 math checks pass (scenario `math_checks`).
+- **SDL_GPU sampled no volume through ShaderEffect, and one layout crashed** (CNA `830e9a934`, documented in
+  `docs/sdlgpu-shader-effect-layout.md`): tex-volshader now runs a GLSL 450 source in that native layout on SDL_GPU (RADV)
+  and samples slice 20 with 0 of 1024 pixels off (scenario `volume_shader` with `CNA_GRAPHICS_RENDERER=SDL_GPU`); the room no
+  longer leaves SDL_GPU out. WGSL on WEBGPU and GLSL ES on OPENGLES3 pass as before.
+- **Vertex texture fetch (HiDef) was missing on WEBGPU and SDL_GPU** (CNA `079dfc55e`, `e8bfdf2c5`, `c105303dc`):
+  fx-compiled's vs_3_0 `vertextexture` draws its graph and PointClamp/PointWrap change its shape on SDL_GPU (RADV) and on
+  WEBGPU (GPU through Weston), as on OPENGLES3 and FNA3D (scenario `compiled_effects` per renderer).
+- **HapticDevice's inline default constructor did not compile outside CNA** (CNA `974c1ac08`, CNA-DEMOS-ISSUE-009): the
+  devices room now holds a default-constructed `HapticDevice` member (the `std::optional` workaround is gone);
+  `tools/haptics_check.sh` 14 of 14.
+- **VertexTypeRegistryEXT named a refused type in its mangled form** (CNA `a80534927`): rv-vertextype "the refusal names
+  the type as the source spells it" finds `'(anonymous namespace)::UnregisteredVertex'` (scenario `vertextype`).
+- **MessageBox.Show marked no default button** (CNA `aff773b3b`): in SDL's X11 message box Return chooses the first button and
+  Escape the last (`tools/dialogs_check.sh` 9 of 9; Zenity ignores both hints, see above).
+- **EnvironmentMapEffect reflected no texture parameter** (CNA `28145a201`): be-model's new check finds
+  `Parameters["Texture"]` (Texture2D) and `Parameters["EnvironmentMap"]` (TextureCube), and the properties and the parameters
+  read what the other side set (scenario `effect_parameters`).
+- **No capability query for reading a render target back** (CNA `e357bc4c4`, `RendererFeature::RenderTargetReadback`):
+  rv-capabilities holds the answer to a real readback (Supported and read back on OPENGLES3, SDL_GPU, WEBGPU and FNA3D;
+  Unsupported and refused on HEADLESS), and the sign factory asks the feature instead of catching the refusal.
+- **StorageDevice and StorageContainer skipped XNA's argument, state and disposal checks** (CNA `3798787bb`, `17c66a9d3`,
+  `ac6be8f03`): every ct-storage contract check passes (scenario `storage_contracts`).
+- **StorageDevice.SetAppNameEXT threw when no storage root could be created** (CNA `fffa552ad`): it resolves nothing now;
+  `main` no longer guards it (scenario `storage_not_connected`).
+- **Content pipeline divergences found by the Pipeline Workshop**, each a FAIL check before:
+  1. nested build names collided (CNA `98aa655f2`, `419723275`): `Convert`'s material and `BuildAsset` give `plaque_0` and
+     `plaque_1` (scenario `workshop_scanner`, wk-processor);
+  2. the "TextureProcessor" alias produced a CNA runtime type (CNA `671d8478e`): `BuildAndLoadAsset<TextureContent,
+     TextureContent>` gives a Texture2DContent;
+  3. `Convert`'s errors (CNA `889a31be4`): ArgumentNullException for an empty name, InvalidOperationException for an unknown
+     processor;
+  4. `AddDependency` threw `std::invalid_argument` (CNA `889a31be4`): now `PipelineException`; the source-root rule itself is a
+     documented difference (above);
+  5. MaterialProcessor with an EffectMaterialContent without an effect (CNA `889a31be4`): InvalidContentException in both
+     cases (scenario `workshop_material`);
+  6. `ReadRawObject<Int32>` (CNA `252e9bca1`) and 7. a truncated XNB body (CNA `583af2a5e`): wk-typewriter reads -42,
+     123456789 and wraps the cut body in ContentLoadException (scenario `workshop_reflective`);
+  9. XmlSerializer had no member list for Color and Rectangle (CNA `bbed8c61e`, Sharp Runtime `f990d074`): both serialize in
+     XNA's own text (`<R>10</R><G>20</G><B>30</B><A>40</A><PackedValue>673059850</PackedValue>`, and Rectangle's fields then
+     `<Location>`) and read back (scenario `workshop_xml`);
+  10. `NormalizeWeights` kept a zero weight (CNA `889a31be4`): B .625, A .25, D .125 (scenario `workshop_animation`);
+  11. `PipelineComponentScanner.Update` answered false for a changed list (CNA `889a31be4`) (scenario `workshop_scanner`);
+  12. two `ContentTypeSerializerAttribute` instances were not equal (CNA `889a31be4`) (scenario
+      `workshop_serializer_attribute`);
+  13. a glTF with embedded images could not be loaded after the default build (CNA `cd1f5ef0a`, CNA-DEMOS-ISSUE-022: the
+      extracted textures are always child outputs) (scenario `workshop_routes`);
+  15. `TaskItem::operator==` was implicitly deleted (CNA `48a5c75eb`): wk-tasks now calls it (scenario `workshop_tasks`);
+  16. the content tasks need `cna_content_compiler` (CNA `626de40e6` documents it; the museum links it);
+  14 and 8, 17: see "Documented differences".
+- **Native C API** (cx-capi, scenario `capi_native`: the in-museum client 65 passed, 0 failed; the game probe 63 passed,
+  0 failed):
+  - one process carried two CNA states (CNA `89fb1493f`): `cna_assembly_copy_title_ext` reads "CNA 3D Museum";
+  - `MouseState.ToString` and `GamePadState.ToString` (CNA `0ef875619`): `{X:10 Y:20 Buttons:Left Wheel:120}` and
+    `{IsConnected:True}`;
+  - `cna_achievement_collection_get_by_key` with an unknown key (CNA `4a756413f`): `CNA_RESULT_INVALID_ARGUMENT`. The same
+    commit made the collection read-only, as XNA's is; the probe now builds it with both achievements and checks that
+    `cna_achievement_collection_add` answers `CNA_RESULT_NOT_SUPPORTED`;
+  - `cna_presentation_parameters_init` (CNA `e460e0ed6`): XNA's 0x0 full-screen defaults;
+  - `devices.h` now says desktops and browsers report `EMULATOR` (CNA `acc2ee55b`); the NONE codec is a documented
+    difference (above).
+- **HttpNotificationChannel failed silently where no socket can listen** (CNA `3c61c30ef`, `3078bb41e`): in the browser
+  build `Open` publishes no URI and the next dispatch raises `ErrorOccurred` with `ChannelOpenFailed` ("listener setup
+  failed: Not supported"), and a send to an address nobody listens on is refused; natively the channel opens, delivers and
+  refuses as before (scenario `notifications`, native and `tools/web_scenarios.py`, whose run is 24 passed, 0 failed,
+  5 skipped for build switches the browser build lacks).
+- **A profile read just after a Guide sign-out reached the service without a token (seen once)** (CNA `3cd6028b7`,
+  `ca8633622`): `tools/online_party_check.sh` 19 of 19 three times, none of the three museums logging the old message.
+- **FNA3D's SDL_GPU (Vulkan) backend crashed once binding fragment samplers** (about one run in four before CNA
+  `c2664bad6`): `MUSEUM_GPU=1 BUILD_DIR=build-probe tools/renderer_check.sh FNA3D` on RADV passed 12 times in a row
+  (81 PASS, 0 FAIL each); at one crash in four, twelve clean runs had a 3 % chance.
+- **D3D9: a failed full-screen Reset was followed by a fatal GetRenderTarget error** (seen under Wine; CNA `d0cea7036`): the
+  MinGW build under Wine 10 with `--fullscreen` on a 1280x720 Xvfb, where the 800x480 mode is unavailable, now logs
+  "D3D9 Reset (resize to 800x480) failed, hr=0x8876086C -- device lost, awaiting reset recovery" and runs on to its final
+  stats with exit 0. The sign factory now leaves signs plain while the device is lost (XNA refuses every draw then with
+  DeviceLostException, and so does CNA); before that change the run logged 53 sign errors. `tools/wine_tour.sh -p` on
+  DIRECTX9 tours all 320 rooms. Wine results, not Windows.
+
+Earlier:
 
 - **PbrEffect differed between renderers** (WEBGPU unlit, SDL_GPU refused tangent-free vertices; CNA `91612a0a3`,
   `bb6a2f44e`): at `a6f9e9b2e` rv-shading passes on every renderer - WEBGPU 83/0 natively and on the GPU, SDL_GPU 104/0,
@@ -404,3 +194,13 @@ documents, where XNA also XORs the button states; the checks test the hash contr
   `tests/scenarios/storage_contracts.json` (FileExists, CreateFile and GetFileNames after Dispose: PASS).
 See the "CNA findings fixed in CNA" list in the project memory and `plan.md`; entries move here when their fix is
 verified by a museum run.
+
+### Seen once, not reproduced (closed)
+
+- **A heap corruption crash in gs-avatar under OPENGLES3** (once, at CNA `a6f9e9b2e`, in the execution coverage run
+  `2026-10-22-opengles3-full-a6f9`: SIGSEGV inside `malloc` in Mesa's libgallium, called from
+  `EasyGLRenderer::DrawIndexedPrimitivesEx` under the museum's `StaticMesh::Draw`). Not reproduced in 13 runs then (8 with
+  `glibc.malloc.check=3`) nor in 40 press-all runs of the room with `glibc.malloc.check=3` at `9d49828f4` (build-probe,
+  OPENGLES3 on llvmpipe, 2026-10-25). While looking for it CNA fixed an avatar-load lifetime defect (a mutex freed before
+  its lock was released, CNA `2b39eb934`); whether that was the cause cannot be shown. If it returns, run the room in
+  build-asan.

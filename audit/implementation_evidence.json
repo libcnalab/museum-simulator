@@ -19387,9 +19387,9 @@
       "room": "dev-haptics",
       "kind": "direct-use",
       "symbols": ["CPP-B18D9C96B10A"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "std::optional<CNA::Input::HapticDevice> haptic_;"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "CNA::Input::HapticDevice haptic_;"}],
       "conditions": ["runtime:room-param-mode=haptics"],
-      "note": "The lab holds a HapticDevice in an optional member; it is only filled by the manual OpenEXT button."
+      "note": "The lab holds a default-constructed HapticDevice member; the manual OpenEXT button moves an opened device into it."
     },
     {
       "id": "dev-haptics-hapticdevice-createeffectext",
@@ -19397,7 +19397,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-F09C935E068D"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const int id = haptic_->CreateEffectEXT(effect);"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const int id = haptic_.CreateEffectEXT(effect);"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
       "note": "Creates a constant effect on an open device that supports it."
     },
@@ -19407,7 +19407,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-1B7DB6A1D3B3"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->DestroyEffectEXT(id);"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_.DestroyEffectEXT(id);"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
       "note": "Destroys the created effect."
     },
@@ -19417,7 +19417,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-FA55D9F95E29"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "if (haptic_) haptic_->Dispose();"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_.Dispose();"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:button-pressed(Close the device (Dispose)) or room-left"],
       "note": "CloseHaptic disposes the device once OpenEXT filled the optional, even when it came back closed."
     },
@@ -19427,7 +19427,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-9331D131F861"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const auto caps = haptic_->GetCapabilitiesEXT();"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const auto caps = haptic_.GetCapabilitiesEXT();"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present"],
       "note": "Reads the capabilities of the first listed device after opening it."
     },
@@ -19437,7 +19437,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-4306DA7DE412"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->GetEffectStatusEXT(id)"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_.GetEffectStatusEXT(id)"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
       "note": "Asks whether the effect is playing."
     },
@@ -19447,7 +19447,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-2593721AEC48"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "hapticState_ = Open() ? haptic_->GetNameEXT() : \"none\";"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "hapticState_ = Open() ? haptic_.GetNameEXT() : \"none\";"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present"],
       "note": "Reads the name of the opened device."
     },
@@ -19457,7 +19457,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-0BC3C654BFD2"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const bool init = haptic_->InitRumbleEXT();"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "const bool init = haptic_.InitRumbleEXT();"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Rumble 50 % for 300 ms)"],
       "note": "Initialises rumble on the open device."
     },
@@ -19467,7 +19467,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-36AC58F1540C"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "if (!haptic_->IsEffectSupportedEXT(effect)) {"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "if (!haptic_.IsEffectSupportedEXT(effect)) {"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)"],
       "note": "Checks the constant effect before creating it."
     },
@@ -19477,7 +19477,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-0D6F1C8645F6"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "return haptic_.has_value() && haptic_->IsOpenEXT();"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "return haptic_.IsOpenEXT();"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))"],
       "note": "Open() asks IsOpenEXT on the filled optional; OpenHaptic also logs it for the refused unknown-id open."
     },
@@ -19487,7 +19487,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-09E2F0F92B3F"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_->PauseEXT())"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_.PauseEXT())"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Gain 50, autocenter 0, pause, resume)"],
       "note": "Pauses the device."
     },
@@ -19497,7 +19497,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-FD5B1DFB4800"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->PlayRumbleEXT(0.5f, 300)"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_.PlayRumbleEXT(0.5f, 300)"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Rumble 50 % for 300 ms)"],
       "note": "Plays a 50 % rumble for 300 ms when InitRumbleEXT succeeded."
     },
@@ -19507,7 +19507,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-39408A112AF6"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_->ResumeEXT())"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_.ResumeEXT())"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Gain 50, autocenter 0, pause, resume)"],
       "note": "Resumes the device."
     },
@@ -19517,7 +19517,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-0031AD339666"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->RunEffectEXT(id, 1)"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_.RunEffectEXT(id, 1)"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
       "note": "Runs the created effect once."
     },
@@ -19527,7 +19527,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-2C754BDABF31"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_->SetAutocenterEXT(0))"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_.SetAutocenterEXT(0))"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Gain 50, autocenter 0, pause, resume)"],
       "note": "Sets autocenter to 0."
     },
@@ -19537,7 +19537,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-626AD085B1DE"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_->SetGainEXT(50))"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "YesNo(haptic_.SetGainEXT(50))"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Gain 50, autocenter 0, pause, resume)"],
       "note": "Sets gain to 50."
     },
@@ -19547,7 +19547,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-920CA63D04A2"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "if (Open()) haptic_->StopAllEffectsEXT();"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "if (Open()) haptic_.StopAllEffectsEXT();"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:button-pressed(Close the device (Dispose)) or room-left"],
       "note": "CloseHaptic stops all effects on an open device; the gain button calls it too."
     },
@@ -19557,7 +19557,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-0640C5640D17"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->StopEffectEXT(id)"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_.StopEffectEXT(id)"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
       "note": "Stops the created effect."
     },
@@ -19567,7 +19567,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-CA2E35A1303A"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->StopRumbleEXT()"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_.StopRumbleEXT()"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Rumble 50 % for 300 ms)"],
       "note": "Stops the rumble when it was playing."
     },
@@ -19577,7 +19577,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-C6E00AFF4FFC"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_->UpdateEffectEXT(id, effect)"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_.UpdateEffectEXT(id, effect)"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:haptic-device-present", "runtime:manual-button-pressed(Constant effect: create, run, stop, destroy)", "runtime:constant-effect-supported"],
       "note": "Updates the effect level before running it."
     },
@@ -19637,7 +19637,7 @@
       "room": "dev-haptics",
       "kind": "direct-call",
       "symbols": ["CPP-FA7AE5630FE9"],
-      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_.emplace(CNA::Input::Haptics::OpenEXT(0xFFFFFFFFu));"}],
+      "path": [{"source": "src/Exhibits/Devices/DeviceLab.cpp", "anchor": "haptic_ = CNA::Input::Haptics::OpenEXT(0xFFFFFFFFu);"}],
       "conditions": ["runtime:room-param-mode=haptics", "runtime:manual-button-pressed(Open the first device (OpenEXT))", "runtime:no-haptic-device (refusal path; with a device the listed id is opened instead)"],
       "note": "The manual button opens the first listed device, or with none an unknown id to show the refused, closed device."
     },
@@ -25337,7 +25337,7 @@
       "room": "cx-capi",
       "kind": "indirect-runtime",
       "symbols": ["CPP-F99AE6F482D2"],
-      "path": [{"source": "src/CApi/CProbePlatform.c", "anchor": "cna_achievement_collection_create_ext(both, 1u, &collection);"}, {"source": "src/CApi/NativeCProbe.c", "anchor": "museum_c_probe_gamer(&probe);"}, {"source": "src/Exhibits/CApi/CApiLab.cpp", "anchor": "museum_c_api_run("}],
+      "path": [{"source": "src/CApi/CProbePlatform.c", "anchor": "cna_achievement_collection_create_ext(both, 2u, &collection);"}, {"source": "src/CApi/NativeCProbe.c", "anchor": "museum_c_probe_gamer(&probe);"}, {"source": "src/Exhibits/CApi/CApiLab.cpp", "anchor": "museum_c_api_run("}],
       "conditions": ["build:MUSEUM_C_API=ON(requires CNA_BUILD_C_API)", "runtime:room=cx-capi(exhibit=capi-lab)", "runtime:screen-loaded(OnScreenLoaded runs the C client)"],
       "note": "Called from C17 in the in-museum C client for the check \"cna_achievement_create_ext/get_info/copy_name/destroy, cna_achievement_collection_create_ext/add/get_count/get_by_key/destroy, cna_gamer_presence_init, cna_leaderboard_identity_init\", which expects: 2 achievements, \"all-floors\" -> \"All Floors\", the first earned and shown early with its ticks; presence NONE/0; key \"BestTimeRecent\" (XNA LeaderboardKey.ToString) mode 2"
     },
@@ -25347,7 +25347,7 @@
       "room": "cx-capi",
       "kind": "indirect-runtime",
       "symbols": ["CPP-F334637B162C"],
-      "path": [{"source": "src/CApi/CProbePlatform.c", "anchor": "cna_achievement_collection_add(collection, second);"}, {"source": "src/CApi/NativeCProbe.c", "anchor": "museum_c_probe_gamer(&probe);"}, {"source": "src/Exhibits/CApi/CApiLab.cpp", "anchor": "museum_c_api_run("}],
+      "path": [{"source": "src/CApi/CProbePlatform.c", "anchor": "const CNA_Result added = cna_achievement_collection_add(collection, first);"}, {"source": "src/CApi/NativeCProbe.c", "anchor": "museum_c_probe_gamer(&probe);"}, {"source": "src/Exhibits/CApi/CApiLab.cpp", "anchor": "museum_c_api_run("}],
       "conditions": ["build:MUSEUM_C_API=ON(requires CNA_BUILD_C_API)", "runtime:room=cx-capi(exhibit=capi-lab)", "runtime:screen-loaded(OnScreenLoaded runs the C client)"],
       "note": "Called from C17 in the in-museum C client for the check \"cna_achievement_create_ext/get_info/copy_name/destroy, cna_achievement_collection_create_ext/add/get_count/get_by_key/destroy, cna_gamer_presence_init, cna_leaderboard_identity_init\", which expects: 2 achievements, \"all-floors\" -> \"All Floors\", the first earned and shown early with its ticks; presence NONE/0; key \"BestTimeRecent\" (XNA LeaderboardKey.ToString) mode 2"
     },
@@ -35647,7 +35647,7 @@
       "room": "wk-incremental",
       "kind": "indirect-runtime",
       "symbols": ["CPP-4D2687E43812"],
-      "path": [{"source": "src/Exhibits/Content/WorkshopIncrementalChecks.cpp", "anchor": "const Cnb::CnbSoundEffectData widened = Cnb::DecodeWavAsCnbSoundEffect(tone, \"tone8.wav\");"}, {"source": "src/Exhibits/Content/PipelineChecksLab.cpp", "anchor": "case Mode::Incremental: Workshop::IncrementalBuildChecks(checks_, S()); return;"}],
+      "path": [{"source": "src/Exhibits/Content/WorkshopIncrementalChecks.cpp", "anchor": "const Cnb::CnbSoundEffectData kept = Cnb::DecodeWavAsCnbSoundEffect(tone, \"tone8.wav\");"}, {"source": "src/Exhibits/Content/PipelineChecksLab.cpp", "anchor": "case Mode::Incremental: Workshop::IncrementalBuildChecks(checks_, S()); return;"}],
       "conditions": ["build:MUSEUM_PIPELINE=ON", "runtime:room=wk-incremental(mode=incremental)", "runtime:screen-loaded(OnScreenLoaded runs the checks)"],
       "note": "Decodes tone8.wav and deep24.wav to CNB sound data (documented: 8-bit widened, 24-bit refused)."
     },

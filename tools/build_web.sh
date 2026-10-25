@@ -2,17 +2,17 @@
 # Build the browser/WebAssembly edition with CNA's WebGL 2 renderer and, chosen at run time (?renderer=WEBGPU), its
 # browser WebGPU renderer (Emscripten's emdawnwebgpu port from the emsdk cache). MUSEUM_WEB_RENDERERS overrides the list.
 # Reuses build-consumer/, the project's shared cross-compilation build tree.
-# CNA_ROOT_DIR chooses the CNA checkout (as for the native build, e.g. the ../cna-next worktree); the tree keeps it.
+# CNA_ROOT_DIR chooses the CNA checkout (default ../cna, as for the native build); the tree keeps it.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 build_dir=${BUILD_DIR:-build-consumer}
-jobs=${JOBS:-2}
+jobs=${JOBS:-8}
 emsdk_root=${EMSDK_ROOT:-${EMSDK:-/home/robertvokac/emsdk}}
 
 case $jobs in
-  1|2) ;;
-  *) echo "error: JOBS must be 1 or 2" >&2; exit 2 ;;
+  [1-8]) ;;
+  *) echo "error: JOBS must be from 1 to 8" >&2; exit 2 ;;
 esac
 if [ "$build_dir" != build-consumer ]; then
   echo "error: the web build uses the shared build-consumer directory" >&2

@@ -2,7 +2,8 @@
 // `sampler3D` in the fragment shader. A 32 x 32 x 32 cube of colour (red grows along x, green along y, blue along z, with a white
 // grid every eight texels in x and y) is sampled across a screen; the coordinate of the third axis is a slider, and the SamplerState's AddressU,
 // AddressV and AddressW and filter decide what happens outside 0..1. A strip of slices beside the big picture shows the W axis at once.
-// A renderer that does not take GLSL (WGSL, SPIR-V, no shaders at all) says so instead of showing a picture.
+// The shader is written in the renderer's own dialect (GLSL ES, WGSL, or GLSL 450 for SDL_GPU); a renderer that runs no shader
+// source says so instead of showing a picture.
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -15,6 +16,7 @@
 #include "Diagnostics/Log.hpp"
 #include "Exhibits/ExhibitFactories.hpp"
 #include "Exhibits/ScreenExhibit.hpp"
+#include "Exhibits/Shaders/ShaderSources.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SamplerState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/ShaderEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RenderTarget2D.hpp"
@@ -88,6 +90,26 @@ struct PC { vpSize_pad: vec4f, matrix: mat4x4f, color: vec4f, slot0_pad: vec4f }
 }
 )WGSL";
 
+// The same picture in GLSL 450 for SDL_GPU, in the native layout docs/sdlgpu-shader-effect-layout.md documents: a sampler3D
+// at set 2 binding 0 takes ShaderEffect.SetTexture(0, volume), and the fragment stage's own 128-byte block at set 3 binding 0
+// carries W and the range in its vector, as on WEBGPU. The vertex shader is the shader lab's (ShaderSources::kVulkanGlslVertex).
+const char* const kVulkanFragment = R"GLSL(#version 450
+layout(location = 0) in vec2 vTexCoord;
+layout(location = 1) in vec4 vColor;
+layout(location = 0) out vec4 FragColor;
+layout(set = 2, binding = 0) uniform sampler3D volume;
+layout(set = 3, binding = 0) uniform PC {
+    vec4 vpSize_pad;
+    mat4 matrix;
+    vec4 color;
+    vec4 slot0_pad;
+} pc;
+void main() {
+    vec2 uv = (vTexCoord - 0.5) * pc.color.y + 0.5;
+    FragColor = vec4(texture(volume, vec3(uv, pc.color.x)).rgb, 1.0) * vColor;
+}
+)GLSL";
+
 const TextureAddressMode kModes[] = {TextureAddressMode::Clamp, TextureAddressMode::Wrap, TextureAddressMode::Mirror};
 const char* const kModeNames[] = {"Clamp", "Wrap", "Mirror"};
 
@@ -153,6 +175,8 @@ public:
             if (!supported_) return;   // the volume is still made: its storage is checked on every renderer
             if (dialect_ == Dialect::Wgsl) {
                 effect_ = std::make_unique<ShaderEffect>(d, kWgslVertex, kWgslFragment);
+            } else if (dialect_ == Dialect::Vulkan) {
+                effect_ = std::make_unique<ShaderEffect>(d, ShaderSources::kVulkanGlslVertex, kVulkanFragment);
             } else {
                 effect_ = std::make_unique<ShaderEffect>(d, kVertex, kFragment);
             }
@@ -230,8 +254,8 @@ private:
         sampler.setAddressWProperty(kModes[addressW_]);
         effect_->SetTexture(0, *volume_);
         effect_->Apply();
-        if (dialect_ == Dialect::Wgsl) {
-            effect_->SetUniformVec4("color", w, range_, 0.0f, 0.0f);   // the WGSL descriptor contract: one fixed scalar block
+        if (dialect_ != Dialect::Glsl) {
+            effect_->SetUniformVec4("color", w, range_, 0.0f, 0.0f);   // WGSL and SDL_GPU: one fixed 128-byte block
         } else {
             effect_->SetUniformFloat("uW", w);
             effect_->SetUniformFloat("uRange", range_);
@@ -314,7 +338,7 @@ private:
         }
     }
 
-    // The source is chosen in the renderer's own dialect: GLSL (OpenGL family), WGSL (WEBGPU).
+    // The source is chosen in the renderer's own dialect: GLSL ES (OpenGL family), WGSL (WEBGPU), GLSL 450 (SDL_GPU).
     void ChooseDialect()
     {
         GraphicsDevice& d = *S().device;
@@ -324,20 +348,17 @@ private:
             dialect_ = Dialect::Glsl;
         else if (d.SupportsShaderLanguageEXT(CNA::ShaderLanguageEXT::Wgsl, CNA::ShaderStageEXT::Fragment))
             dialect_ = Dialect::Wgsl;
-        else {
+        else if (d.GetShaderDialectEXT() == CNA::ShaderDialectEXT::SpirV)
+            dialect_ = Dialect::Vulkan;
+        else
             supported_ = false;
-            // SDL_GPU (SPIR-V from GLSL 450): every documented layout failed to sample a volume and one crashed the
-            // process (docs/CNA_FINDINGS.md), so the room does not run a volume shader there.
-            notRun_ = d.GetShaderDialectEXT() == CNA::ShaderDialectEXT::SpirV ? "SDL_GPU: no ShaderEffect source layout samples a volume without failing or crashing (docs/CNA_FINDINGS.md)"
-                                                                               : "this renderer runs no shader source";
-        }
         Museum::Log("volumeshader", "dialect %s", supported_ ? DialectName() : notRun_.c_str());
     }
     [[nodiscard]] const char* DialectName() const
     {
-        return dialect_ == Dialect::Wgsl ? "WGSL (texture_3d)" : "GLSL ES 3.00 (sampler3D)";
+        return dialect_ == Dialect::Wgsl ? "WGSL (texture_3d)" : dialect_ == Dialect::Vulkan ? "GLSL 450 (sampler3D, set 2)" : "GLSL ES 3.00 (sampler3D)";
     }
-    enum class Dialect { Glsl, Wgsl };
+    enum class Dialect { Glsl, Wgsl, Vulkan };
     std::string notRun_ = "this renderer runs no shader source";
     Dialect dialect_ = Dialect::Glsl;
 

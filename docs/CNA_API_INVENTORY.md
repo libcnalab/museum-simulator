@@ -9,13 +9,13 @@ and build-time content pipeline APIs, plus the native C ABI. Paths containing `I
 `Detail` (case-insensitive) are excluded unless a reviewed public facade exports declarations
 physically defined there.
 
-CNA revision: `a6f9e9b2e66c87434011e1646a7f74cb1d81f354` (`v0.1.0-700-ga6f9e9b2e`)
+CNA revision: `9d49828f4e372da585fdbe3eed8e002886dadee3` (`v0.1.0-852-g9d49828f4-dirty`)
 
-Public-header SHA-256: `77504ade90b26238cb3ddd0487c50132ab8caf5a20291873ee0b79aaa9cacbf1`
+Public-header SHA-256: `2e49ef20eec5183c769c73c30de5945078e7fa56db2f68ea34229cdcd0cab17d`
 
 Doxygen: `1.9.8`
 
-Snapshot: **699 headers**, **19849 declarations** (**12939 C++**, **6910 C**), **229 internal/detail headers excluded**, and **40 declarations in internal/detail namespaces excluded from otherwise public headers**.
+Snapshot: **700 headers**, **19933 declarations** (**12991 C++**, **6942 C**), **232 internal/detail headers excluded**, and **41 declarations in internal/detail namespaces excluded from otherwise public headers**.
 The snapshot also records **70 public declarations whose signatures still reference internal/detail types**; these declarations remain in the denominator, while the referenced internal types do not.
 One reviewed detail header is included through its public `IntermediateSerializer.hpp` facade.
 
@@ -24,24 +24,24 @@ The complete deterministic JSON is generated in
 
 | Module | Public headers | Internal/detail headers | Declarations |
 |---|---:|---:|---:|
-| `audio` | 22 | 11 | 321 |
-| `c-api` | 60 | 0 | 6910 |
-| `content` | 56 | 48 | 1541 |
-| `content-pipeline` | 101 | 6 | 2250 |
-| `core` | 15 | 10 | 128 |
+| `audio` | 22 | 11 | 323 |
+| `c-api` | 60 | 0 | 6942 |
+| `content` | 56 | 48 | 1563 |
+| `content-pipeline` | 101 | 6 | 2252 |
+| `core` | 15 | 11 | 128 |
 | `design` | 14 | 2 | 83 |
 | `devices` | 20 | 13 | 216 |
 | `devices-ext` | 17 | 1 | 84 |
 | `diagnostics` | 2 | 0 | 224 |
 | `gamer-services` | 52 | 16 | 690 |
-| `graphics` | 141 | 38 | 2914 |
+| `graphics` | 141 | 39 | 2929 |
 | `graphics-ext` | 11 | 2 | 106 |
 | `input` | 51 | 5 | 897 |
 | `inspector` | 3 | 0 | 189 |
-| `math` | 24 | 0 | 954 |
-| `media` | 24 | 12 | 339 |
+| `math` | 24 | 0 | 960 |
+| `media` | 24 | 13 | 342 |
 | `net` | 23 | 7 | 290 |
-| `phone` | 9 | 0 | 61 |
+| `phone` | 11 | 0 | 74 |
 | `platform` | 28 | 0 | 1286 |
 | `renderers/common/mojoshader` | 0 | 5 | 0 |
 | `renderers/directx9` | 0 | 18 | 0 |
@@ -52,7 +52,7 @@ The complete deterministic JSON is generated in
 | `renderers/software` | 0 | 4 | 0 |
 | `renderers/stub` | 0 | 1 | 0 |
 | `renderers/webgpu` | 0 | 8 | 0 |
-| `runtime` | 23 | 2 | 322 |
+| `runtime` | 22 | 2 | 311 |
 | `storage` | 3 | 0 | 44 |
 
 ## Public declarations that reference internal types

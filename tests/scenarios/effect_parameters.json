@@ -1,0 +1,10 @@
+{
+  "description": "EnvironmentMapEffect's Texture and EnvironmentMap as named parameters, read and written from both sides",
+  "script": "goto:be-model;wait:30;press:Check: EnvironmentMapEffect;wait:5;stats;quit",
+  "expect": [
+    "be-model Parameters[\"Texture\"], Parameters[\"EnvironmentMap\"]: PASS (expected Texture2D, TextureCube, got Texture2D, TextureCube)",
+    "be-model the properties set, the parameters read: PASS",
+    "be-model the parameters set, the properties read: PASS"
+  ],
+  "forbid": [": FAIL ("]
+}

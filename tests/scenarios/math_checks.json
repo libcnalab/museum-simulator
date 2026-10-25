@@ -1,0 +1,8 @@
+{
+  "description": "Every by-reference math overload against its value twin, and XNA's answers at the edges (BoundingFrustum.Intersects(Ray) from outside the frustum among them)",
+  "script": "goto:math-checks;wait:30;stats;quit",
+  "expect": [
+    "math-checks BoundingFrustum.Intersects(Ray from outside): PASS (expected 4.5 (the near plane), as XNA returns"
+  ],
+  "forbid": [": FAIL ("]
+}

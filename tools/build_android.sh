@@ -2,7 +2,7 @@
 # Build the Android edition (android/, SDL's Java glue + the museum as libmain.so, OPENGLES3) as a debug APK.
 #   tools/build_android.sh          ABIs from MUSEUM_ANDROID_ABIS (default x86_64, the emulator's); "x86_64,arm64-v8a" for both
 # Output stays in the shared build-consumer/ tree (android-cxx/, android-gradle/, android-assets/). Gradle runs offline
-# from its local caches, and the CMake job pool holds the native build to two jobs.
+# from its local caches, and the CMake job pool holds the native build to eight jobs.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

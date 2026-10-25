@@ -1,10 +1,15 @@
 {
-  "description": "No writable per-user data folder (XDG_DATA_HOME below a regular file): the device reports itself disconnected",
-  "env": {"MUSEUM_DATA_HOME": "{dir}/blocked/data"},
-  "touch": ["blocked"],
+  "description": "No writable per-user data folder (XDG_DATA_HOME below a regular file): SetAppNameEXT does not throw, the device reports itself disconnected and EndOpenContainer's folder creation escapes as IOException, as in XNA",
+  "env": {
+    "MUSEUM_DATA_HOME": "{dir}/blocked/data"
+  },
+  "touch": [
+    "blocked"
+  ],
   "script": "goto:ct-storage;wait:30;press:Open the storage container;wait:5;press:Write a save file;wait:5;stats;quit",
   "expect": [
+    "[museum][storage] SetAppNameEXT: no exception",
     "[museum][storage] device selected: IsConnected false",
-    "[museum][storage] open the container: StorageDeviceNotConnectedException: Unable to create the storage directory."
+    "[museum][storage] open the container: IOException: Failed to create directory: Not a directory"
   ]
 }

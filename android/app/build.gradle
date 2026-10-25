@@ -37,8 +37,8 @@ android {
                         "-DCNA_GRAPHICS_RENDERER=OPENGLES3",
                         "-DCMAKE_C_COMPILER_LAUNCHER=ccache",
                         "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache",
-                        // Gradle runs ninja without -j, which means every core: a job pool holds compiling and linking to two.
-                        "-DCMAKE_JOB_POOLS=museum=2",
+                        // Gradle runs ninja without -j, which means every core: a job pool holds compiling and linking to eight.
+                        "-DCMAKE_JOB_POOLS=museum=8",
                         "-DCMAKE_JOB_POOL_COMPILE=museum",
                         "-DCMAKE_JOB_POOL_LINK=museum",
                         // Not built for Android: the C ABI client starts a child process, FFmpeg is not in the NDK.

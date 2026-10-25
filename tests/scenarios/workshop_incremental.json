@@ -44,9 +44,9 @@
     "wk-incremental ... with colorKey magenta: PASS",
     "wk-incremental DecodeWavAsImportedSound(tone8.wav): PASS",
     "wk-incremental ProcessImportedSoundEffect: AsAuthored, then WholeSoundWhenUnset: PASS",
-    "wk-incremental DecodeWavAsCnbSoundEffect(tone8.wav): 8-bit widened exactly to Pcm16: FAIL",
+    "wk-incremental DecodeWavAsCnbSoundEffect(tone8.wav): 8-bit stored as Pcm8: PASS",
     "wk-incremental ImportWavAsCnbSoundEffect(loop16.wav): PASS",
-    "wk-incremental DecodeWavAsCnbSoundEffect(deep24.wav, 24-bit PCM): FAIL",
+    "wk-incremental DecodeWavAsCnbSoundEffect(deep24.wav, 24-bit PCM): narrowed to Pcm16: PASS",
     "wk-incremental CnbCompressionToString: PASS",
     "wk-incremental IsCnbCompressionSupported(None): PASS",
     "wk-incremental CompressCnbChunk(raw, None): PASS",
@@ -57,7 +57,8 @@
   ],
   "forbid": [
     ": the group itself: FAIL",
-    "the check run itself: FAIL"
+    "the check run itself: FAIL",
+    ": FAIL ("
   ],
   "web": {
     "replace": {

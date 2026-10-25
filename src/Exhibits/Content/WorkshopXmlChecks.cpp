@@ -211,6 +211,17 @@ void XmlSerializerChecks(Checks& checks, Services&)
                HasXmlMembers<Color>);
     checks.Add("an XmlSerializer member list for Rectangle", "stated (XNA: XmlSerializer serializes Rectangle's X, Y, Width, Height)",
                HasXmlMembers<Rectangle> ? "stated" : "none: XmlSerializer<Rectangle> does not compile", HasXmlMembers<Rectangle>);
+    // The text genuine XNA 4.0's XmlSerializer writes for both: fields first, then the read/write properties, in declaration order.
+    if constexpr (HasXmlMembers<Color> && HasXmlMembers<Rectangle>) {
+        const std::string color = XmlSerializer<Color>{}.Serialize(Color(10, 20, 30, 40), bare);
+        checks.Add("XmlSerializer<Color> of (10, 20, 30, 40), read back", "<R>10</R><G>20</G><B>30</B><A>40</A><PackedValue>673059850</PackedValue>; the same colour",
+                   Checks::Short(color, 160), color.find("<R>10</R><G>20</G><B>30</B><A>40</A><PackedValue>673059850</PackedValue>") != std::string::npos &&
+                                                  XmlSerializer<Color>{}.Deserialize(color) == Color(10, 20, 30, 40));
+        const std::string rectangle = XmlSerializer<Rectangle>{}.Serialize(Rectangle(1, 2, 3, 4), bare);
+        checks.Add("XmlSerializer<Rectangle> of (1, 2, 3, 4), read back", "<X>1</X><Y>2</Y><Width>3</Width><Height>4</Height><Location><X>1</X><Y>2</Y></Location>; the same rectangle",
+                   Checks::Short(rectangle, 180), rectangle.find("<X>1</X><Y>2</Y><Width>3</Width><Height>4</Height><Location><X>1</X><Y>2</Y></Location>") != std::string::npos &&
+                                                      XmlSerializer<Rectangle>{}.Deserialize(rectangle) == Rectangle(1, 2, 3, 4));
+    }
 }
 
 }  // namespace Workshop

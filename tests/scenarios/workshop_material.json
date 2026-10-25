@@ -1,0 +1,10 @@
+{
+  "description": "MaterialProcessor over every material type, its parameters and XNA's refusals of an EffectMaterialContent without an effect",
+  "requires": "MUSEUM_PIPELINE",
+  "script": "goto:wk-material;wait:30;stats;quit",
+  "expect": [
+    "wk-material an EffectMaterialContent with no Effect: PASS",
+    "wk-material an EffectMaterialContent whose Effect has no file name: PASS"
+  ],
+  "forbid": [": FAIL ("]
+}

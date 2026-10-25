@@ -9,7 +9,10 @@
     "wk-typewriter Boolean through Custom, enum, TimeSpan, Color: PASS",
     "wk-typewriter a nested reference-type member and a null one: PASS",
     "wk-typewriter Register() of a declaration with a SharedResourceField: PASS",
-    "wk-typewriter reflective.xnb with its readers removed: PASS"
+    "wk-typewriter reflective.xnb with its readers removed: PASS",
+    "wk-typewriter XNB version byte 4 (XNA 3.x's container): PASS",
+    "wk-typewriter WriteObject<Int32> then WriteRawObject<Int32>, read back: PASS",
+    "wk-typewriter body cut short, size field patched to match: PASS"
   ],
   "forbid": [
     ": the group itself: FAIL",

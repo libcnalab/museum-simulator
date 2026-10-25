@@ -1,12 +1,13 @@
 #include "Rendering/SignFactory.hpp"
 
-#include "System/NotSupportedException.hpp"
-
 #include <algorithm>
 
+#include "CNA/RendererCapabilityProfile.hpp"
 #include "Diagnostics/Log.hpp"
 #include "Microsoft/Xna/Framework/Graphics/BlendState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DepthFormat.hpp"
+#include "Microsoft/Xna/Framework/Graphics/DeviceLostException.hpp"
+#include "Microsoft/Xna/Framework/Graphics/GraphicsDeviceStatus.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RenderTarget2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SamplerState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SpriteSortMode.hpp"
@@ -14,7 +15,6 @@
 #include "Microsoft/Xna/Framework/Rectangle.hpp"
 #include "Microsoft/Xna/Framework/Vector2.hpp"
 #include "Rendering/ImageUtil.hpp"
-#include "System/NotSupportedException.hpp"
 
 using namespace Microsoft::Xna::Framework;
 using namespace Microsoft::Xna::Framework::Graphics;
@@ -52,6 +52,9 @@ std::string SignFactory::CreateCustom(int w, int h, const Color& background,
 #else
     std::vector<Color> pixels(static_cast<std::size_t>(w) * static_cast<std::size_t>(h), background);
     try {
+        // A lost device (a failed Reset, a lost Direct3D 9 device) refuses every draw with DeviceLostException until it is
+        // reset, as XNA's does; the sign then keeps its background colour.
+        if (device_.getGraphicsDeviceStatusProperty() != GraphicsDeviceStatus::Normal) throw DeviceLostException();
         RenderTarget2D target(device_, w, h, false, SurfaceFormat::Color, DepthFormat::None, 0,
                               RenderTargetUsage::PreserveContents);
         device_.SetRenderTarget(&target);
@@ -61,14 +64,19 @@ std::string SignFactory::CreateCustom(int w, int h, const Color& background,
         draw(sprites_, w, h);
         sprites_.End();
         device_.SetRenderTarget(nullptr);
-        target.GetData(pixels.data(), static_cast<int>(pixels.size()));
-    } catch (const System::NotSupportedException& e) {
-        // A renderer that executes no rasterisation (HEADLESS) refuses to read a render target back, by design; CNA has
-        // no capability query for it, so the refusal is the answer. The sign stays its background colour.
-        device_.SetRenderTarget(nullptr);
-        static bool told = false;
-        if (!told) Museum::Log("signs", "signs drawn without text: %s", e.what());
-        told = true;
+        // A renderer that executes no rasterisation (HEADLESS) declares that it cannot read a render target back, and the
+        // sign stays its background colour. A renderer that declares readback and then refuses it is an error below.
+        if (device_.SupportsRendererFeatureEXT(CNA::RendererFeature::RenderTargetReadback)) {
+            target.GetData(pixels.data(), static_cast<int>(pixels.size()));
+        } else {
+            static bool told = false;
+            if (!told) Museum::Log("signs", "signs drawn without text: the renderer reports no RenderTargetReadback");
+            told = true;
+        }
+    } catch (const DeviceLostException&) {
+        static bool toldLost = false;
+        if (!toldLost) Museum::Log("signs", "signs drawn without text: the graphics device is lost");
+        toldLost = true;
     } catch (const std::exception& e) {
         device_.SetRenderTarget(nullptr);
         Museum::Log("signs", "could not render sign: %s", e.what());

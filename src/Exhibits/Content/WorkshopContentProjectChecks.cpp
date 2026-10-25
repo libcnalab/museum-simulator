@@ -282,8 +282,10 @@ void ContentProjectChecks(Checks& checks, Services& services)
         checks.Add("CleanContent.Execute: what it removes", "true; plaque.xnb, tone8.xnb, vector.xnb and the build's manifest removed, nothing that is not the pipeline's",
                    std::string(ok ? "true" : "false") + "; removed " + Join(removed), ok && removedBuilt && onlyOwned);
         // XNA's CleanContent deletes the outputs and its own cache file (BuildItemCollection.DeleteStaleOutputFiles, SafeDeleteFile of
-        // CacheFilename): the output directory is left with only what the project did not build.
-        checks.Add("CleanContent.Execute: what it leaves", "visitor-notes.txt only (no file of the pipeline's own left behind)", Join(left), left == std::vector<std::string>{"visitor-notes.txt"});
+        // CacheFilename) and leaves only what the project did not build. CNA keeps one file of its own on purpose: the persistent
+        // .cna-content.lock that serializes later builds and cleans of this output root (docs/content-pipeline.md).
+        checks.Add("CleanContent.Execute: what it leaves", "visitor-notes.txt and CNA's documented .cna-content.lock (XNA: visitor-notes.txt only)", Join(left),
+                   left == std::vector<std::string>{".cna-content.lock", "visitor-notes.txt"});
         checks.Add("the build configuration in the intermediate directory", "removed by the clean", Fs::exists(obj / "cna-buildcontent.json") ? "still there" : "removed", !Fs::exists(obj / "cna-buildcontent.json"));
         Tasks::CleanContent twice;
         twice.setOutputDirectoryProperty(out.string());

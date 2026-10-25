@@ -85,15 +85,24 @@ static void CompressionAndTextureChecks(CProbe* p)
     cna_cnb_get_compressed_byte_count(raw, sizeof raw, CNA_CNB_COMPRESSION_NONE, 0, &compressedCount);
     cna_cnb_copy_compressed(raw, sizeof raw, CNA_CNB_COMPRESSION_NONE, 0, packed, sizeof packed, &stored);
     const CNA_Result roundTrip = cna_cnb_copy_decompressed(packed, stored, CNA_CNB_COMPRESSION_NONE, sizeof raw, 1024u, unpacked, sizeof unpacked, &expanded);
-    uint64_t wrongSize = 0;
-    const CNA_Result wrong = cna_cnb_copy_decompressed(packed, stored, CNA_CNB_COMPRESSION_NONE, 5u, 1024u, unpacked, sizeof unpacked, &wrongSize);
-    cprobe_got(p, "NONE %u, codec 99 %u \"%s\"; count %llu, stored %llu, round trip %u (%llu bytes, %s); 6 stored bytes declared as 5 -> %u (%llu bytes)", none, bogus, name,
-               (unsigned long long)compressedCount, (unsigned long long)stored, (unsigned)roundTrip, (unsigned long long)expanded, memcmp(raw, unpacked, sizeof raw) == 0 ? "same" : "different",
-               (unsigned)wrong, (unsigned long long)wrongSize);
+    /* cnb.h: the C route's stored (NONE) chunk is the exception to the declared-size checks -- its bytes are the answer,
+       and only the destination capacity is enforced, with no partial write (unlike the strict C++ DecompressCnbChunk). */
+    uint64_t wrongSize = 0, shortSize = 0;
+    const CNA_Result wrong = cna_cnb_copy_decompressed(packed, stored, CNA_CNB_COMPRESSION_NONE, 5u, 1u, unpacked, sizeof unpacked, &wrongSize);
+    uint8_t small[5];
+    memset(small, 0xAB, sizeof small);
+    const CNA_Result tooSmall = cna_cnb_copy_decompressed(packed, stored, CNA_CNB_COMPRESSION_NONE, sizeof raw, 1024u, small, sizeof small, &shortSize);
+    const int untouched = small[0] == 0xAB && small[4] == 0xAB;
+    cprobe_got(p, "NONE %u, codec 99 %u \"%s\"; count %llu, stored %llu, round trip %u (%llu bytes, %s); 6 stored bytes declared as 5 under a ceiling of 1 -> %u (%llu bytes); "
+               "into 5 bytes -> %u (%llu needed, %s)", none, bogus, name, (unsigned long long)compressedCount, (unsigned long long)stored, (unsigned)roundTrip,
+               (unsigned long long)expanded, memcmp(raw, unpacked, sizeof raw) == 0 ? "same" : "different", (unsigned)wrong, (unsigned long long)wrongSize, (unsigned)tooSmall,
+               (unsigned long long)shortSize, untouched ? "untouched" : "written");
     CPROBE_CHECK(p, "cna_cnb_is_compression_supported, copy_compression_name, get_compressed_byte_count, copy_compressed, copy_decompressed",
-                 "NONE supported, 99 not and named \"unknown codec 99\"; 6 bytes stored as 6 and restored; a payload that does not expand to exactly the declared size is refused (CNA_RESULT_IO), NONE included",
+                 "NONE supported, 99 not and named \"unknown codec 99\"; 6 bytes stored as 6 and restored; NONE copies the stored 6 bytes whatever sizes are declared (cnb.h), "
+                 "and a destination of 5 bytes is refused with nothing written",
                  none == CNA_TRUE && bogus == CNA_FALSE && strcmp(name, "unknown codec 99") == 0 && compressedCount == 6u && stored == 6u && roundTrip == CNA_RESULT_SUCCESS &&
-                     expanded == 6u && memcmp(raw, unpacked, sizeof raw) == 0 && wrong == CNA_RESULT_IO);
+                     expanded == 6u && memcmp(raw, unpacked, sizeof raw) == 0 && wrong == CNA_RESULT_SUCCESS && wrongSize == 6u && tooSmall != CNA_RESULT_SUCCESS &&
+                     shortSize == 6u && untouched);
 
     uint64_t bc7 = 0, bc1 = 0, rgba = 0, zero = 77;
     cna_cnb_get_texture_level_byte_size(CNA_CNB_TEXTURE_FORMAT_BC7, 1u, 1u, 1u, &bc7);

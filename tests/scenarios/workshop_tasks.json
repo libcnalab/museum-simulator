@@ -29,7 +29,8 @@
     "wk-tasks KnownXnaImporterNames, KnownXnaProcessorNames: PASS",
     "wk-tasks ContentCompilerOptions defaults: PASS",
     "wk-tasks ContentCompilerOptions::operator== compares the build-tool services: PASS",
-    "wk-tasks a ContentPipelineRegistryFactory called with Debug options: PASS"
+    "wk-tasks a ContentPipelineRegistryFactory called with Debug options: PASS",
+    "wk-tasks TaskItem::operator==: PASS"
   ],
   "forbid": [
     ": the group itself: FAIL",

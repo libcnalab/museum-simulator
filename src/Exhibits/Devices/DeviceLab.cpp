@@ -15,7 +15,6 @@
 #include <filesystem>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -265,7 +264,7 @@ private:
     }
 
     // --- haptics ---------------------------------------------------------------------------------
-    [[nodiscard]] bool Open() const { return haptic_.has_value() && haptic_->IsOpenEXT(); }
+    [[nodiscard]] bool Open() const { return haptic_.IsOpenEXT(); }
 
     void ListHaptics()
     {
@@ -286,18 +285,18 @@ private:
         try {
             if (firstHaptic_ < 0) {
                 // Opening an id that does not exist is the refusal path: the device comes back closed.
-                haptic_.emplace(CNA::Input::Haptics::OpenEXT(0xFFFFFFFFu));
-                last_ = std::string("no haptic device; OpenEXT(unknown id) gave IsOpenEXT ") + YesNo(haptic_->IsOpenEXT());
+                haptic_ = CNA::Input::Haptics::OpenEXT(0xFFFFFFFFu);
+                last_ = std::string("no haptic device; OpenEXT(unknown id) gave IsOpenEXT ") + YesNo(haptic_.IsOpenEXT());
             } else {
-                haptic_.emplace(CNA::Input::Haptics::OpenEXT(static_cast<std::uint32_t>(firstHaptic_)));
-                const auto caps = haptic_->GetCapabilitiesEXT();
-                last_ = std::string("OpenEXT: open ") + YesNo(haptic_->IsOpenEXT()) + ", \"" + haptic_->GetNameEXT() + "\", " + std::to_string(caps.axisCount) + " axes, " +
+                haptic_ = CNA::Input::Haptics::OpenEXT(static_cast<std::uint32_t>(firstHaptic_));
+                const auto caps = haptic_.GetCapabilitiesEXT();
+                last_ = std::string("OpenEXT: open ") + YesNo(haptic_.IsOpenEXT()) + ", \"" + haptic_.GetNameEXT() + "\", " + std::to_string(caps.axisCount) + " axes, " +
                         std::to_string(caps.maxEffects) + " effects, rumble " + YesNo(caps.rumbleSupported);
             }
         } catch (const std::exception& e) {
             last_ = std::string("OpenEXT threw: ") + e.what();
         }
-        hapticState_ = Open() ? haptic_->GetNameEXT() : "none";
+        hapticState_ = Open() ? haptic_.GetNameEXT() : "none";
         Museum::Log("devices", "haptics: %s", last_.c_str());
     }
 
@@ -306,9 +305,9 @@ private:
         if (!Open()) {
             last_ = "rumble refused: no open device";
         } else {
-            const bool init = haptic_->InitRumbleEXT();
-            const bool play = init && haptic_->PlayRumbleEXT(0.5f, 300);
-            last_ = std::string("InitRumbleEXT ") + YesNo(init) + ", PlayRumbleEXT " + YesNo(play) + ", StopRumbleEXT " + YesNo(play && haptic_->StopRumbleEXT());
+            const bool init = haptic_.InitRumbleEXT();
+            const bool play = init && haptic_.PlayRumbleEXT(0.5f, 300);
+            last_ = std::string("InitRumbleEXT ") + YesNo(init) + ", PlayRumbleEXT " + YesNo(play) + ", StopRumbleEXT " + YesNo(play && haptic_.StopRumbleEXT());
         }
         Museum::Log("devices", "haptics: %s", last_.c_str());
     }
@@ -322,16 +321,16 @@ private:
             effect.type = CNA::Input::HapticEffectTypeEXT::Constant;
             effect.length = 400;
             effect.level = 12000;
-            if (!haptic_->IsEffectSupportedEXT(effect)) {
+            if (!haptic_.IsEffectSupportedEXT(effect)) {
                 last_ = "the device does not support a constant effect";
             } else {
-                const int id = haptic_->CreateEffectEXT(effect);
+                const int id = haptic_.CreateEffectEXT(effect);
                 effect.level = 16000;
-                const bool updated = id >= 0 && haptic_->UpdateEffectEXT(id, effect);
-                const bool ran = id >= 0 && haptic_->RunEffectEXT(id, 1);
-                const bool playing = id >= 0 && haptic_->GetEffectStatusEXT(id);
-                const bool stopped = id >= 0 && haptic_->StopEffectEXT(id);
-                if (id >= 0) haptic_->DestroyEffectEXT(id);
+                const bool updated = id >= 0 && haptic_.UpdateEffectEXT(id, effect);
+                const bool ran = id >= 0 && haptic_.RunEffectEXT(id, 1);
+                const bool playing = id >= 0 && haptic_.GetEffectStatusEXT(id);
+                const bool stopped = id >= 0 && haptic_.StopEffectEXT(id);
+                if (id >= 0) haptic_.DestroyEffectEXT(id);
                 last_ = "CreateEffectEXT " + std::to_string(id) + ", update " + YesNo(updated) + ", run " + YesNo(ran) + ", status " + YesNo(playing) + ", stop " + YesNo(stopped) + ", destroyed";
             }
         }
@@ -343,8 +342,8 @@ private:
         if (!Open()) {
             last_ = "gain refused: no open device";
         } else {
-            last_ = std::string("SetGainEXT ") + YesNo(haptic_->SetGainEXT(50)) + ", SetAutocenterEXT " + YesNo(haptic_->SetAutocenterEXT(0)) + ", PauseEXT " + YesNo(haptic_->PauseEXT()) +
-                    ", ResumeEXT " + YesNo(haptic_->ResumeEXT()) + ", StopAllEffectsEXT " + YesNo(haptic_->StopAllEffectsEXT());
+            last_ = std::string("SetGainEXT ") + YesNo(haptic_.SetGainEXT(50)) + ", SetAutocenterEXT " + YesNo(haptic_.SetAutocenterEXT(0)) + ", PauseEXT " + YesNo(haptic_.PauseEXT()) +
+                    ", ResumeEXT " + YesNo(haptic_.ResumeEXT()) + ", StopAllEffectsEXT " + YesNo(haptic_.StopAllEffectsEXT());
         }
         Museum::Log("devices", "haptics: %s", last_.c_str());
     }
@@ -352,9 +351,9 @@ private:
     void CloseHaptic()
     {
         try {
-            if (Open()) haptic_->StopAllEffectsEXT();
-            if (haptic_) haptic_->Dispose();
-            haptic_.reset();
+            if (Open()) haptic_.StopAllEffectsEXT();
+            haptic_.Dispose();
+            haptic_ = CNA::Input::HapticDevice();
         } catch (const std::exception& e) {
             Museum::Log("devices", "haptics: closing: %s", e.what());
         }
@@ -698,10 +697,9 @@ private:
 
     Mode mode_;
     std::string last_ = "-";
-    // haptics. Held in an optional filled from OpenEXT: HapticDevice's inline default constructor needs the complete
-    // CNA::Platform::IPlatformHapticDevice, which no public header provides, so a default-constructed member does not
-    // compile outside CNA (CNA-DEMOS-ISSUE-009, reproduced here; the moving constructor is out of line and works).
-    std::optional<CNA::Input::HapticDevice> haptic_;
+    // haptics. A default-constructed member, closed until OpenEXT's device is moved in (it did not compile outside CNA
+    // before CNA 974c1ac08 moved the default constructor out of line; CNA-DEMOS-ISSUE-009).
+    CNA::Input::HapticDevice haptic_;
     long long firstHaptic_ = -1;
     std::string hapticList_ = "-", hapticState_ = "none";
     // dialogs

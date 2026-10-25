@@ -18,7 +18,7 @@ The standing instruction (Czech, via `/goal`) is "read HANDOFF.md and continue u
 [`plan.md`](plan.md) is the authoritative backlog: each row has a status, acceptance criteria and dated evidence. Read it
 first, newest entries at the end of each row.
 
-## 2. Current state (end of 2026-10-22)
+## 2. Current state (2026-10-25)
 
 - **Backlog:** 85 rows; 82 DONE, 3 BLOCKED_EXTERNAL. All three need hardware this machine does not have, and that will not
   change by waiting:
@@ -30,32 +30,13 @@ first, newest entries at the end of each row.
 
   Manual procedures for all three are in `docs/HARDWARE_CHECKLIST.md`. Do not spend effort trying to turn these rows DONE
   without the hardware. The owner was frustrated by repeated rebuild rounds and slipping time estimates on 2026-10-22.
-- **CNA revision:** build/, build-probe and the browser tree (build-consumer) are all built against CNA `next` at
-  **`a6f9e9b2e`** through the worktree `../cna-next` (section 4). The Android and MinGW (Wine) trees were last built from
-  `../cna` and have not been rebuilt since.
-- **Last full battery:** run at `a6f9e9b2e` (`build/battery-a6f9/summary.txt`, plan row D07):
-  - `check_all` 11/0 and `SLOW=1` 17/0; `tools/scenarios.py` passes;
-  - every renderer clean, also on the GPU: OPENGLES3, OPENGL33 and SOFTWARE 103/0, WEBGPU 83/0, SDL_GPU 104/0, FNA3D 81/0
-    (78/0 on the GPU), HEADLESS 7/0;
-  - devices 34/0 (4 unavailable: no hardware), haptics 14/0, window 13/0, tray 13/0, dialogs 8/0, audio 22/0, voice 5/0;
-  - net 23/0, online, online-party 19/0;
-  - browser WEBGL2 tour 320/320 (99/0) and browser WEBGPU tour 320/320 (82/0).
-- **Profiles:** `python3 tools/profile_summary.py` shows 32 current, 0 stale, 2 with failures. Both failures are CNA
-  defects: the notification channel in the browser scenarios, and Float16RenderTargets on the Android emulator.
-- **API denominator:** 699 public headers, 19 849 declarations (`docs/CNA_API_INVENTORY.md`).
-- **Coverage evidence:** about 2 900 claims; 3 263 declarations implementation-verified; 2 348 declarations executed by
-  the two current runs, `2026-10-22-opengles3-full-a6f9` (320 rooms, one process each; `gs-avatar` crashed once) and
-  `2026-10-22-opengles3-gs-avatar-a6f9` (the re-run of that room). See `docs/CNA_COVERAGE_AUDIT.md` and check its
-  "Execution runs" line.
-- **CNA defects:** `docs/CNA_FINDINGS.md` lists **45 open** findings:
-  - 17 content-pipeline divergences, 6 native C API defects and 22 others;
-  - three of them are already fixed in CNA but cannot be verified here: the intermittent FNA3D-on-GPU crash (one clean run
-    is not proof), EnvironmentMapEffect parameters (no museum check reads them by name), and two TSan races (no sanitizer
-    tree exists now);
-  - the "Fixed in CNA" section lists what museum runs have verified.
-
-  On 2026-10-22 every open finding was sent to the CNA owner's Codex session (section 3).
-- **Working tree:** clean; nothing runs in the background.
+- **CNA revision:** every tree is built from `../cna` at **`9d49828f4`** (section 4): build/, build-probe, the browser
+  tree, Android and MinGW (build-consumer/android-*, build-consumer/windows) and build-tsan.
+- **CNA findings, 2026-10-25:** every finding that was open was rerun against `9d49828f4` (`docs/CNA_FINDINGS.md`):
+  <<FINDINGS>>
+- **Runs at `9d49828f4`:** <<RUNS>>
+- **API denominator:** 700 public headers, 19 933 declarations (`docs/CNA_API_INVENTORY.md`).
+- **Coverage evidence:** <<COVERAGE>>
 
 ## 3. Rules that are not optional
 
@@ -65,13 +46,17 @@ first, newest entries at the end of each row.
   behaviour, the needed change and the museum reproducer.
 - **Channel to the CNA owner** (the owner of this repository authorised it):
   `codex queue --thread 01a15506-a40f-7dc0-9c2f-72e9ed1d6f8e --message "..."`. The session name `cna-demos` matches two
-  sessions; the UUID above is the active one. Replies arrive as commits on CNA's `next` branch and in
-  `../cna/CNA_MUSEUM_REPAIR_HANDOFF.md` (read-only).
+  sessions; the UUID above is the active one. Replies arrive as commits on CNA's `next` branch; CNA's own list of known
+  defects and limitations is `../cna/handoff.md` §5 (read-only). CNA's museum repair log
+  (`CNA_MUSEUM_REPAIR_HANDOFF.md`) was removed on 2026-10-25 after the reruns below; it is in CNA's Git history
+  (`git -C ../cna show 9d49828f4:CNA_MUSEUM_REPAIR_HANDOFF.md`).
 - A subagent's or another session's message is information, not the owner's approval.
 
 **Machine and SSD** (see also `/rv/data/development/github.com/libcna/CLAUDE.md`)
-- Compile with at most **2 jobs** (owner's rule, stricter than CLAUDE.md): `JOBS=2 tools/build.sh`, `--parallel 2`,
-  `ninja -j2`. Do not run two compiles at once, and do not build a tree while tests use it.
+- Compile with at most **8 jobs** (owner's rule since 2026-10-25; it was 2 before): `tools/build.sh` uses 8 by default,
+  `JOBS=N` lowers it; lower it for sanitizer trees, whose translation units need more memory. Several heavy steps (builds,
+  tours, coverage runs) may run at once when the current CPU load and free RAM allow it: check `uptime` and `free -g`
+  first; the machine has 16 cores and 30 GB without swap, shared with other agents. Never build a tree while tests use it.
 - ccache: `CCACHE_DIR=/rv/cnaccache CCACHE_BASEDIR=/rv`, always. Build directories come only from the closed list:
   `build/`, `build-probe/` (multi-renderer coverage tree), `build-consumer/` (browser, Android, MinGW; subdirectories are
   fine), `build-asan/`, `build-ubsan/`, `build-tsan/` (none of the sanitizer trees exists now). Never build or clone under
@@ -99,22 +84,20 @@ first, newest entries at the end of each row.
 - Kill processes by PID. Never `pkill -f` a pattern that occurs in your own command line.
 - Give honest time estimates. Say up front when something cannot finish.
 
-## 4. CNA worktree: how the museum picks its CNA
+## 4. Which CNA the museum builds
 
-- `../cna-next` is a detached `git worktree` of `../cna`, created with
-  `git -C ../cna worktree add --detach ../cna-next <commit>`. The uninitialised submodule directories `third_party/SDL`,
-  `third_party/SDL_mixer` and `third_party/draco` were copied in from `../cna`, because CNA's configure refuses symlinks.
-- build/ and build-probe have `-DCNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next` in their caches. The browser
-  tree gets it from `CNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna-next JOBS=2 tools/build_web.sh`.
-  `tools/generate_api_inventory.py` and `tools/execution_coverage.py` read `CNA_ROOT_DIR` from the build cache.
-- Moving to a newer commit, only when justified:
-  1. `git -C ../cna-next checkout --detach <commit>`; first check that `git -C ../cna-next status` is clean.
-  2. `JOBS=2 tools/build.sh`, then the targeted checker. Some CNA commits do not configure at all (`272696e8b` failed CNA's
-     own SDL budget audit); report that through the channel and return the worktree to the last good commit.
-  3. `python3 tools/generate_api_inventory.py --check`. If it reports a delta, run `--write`. If it names a
-     classification that no longer leaks, remove that entry from `audit/internal_type_classification.json`. Then run
+- Every tree builds from `../cna` itself (`CNA_ROOT_DIR` in each build cache; the browser tree gets it from
+  `CNA_ROOT_DIR=/rv/data/development/github.com/libcna/cna tools/build_web.sh`). The detached worktree `../cna-next`
+  that build/ and build-probe used until 2026-10-22 no longer exists; build-probe was reconfigured to `../cna` on 2026-10-25.
+- `../cna` is the CNA owner's live tree. Before a build, check that `git -C ../cna status` is clean (another agent's
+  uncommitted edits would be built in) and write the commit next to the tree: `git -C ../cna rev-parse --short HEAD >
+  <tree>/cna-commit.txt`. The Android tree reads `../cna` through `tools/build_android.sh`; the MinGW tree through its cache.
+- Do not follow CNA's `next` automatically. Rebuild against a newer CNA only when a fix unblocks something or the owner
+  asks, then rerun the targeted checker. Afterwards:
+  1. `python3 tools/generate_api_inventory.py --check`. If it reports a delta, run `--write`. If it names a classification
+     that no longer leaks, remove that entry from `audit/internal_type_classification.json`. Then run
      `python3 tools/audit_api_coverage.py --write`.
-  4. A rebuild of build-probe against another CNA makes the execution runs historical (section 5).
+  2. A rebuild of build-probe against another CNA makes the execution runs historical (section 5).
 
 ## 5. Evidence model (do not blur the levels)
 
@@ -140,14 +123,14 @@ Run from the repository root.
 
 | Purpose | Command |
 |---|---|
-| Build (native) | `JOBS=2 tools/build.sh`; coverage tree: `JOBS=2 BUILD_DIR=build-probe tools/build.sh` |
+| Build (native) | `tools/build.sh`; coverage tree: `BUILD_DIR=build-probe tools/build.sh` |
 | Main battery | `tools/check_all.sh` (11 steps, about 12 min); `SLOW=1` adds OPENGL33/SOFTWARE tours, self-checks and leak checks (about 100 min); `ONLINE=1` adds the service |
 | Scenarios | `python3 tools/scenarios.py` (`tests/scenarios/*.json`, exact expected log lines) |
 | Renderers | `tools/renderer_check.sh OPENGLES3` …; `BUILD_DIR=build-probe` for FNA3D, WEBGPU, SDL_GPU, HEADLESS; `MUSEUM_GPU=1` on the GPU, `MUSEUM_GPU=weston` for WEBGPU on the GPU; Vulkan ICD via `VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/{lvp,radeon}_icd.json` |
 | Devices and system | `tools/devices_check.sh`, `tools/haptics_check.sh`, `tools/window_check.sh` (openbox from `~/deps/openbox`), `tools/tray_check.sh`, `tools/dialogs_check.sh` |
 | Audio | `tools/audio_check.sh` (SDL disk driver, FFT of the real mix), `tools/voice_check.sh` |
 | Networking | `tools/net_check.sh` (three processes), `tools/online_check.sh`, `tools/online_party_check.sh` (need `../cna-gamer-services-server`) |
-| Browser | `CNA_ROOT_DIR=… JOBS=2 tools/build_web.sh`; `tools/web_smoke.sh`; `MUSEUM_WEB_RENDERER=WEBGL2\|WEBGPU MUSEUM_WEB_TIMEOUT=7200 tools/web_tour.sh`; `python3 tools/web_scenarios.py` |
+| Browser | `CNA_ROOT_DIR=… tools/build_web.sh`; `tools/web_smoke.sh`; `MUSEUM_WEB_RENDERER=WEBGL2\|WEBGPU MUSEUM_WEB_TIMEOUT=7200 tools/web_tour.sh`; `python3 tools/web_scenarios.py` |
 | Android emulator | `tools/build_android.sh`; `MUSEUM_ANDROID_SKIP=model-sampler MUSEUM_ANDROID_BATCH=8 tools/android_run.sh` (emulator with 2 cores, every adb call has a time limit) |
 | Windows under Wine | MinGW tree `build-consumer/windows` (`docs/RENDERER_TESTING.md`); `tools/wine_tour.sh -p`, `CNA_GRAPHICS_RENDERER=DIRECTX9 tools/wine_tour.sh -p` |
 | Evidence | `tools/generate_api_inventory.py --check\|--write`, `tools/audit_api_coverage.py --check\|--write`, `tools/gen_docs.sh [--check]`, `tools/execution_coverage.py run …` |
@@ -173,8 +156,8 @@ git diff --check
   adb. A background command started with `&` inside a normal shell call is not tracked; use the tool's background mode.
 - **Flakes seen once:**
   - a stairs route in `nav_test.sh`; it now keeps `build/nav-failed-*` logs;
-  - a `gs-avatar` SIGSEGV inside `malloc` in Mesa (recorded in CNA_FINDINGS, not reproduced in 13 runs);
-  - the FNA3D SDL_GPU crash, about one run in four before CNA `c2664bad6`.
+  - a `gs-avatar` SIGSEGV inside `malloc` in Mesa (in CNA_FINDINGS, not reproduced in 53 runs since, closed);
+  - the FNA3D SDL_GPU crash, about one run in four before CNA `c2664bad6` (none in 12 GPU runs at `9d49828f4`).
 
   Rerun before believing a single failure, and record what you saw.
 - **Shared CNA headers:** `../cna` is another agent's live working tree with uncommitted edits. Builds from it (Android,
@@ -187,21 +170,9 @@ git diff --check
 ## 8. First steps for the next agent
 
 1. `git status`, `git log -5`, then read `plan.md`.
-2. `python3 tools/profile_summary.py` and `git -C ../cna-next log -1`. Confirm that the state in section 2 still holds.
+2. `python3 tools/profile_summary.py`, `cat build/cna-commit.txt` and `git -C ../cna log -1`. Confirm that the state in
+   section 2 still holds.
 3. Without new hardware or an owner request there is no backlog work left. Useful optional work:
    - verify CNA fixes as they land (targeted reruns only);
-   - add a museum check that reads EnvironmentMapEffect's `Texture` and `EnvironmentMap` parameters by name;
-   - rebuild the Android and MinGW trees from the worktree when the owner wants those profiles at the current CNA.
+   - <<NEXT>>
 4. Ask the owner before any long rebuild round.
-
-## 9. Continuation checkpoint — 2026-10-24
-
-The current CNA repair dispositions and the museum-side targeted rerun are recorded in
-[`docs/CNA_HEAD_REVALIDATION_2026-10-24.md`](docs/CNA_HEAD_REVALIDATION_2026-10-24.md).
-The targeted off-screen GPU run used the previous consumer binary built against CNA
-`a6f9e9b2e`; the current native and web builds are rebuilt against the latest published CNA
-HEAD `ba707082e`. The targeted run passed `capi_native`, all eight
-`workshop_*` scenarios, `vertextype`, `volume_shader` and `storage_contracts`. `notifications`
-remains pending a rebuild against the newer CNA notification fixes. No new museum backlog row
-was created: the only remaining museum plan rows are the three documented hardware-blocked
-rows G06, P08 and P09.

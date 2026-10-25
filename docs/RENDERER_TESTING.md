@@ -190,7 +190,7 @@ tools/android_run.sh [room ...] # headless emulator, read-only AVD; MUSEUM_ANDRO
 ```
 
 The Gradle project (`android/`) builds the museum with CNA's validated Android renderer, OPENGLES3, offline and with the
-native build held to two jobs by a CMake job pool; the C ABI client, video and the Inspector are not built for Android.
+native build held to eight jobs by a CMake job pool; the C ABI client, video and the Inspector are not built for Android.
 `MuseumActivity` copies the packaged `Content/` into the app's storage once per installed version (the museum reads Content
 through file paths), passes the desktop options as intent extras (`script`, `scriptfile`, `room`, `renderer`, `args`), and the
 museum's log lines go to logcat (tag `museum`). `tools/android_run.sh` runs the shared `Medium_Phone` AVD read-only, with no

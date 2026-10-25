@@ -68,13 +68,9 @@ int main(int argc, char** argv)
         // StorageDevice also backs GamerServices' local achievements and leaderboards. Set the
         // title name before either subsystem can initialize so their root never depends on which
         // exhibit (or whether progress persistence) happened to open storage first.
-        // CNA resolves (and creates) the storage root right here; without a writable per-user data folder that throws
-        // StorageDeviceNotConnectedException after the name is set. The museum runs on without saved data then.
-        try {
-            Microsoft::Xna::Framework::Storage::StorageDevice::SetAppNameEXT("cna-3d-museum");
-        } catch (const std::exception& e) {
-            std::fprintf(stderr, "[museum][storage] no storage root, saved data is off: %s\n", e.what());
-        }
+        // Naming the title resolves no folder (CNA fffa552ad): without a writable per-user data folder only the storage calls
+        // that need the root fail, and the rooms and the progress store report that where it happens.
+        Microsoft::Xna::Framework::Storage::StorageDevice::SetAppNameEXT("cna-3d-museum");
 #ifdef MUSEUM_NETWORKING
         // Two local offline profiles are signed in at start-up (unless the caller chose others): the networking rooms need two local
         // gamers to talk to each other. They live in CNA's own profile store, never in the museum's files.
@@ -97,7 +93,20 @@ int main(int argc, char** argv)
             setenv("CNA_GRAPHICS_RENDERER", options.renderer->c_str(), 1);
 #endif
         }
-        if (std::getenv("CNA_GRAPHICS_RENDERER") == nullptr) CNA::GraphicsRendererSelection::EnableAutomaticFallback(true);
+        // MUSEUM_RENDERER_FALLBACK=1 turns a named renderer into a preference with CNA's automatic fallback behind it, the opt-in
+        // docs/webgpu-renderer.md documents for a renderer the environment cannot start (WEBGPU without a window surface).
+        const char* named = std::getenv("CNA_GRAPHICS_RENDERER");
+        const char* fallback = std::getenv("MUSEUM_RENDERER_FALLBACK");
+        if (named != nullptr && fallback != nullptr && std::string(fallback) == "1") {
+            CNA::GraphicsRendererSelection::SetPreferred(std::string(named));
+#ifdef _WIN32
+            _putenv_s("CNA_GRAPHICS_RENDERER", "");
+#else
+            unsetenv("CNA_GRAPHICS_RENDERER");
+#endif
+            named = nullptr;
+        }
+        if (named == nullptr) CNA::GraphicsRendererSelection::EnableAutomaticFallback(true);
         MuseumGame game(options);
         game.Run();
         return 0;
