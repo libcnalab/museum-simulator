@@ -7,39 +7,39 @@ Implementation, execution and correctness counts rise only from recorded evidenc
 The complete per-claim and per-declaration matrix
 is generated in `build/api-audit/coverage-evidence.json`.
 
-Museum catalogue SHA-256: `39d61a9b15eda78238265dafa87b97e2c0c0779572b09de0e60ac48491d8faac`; exhibit sources SHA-256: `ce641be5d5c69f3d7344d37ef914b4344cd2852eed9a4cbec2d85af5d50dd5c0`
+Museum catalogue SHA-256: `f7b23fe338bc6016c07ddd3b0c59a7d29e4dc22c13d3b3d475991c4d4aed54ea`; exhibit sources SHA-256: `d9eef4031417c04f46de37c144b73077ceb79219eed02a65f41806ea3acbfd8d`
 
-CNA revision: `a6f9e9b2e66c87434011e1646a7f74cb1d81f354` (`v0.1.0-700-ga6f9e9b2e`)
+CNA revision: `e87d32f92910ebd1adeccf6d4c6e3c94b4fafc00` (`v0.1.0-855-ge87d32f92`)
 
-Claims: **2904**; exact declaration matches: **2404**; member/overload families: **490**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
+Claims: **2910**; exact declaration matches: **2409**; member/overload families: **491**; ambiguous: **0**; unresolved: **0**; non-declaration labels: **0**; external dependency claims: **10**.
 
-Public declarations: **19849**; linked by at least one catalogue name: **3778**; implementation-verified: **3263**; executed: **2348**; correctness-verified: **0**.
+Public declarations: **19933**; linked by at least one catalogue name: **3794**; implementation-verified: **3263**; executed: **2343**; correctness-verified: **0**.
 
 Implementation source located through the exhibit registry for **320 rooms**. Registry locations are candidates; reviewed call paths are listed separately below.
-Reviewed implementation records: **3717**; fully implementation-verified claims: **2570**. Reviewed claim-room pairs: **3604** of **3604**; fully verified pairs: **3090**.
-Execution runs: **2 current** of **8 recorded**; execution records: **8**; fully executed claims: **1658**; executed claim-room pairs: **2151**.
+Reviewed implementation records: **3717**; fully implementation-verified claims: **2567**. Reviewed claim-room pairs: **3604** of **3610**; fully verified pairs: **3087**.
+Execution runs: **1 current** of **9 recorded**; execution records: **9**; fully executed claims: **1650**; executed claim-room pairs: **2143**.
 Correctness oracles: **5**; fully correctness-verified claims: **0**; correctness-verified claim-room pairs: **0**.
 
 | Module | Declarations | Catalogue-linked | Not catalogue-linked |
 |---|---:|---:|---:|
-| `audio` | 321 | 80 | 241 |
-| `c-api` | 6910 | 892 | 6018 |
-| `content` | 1541 | 229 | 1312 |
-| `content-pipeline` | 2250 | 484 | 1766 |
+| `audio` | 323 | 81 | 242 |
+| `c-api` | 6942 | 892 | 6050 |
+| `content` | 1563 | 229 | 1334 |
+| `content-pipeline` | 2252 | 484 | 1768 |
 | `core` | 128 | 35 | 93 |
 | `design` | 83 | 17 | 66 |
 | `devices` | 216 | 39 | 177 |
 | `devices-ext` | 84 | 41 | 43 |
 | `diagnostics` | 224 | 37 | 187 |
 | `gamer-services` | 690 | 120 | 570 |
-| `graphics` | 2914 | 784 | 2130 |
+| `graphics` | 2929 | 787 | 2142 |
 | `graphics-ext` | 106 | 16 | 90 |
 | `input` | 897 | 166 | 731 |
 | `inspector` | 189 | 19 | 170 |
-| `math` | 954 | 457 | 497 |
-| `media` | 339 | 97 | 242 |
+| `math` | 960 | 463 | 497 |
+| `media` | 342 | 97 | 245 |
 | `net` | 290 | 121 | 169 |
-| `phone` | 61 | 35 | 26 |
+| `phone` | 74 | 41 | 33 |
 | `platform` | 1286 | 8 | 1278 |
 | `renderers/common/mojoshader` | 0 | 0 | 0 |
 | `renderers/directx9` | 0 | 0 | 0 |
@@ -50,7 +50,7 @@ Correctness oracles: **5**; fully correctness-verified claims: **0**; correctnes
 | `renderers/software` | 0 | 0 | 0 |
 | `renderers/stub` | 0 | 0 | 0 |
 | `renderers/webgpu` | 0 | 0 | 0 |
-| `runtime` | 322 | 67 | 255 |
+| `runtime` | 311 | 67 | 244 |
 | `storage` | 44 | 34 | 10 |
 
 ## Implementation review progress
@@ -92,7 +92,7 @@ Only rooms with at least one reviewed pair are listed.
 | `be-fog` | 0 | 4 | 0 | 4 | 0 | 4 |
 | `be-lights` | 2 | 3 | 2 | 3 | 0 | 5 |
 | `be-material` | 0 | 3 | 0 | 3 | 0 | 3 |
-| `be-model` | 21 | 0 | 18 | 0 | 0 | 21 |
+| `be-model` | 21 | 0 | 12 | 0 | 0 | 21 |
 | `be-perpixel` | 0 | 1 | 0 | 1 | 0 | 1 |
 | `be-punctual` | 2 | 0 | 2 | 0 | 0 | 2 |
 | `cam-chase` | 1 | 2 | 1 | 2 | 0 | 3 |
@@ -113,7 +113,7 @@ Only rooms with at least one reviewed pair are listed.
 | `col-ray-plane` | 1 | 1 | 1 | 1 | 0 | 2 |
 | `col-ray-sphere` | 1 | 1 | 1 | 1 | 0 | 2 |
 | `col-sphere-box` | 0 | 2 | 0 | 2 | 0 | 2 |
-| `ct-audiopipeline` | 22 | 1 | 19 | 1 | 0 | 23 |
+| `ct-audiopipeline` | 21 | 2 | 18 | 2 | 0 | 23 |
 | `ct-cache` | 3 | 0 | 3 | 0 | 0 | 3 |
 | `ct-compiler` | 14 | 0 | 14 | 0 | 0 | 14 |
 | `ct-custom` | 4 | 0 | 3 | 0 | 0 | 4 |
@@ -149,7 +149,7 @@ Only rooms with at least one reviewed pair are listed.
 | `dev-haptics` | 27 | 0 | 6 | 0 | 0 | 27 |
 | `dev-identity` | 16 | 0 | 15 | 0 | 0 | 16 |
 | `dev-medialib` | 49 | 3 | 0 | 0 | 0 | 52 |
-| `dev-notify` | 23 | 0 | 23 | 0 | 0 | 23 |
+| `dev-notify` | 23 | 0 | 23 | 0 | 0 | 29 |
 | `dev-tray` | 11 | 0 | 0 | 0 | 0 | 11 |
 | `dev-window` | 11 | 0 | 8 | 0 | 0 | 11 |
 | `fx-blur` | 6 | 1 | 5 | 1 | 0 | 7 |
@@ -378,7 +378,7 @@ Only rooms with at least one reviewed pair are listed.
 | `wk-routes` | 66 | 0 | 66 | 0 | 0 | 66 |
 | `wk-tasks` | 36 | 0 | 35 | 0 | 0 | 36 |
 | `wk-typewriter` | 42 | 5 | 39 | 5 | 0 | 47 |
-| `wk-xml` | 10 | 3 | 6 | 3 | 0 | 13 |
+| `wk-xml` | 8 | 5 | 5 | 4 | 0 | 13 |
 
 ## Claims requiring review
 
@@ -403,14 +403,14 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 
 ## Public API areas
 
-**542** public headers (16963 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
+**544** public headers (17045 declarations) have at least one declaration claimed by a room. Every other header is classified by a reviewed rule in
 `audit/area_classification.json` (first match wins; the check fails for an unclassified header or a stale rule):
 
 | Status | Headers | Declarations | Meaning |
 |---|---:|---:|---|
 | gap | 2 | 71 | Application-facing API that the museum should demonstrate but does not yet; the backlog task that covers it is named. |
 | supporting | 127 | 2103 | Reached implicitly (exceptions, event arguments, option types, helper traits) by a demonstrated feature, or meaningful only inside a named gap. |
-| not-applicable | 22 | 712 | Not application API for this museum (bootstrap, backend contracts, build-time internals); the reason is stated. |
+| not-applicable | 21 | 714 | Not application API for this museum (bootstrap, backend contracts, build-time internals); the reason is stated. |
 
 | Area | Status | Backlog | Headers | Declarations | Reason |
 |---|---|---|---:|---:|---|
@@ -451,8 +451,7 @@ These are demonstrated by museum rooms but are not counted as CNA declarations:
 | Texture processing | supporting | - | 4 | 64 | S3TC encoder behind TextureProcessor DxtCompressed, which ProcessorLab selects and verifies (Dxt1/3/5 levels). (+1 more rule(s)) |
 | Audio backend SPI | not-applicable | - | 2 | 52 | Pure-virtual audio output/recording device contracts implemented by CNA's audio backends; applications reach audio only through SoundEffect/DynamicSoundEffectInstance/Microphone, which the audio rooms already use. |
 | Build-time markers | not-applicable | - | 1 | 1 | Defines only the CNAEXT documentation macro (or [[deprecated]] under CNA_STRICT_XNA_API); it has no runtime behaviour to show. |
-| CNB codec internals | not-applicable | - | 11 | 389 | Built-in schema chunk IDs, decoded model/texture/audio/media data and CRC-32C used only by CNA's privately registered built-in loaders; games get Model/Texture2D/SoundEffect from ContentManager::Load, which content rooms show. |
-| Dead runtime export | not-applicable | - | 1 | 11 | CNA::Runtime/RuntimeOptions are declared but have no definition anywhere in CNA and no includer, so calling them would not link; it is a stale public export, not demonstrable API. |
+| CNB codec internals | not-applicable | - | 11 | 402 | Built-in schema chunk IDs, decoded model/texture/audio/media data and CRC-32C used only by CNA's privately registered built-in loaders; games get Model/Texture2D/SoundEffect from ContentManager::Load, which content rooms show. |
 | Pipeline wiring | not-applicable | - | 1 | 1 | ToCanonicalModel converts ModelContent for the internal XNB writer (CNA::Internal::Xnb); reached implicitly when ModelProcessor output is compiled. |
 | Platform bootstrap | not-applicable | - | 3 | 170 | Chooses the compiled-in IPlatform implementation when the runtime starts; applications receive the result via Game::GetPlatformEXT, which pl-platform shows. (+2 more rule(s)) |
 | Renderer plumbing | not-applicable | - | 3 | 88 | OpenGL context creation contract consumed by GL renderers, not by game code. (+2 more rule(s)) |

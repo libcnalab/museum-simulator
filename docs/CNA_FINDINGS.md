@@ -79,7 +79,7 @@ The museum checks each one against CNA's own documentation, so a change is still
 
 ## Fixed in CNA after the museum reported them
 
-Verified on 2026-10-25 against CNA `9d49828f4` (the scenarios named are in `tests/scenarios/`; `tools/scenarios.py` 31 passed,
+Verified on 2026-10-25 against CNA `9d49828f4` (the scenarios named are in `tests/scenarios/`; `tools/scenarios.py` 28 passed,
 0 failed, 1 skipped in `build/`, the skip being `compiled_effects`, which runs in `build-probe`):
 
 - **BoundingFrustum.Intersects(Ray) clipped no ray from outside the frustum** (CNA `9a5e5d896`): math-checks "Ray from

@@ -306,6 +306,20 @@ realizovatelným úkolem, dokud není splněna definice dokončení níže.
   Muzeum loguje adaptér při startu. Plná sada (tour, scénáře 7/7, renderer, reference, nav, devices
   27/0/4 unavailable, audio 6/6, voice 5/5, net 8/2 – 2 = vada migrace v CNA) prošla na CNA `b2c7288ca`.
 
+- 2026-10-25: Rerun všech otevřených CNA nálezů proti CNA `9d49828f4` (na přání vlastníka, aby šlo
+  smazat CNA `CNA_MUSEUM_REPAIR_HANDOFF.md`). Worktree `../cna-next` už neexistuje; build/,
+  build-probe, prohlížeč, Android, MinGW a build-tsan sestaveny z `../cna`. Ověřeno opraveno nebo
+  zdokumentováno vše kromě Float16 na Android emulátoru (chybí `/dev/kvm`). Kontroly muzea, které
+  předpokládaly staré chování CNA, sladěny s aktuální dokumentací (CNB NONE, WAV, XNB v4, lock,
+  AddDependency) a s XNA (storage: výsledek odmítnutý pro cizí zařízení je spotřebovaný; IOException
+  v zablokované složce; read-only AchievementCollection); odstraněny workaroundy (std::optional
+  HapticDevice, try/catch kolem SetAppNameEXT, readback přes výjimku). Nové kontroly a scénáře:
+  `effect_parameters`, `math_checks`, `workshop_xml`, `workshop_material`, RenderTargetReadback claim,
+  čitelné jméno typu, ErrorOccurred v dev-notify, GLSL 450 svazkový shader na SDL_GPU, klávesové volby
+  X11 message boxu v `dialogs_check.sh`, `MUSEUM_RENDERER_FALLBACK=1`, cedule při ztraceném zařízení.
+  Nový execution run `2026-10-25-opengles3-full-9d49` (320/320). Vlastník zvedl limit kompilace na 8
+  úloh a povolil souběh náročných kroků, pokud to CPU a RAM dovolí.
+
 ## Obnovení práce
 
 Přečti aktuální stav nahoře, `git status`, příslušné instrukce a log poslední rozpracované

@@ -30,21 +30,25 @@ first, newest entries at the end of each row.
 
   Manual procedures for all three are in `docs/HARDWARE_CHECKLIST.md`. Do not spend effort trying to turn these rows DONE
   without the hardware. The owner was frustrated by repeated rebuild rounds and slipping time estimates on 2026-10-22.
-- **CNA revision:** every tree is built from `../cna` at **`9d49828f4`** (section 4): build/, build-probe, the browser
-  tree, Android and MinGW (build-consumer/android-*, build-consumer/windows) and build-tsan.
+- **CNA revision:** every tree is built from `../cna` at **`9d49828f4`** (section 4; CNA's commits after it up to
+  `e87d32f92` change documentation and one header comment only, so the inventory names `e87d32f92`): build/, build-probe, the browser
+  tree, Android and MinGW (build-consumer/android-*, build-consumer/windows); build-tsan was built for the sanitizer rerun
+  and removed after it.
 - **CNA findings, 2026-10-25:** every finding that was open was rerun against `9d49828f4` (`docs/CNA_FINDINGS.md`):
   every one is fixed in CNA and verified, or documented by CNA as a deliberate difference, the ThreadSanitizer races and
   ENet's UBSan shift included (build-tsan with `-fsanitize=thread,undefined`, no report; the tree was removed afterwards).
   One stays open: Float16RenderTargets on the Android emulator (no `/dev/kvm` on this machine at the moment). One more
   refusal is a documented limitation: FNA3D's SDL_GPU driver refuses a tangent-free PbrEffect draw.
-- **Runs at `9d49828f4`:** `tools/scenarios.py` (build/) all pass except `compiled_effects`, a build-probe scenario;
+- **Runs at `9d49828f4`:** `tools/check_all.sh` 11/0 (`SLOW=1` and `ONLINE=1` not run); `tools/scenarios.py` (build/) 28 passed, 0 failed, 1 skipped (`compiled_effects`, a build-probe
+  scenario, which passes there on OPENGLES3, SDL_GPU, FNA3D and WEBGPU);
   renderer self-checks OPENGLES3, OPENGL33 and SOFTWARE 105/0/2/1, SDL_GPU on the GPU 106/0/2/0, FNA3D on the GPU
   81/0/3/22 twelve times in a row, WEBGPU on the GPU through Weston 87/0/2/19, HEADLESS 8/0/0/36; devices 34/0/4,
   haptics 14/0, tray 13/0, dialogs 9/0, window 13/0, audio 22/0, voice 5/0, net 23/0, online-party 19/0 three times;
   browser scenarios 24/0/5; the DIRECTX9 Wine tour; 40 gs-avatar press-all runs under glibc heap checking.
 - **API denominator:** 700 public headers, 19 933 declarations (`docs/CNA_API_INVENTORY.md`).
-- **Coverage evidence:** the execution run `2026-10-25-opengles3-full-9d49` (build-probe, rebuilt against
-  `9d49828f4`) is in progress; until it is recorded, `docs/CNA_COVERAGE_AUDIT.md` counts no current execution run.
+- **Coverage evidence:** 2 910 claims; 3 263 declarations implementation-verified; 2 343 declarations executed by the
+  current run `2026-10-25-opengles3-full-9d49` (build-probe rebuilt against `9d49828f4`, 320 rooms, one process each,
+  0 failed). See `docs/CNA_COVERAGE_AUDIT.md` and check its "Execution runs" line.
 
 ## 3. Rules that are not optional
 
