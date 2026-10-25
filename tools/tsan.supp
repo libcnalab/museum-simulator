@@ -8,3 +8,7 @@ race:libgio-2.0.so
 # libgallium frames appeared in the 2026-10-20 TSan tour of the audio, notification, Inspector and
 # network rooms. Museum and CNA frames stay instrumented and unsuppressed.
 race:libgallium-*.so
+# UBSan's runtime probes memory with pipe() (__sanitizer::IsAccessibleMemoryRange, its vptr checks). In a binary that
+# carries both sanitizers (build-tsan with -fsanitize=thread,undefined, 2026-10-25) TSan reports those probes racing with
+# each other, 19 times in one audio_check run and every report in that runtime: the libraries' own interplay.
+called_from_lib:libubsan.so

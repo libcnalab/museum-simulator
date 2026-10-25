@@ -20,36 +20,6 @@ moved to "Documented differences".
   `9d49828f4` (`tools/build_android.sh`), but the emulator could not run: `/dev/kvm` does not exist (the `kvm_amd` module
   is not loaded on this machine since 2026-10-23). Rerun `tools/android_run.sh rv-capabilities` once it is.
 
-### Vendored ENet shifts a signed 1 by 31 places (UBSan)
-- **Where:** `third_party/enet/protocol.c`, `enet_protocol_handle_send_unsequenced`: `1 << (index % 32)` at lines 492
-  and 498, on the `enet_uint32` unsequenced window.
-- **What happens:** with an unsequenced packet whose window index is 31 the shift is undefined behaviour in C
-  (`runtime error: left shift of 1 by 31 places cannot be represented in type 'int'`, 9 times each in the
-  ASan+UBSan `tools/net_check.sh` run on 2026-10-20, packet round with `SendDataOptions.None`). GCC and Clang produce
-  the expected bit today, so no packet was lost, but the compiler may assume it never happens.
-- **Needed change:** `1u << (index % 32)` in both places.
-- **2026-10-22/24:** CNA `5b6aab981` (MUSEUM-NET-003) makes both shifts `1u << (index % 32)`, and `03b92269c` the fragment
-  bitmaps' `1 << 31` too. The rerun in build-tsan (ThreadSanitizer with UBSan) is in progress on 2026-10-25.
-
-### Data races found by ThreadSanitizer (build-tsan, 2026-10-20)
-Seen in the targeted TSan run (`tools/scenarios.py notifications inspector`, a 30-frame press-all tour of the au-*, dev-notify,
-pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/net_check.sh`; the network rounds were clean).
-- **`HttpNotificationChannel::Close` and its listener thread:** `Close()` (`modules/phone/src/HttpNotificationChannel.cpp:223`)
-  writes `listenSocket_ = -1` under the channel mutex while the listener thread started by `Open()` reads `listenSocket_` for
-  `::accept` in `Listen()` (line 180) without it (dev-notify, "Close, then send to the closed channel"). Needed: the listener works on the socket
-  value it was started with (or `listenSocket_` becomes atomic), and `Close` only shuts it down and joins.
-- **`SetMixerTrackMixCallback` against the mixer thread:** `context->mixCallback` and `mixUserdata`
-  (`modules/audio/src/Backend/Sdl3Mixer/MixerEngine.cpp:559-560`) are written by the game thread
-  (`SoundEffectInstance::Apply3D` → `INTERNAL_applyComposedTrackProperties` → `EnsureTrackDspState`) while SDL's audio thread
-  reads them in `MixCallback` (line 245) for a track that is already playing (every au-* room with 3D voices, 12 reports per
-  audio_check run). Needed: write them under the mixer lock the cooked callback runs under, or set them before the track plays.
-- **Static teardown of pending pan state while the audio thread still mixes:** at process exit `~PendingPanStateCleanup`
-  (`modules/audio/src/Xna/SoundEffect.cpp:236`, `DrainClaimed` line 218) deletes pending pan states while the SDL audio thread
-  still runs `FireAndForgetPanCallback` (line 154) through `MixCallback` (seen at the end of the notifications and Inspector
-  scenarios, which played fire-and-forget sounds). Needed: stop or lock the mixer before the static drain.
-- **2026-10-25:** CNA fixed all three (`20fe6efd2` the notification Close race, `844e3ce41` the mixer callback race,
-  `594d7d328` the exit-time drain); the rerun in build-tsan is in progress.
-
 ## Documented differences (CNA's decision, not defects)
 
 The museum checks each one against CNA's own documentation, so a change is still noticed.
@@ -184,6 +154,18 @@ Verified on 2026-10-25 against CNA `9d49828f4` (the scenarios named are in `test
 - **FNA3D's SDL_GPU (Vulkan) backend crashed once binding fragment samplers** (about one run in four before CNA
   `c2664bad6`): `MUSEUM_GPU=1 BUILD_DIR=build-probe tools/renderer_check.sh FNA3D` on RADV passed 12 times in a row
   (81 PASS, 0 FAIL each); at one crash in four, twelve clean runs had a 3 % chance.
+- **Vendored ENet shifted a signed 1 by 31 places (UBSan)** (CNA `5b6aab981`, MUSEUM-NET-003, and `03b92269c` for the
+  fragment bitmaps) and **three data races ThreadSanitizer found on 2026-10-20** (CNA `20fe6efd2`: `HttpNotificationChannel::Close`
+  against its listener thread; `844e3ce41`: `SetMixerTrackMixCallback` against the mixer thread; `594d7d328`: the exit-time
+  drain of pending pan states while the audio thread still mixed): rerun in build-tsan, one tree built with
+  `-fsanitize=thread,undefined` (ENet and the museum included), with the 2026-10-20 steps: the `notifications` and
+  `inspector` scenarios, a 30-frame press-all tour of the au-*, dev-notify, pl-inspector, net-packets and net-session rooms,
+  `tools/net_check.sh` (23 of 23) and `tools/audio_check.sh`. No ThreadSanitizer report from CNA or the museum and no UBSan
+  report at all. The only TSan reports, 19 in the first audio_check run, were UBSan's own runtime probing memory with
+  `pipe()` (`__sanitizer::IsAccessibleMemoryRange`), the two runtimes' interplay; `tools/tsan.supp` now suppresses calls
+  from libubsan, and the rerun has no report. Its one oracle failure (panright's channel ratio 6 for 10) is timing: the
+  chirp is entirely in the right channel, but under TSan's slowdown a centered room sound that natively follows 2.6 s later
+  overlaps its tail. The sanitizer tree was removed afterwards.
 - **D3D9: a failed full-screen Reset was followed by a fatal GetRenderTarget error** (seen under Wine; CNA `d0cea7036`): the
   MinGW build under Wine 10 with `--fullscreen` on a 1280x720 Xvfb, where the 800x480 mode is unavailable, now logs
   "D3D9 Reset (resize to 800x480) failed, hr=0x8876086C -- device lost, awaiting reset recovery" and runs on to its final

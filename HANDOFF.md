@@ -33,10 +33,10 @@ first, newest entries at the end of each row.
 - **CNA revision:** every tree is built from `../cna` at **`9d49828f4`** (section 4): build/, build-probe, the browser
   tree, Android and MinGW (build-consumer/android-*, build-consumer/windows) and build-tsan.
 - **CNA findings, 2026-10-25:** every finding that was open was rerun against `9d49828f4` (`docs/CNA_FINDINGS.md`):
-  every one is fixed in CNA and verified, or documented by CNA as a deliberate difference, except two still open: the
-  ThreadSanitizer/UBSan reruns (build-tsan, in progress) and Float16RenderTargets on the Android emulator (no `/dev/kvm`
-  on this machine at the moment). One more refusal is a documented limitation: FNA3D's SDL_GPU driver refuses a
-  tangent-free PbrEffect draw.
+  every one is fixed in CNA and verified, or documented by CNA as a deliberate difference, the ThreadSanitizer races and
+  ENet's UBSan shift included (build-tsan with `-fsanitize=thread,undefined`, no report; the tree was removed afterwards).
+  One stays open: Float16RenderTargets on the Android emulator (no `/dev/kvm` on this machine at the moment). One more
+  refusal is a documented limitation: FNA3D's SDL_GPU driver refuses a tangent-free PbrEffect draw.
 - **Runs at `9d49828f4`:** `tools/scenarios.py` (build/) all pass except `compiled_effects`, a build-probe scenario;
   renderer self-checks OPENGLES3, OPENGL33 and SOFTWARE 105/0/2/1, SDL_GPU on the GPU 106/0/2/0, FNA3D on the GPU
   81/0/3/22 twelve times in a row, WEBGPU on the GPU through Weston 87/0/2/19, HEADLESS 8/0/0/36; devices 34/0/4,
