@@ -10,15 +10,7 @@ moved to "Documented differences".
 
 ## Open
 
-### Float16RenderTargets is reported on the Android emulator, whose half-float target reads back as NaN
-- **Where:** EasyGL's capability profile (OPENGLES3) on the Android emulator's guest GLES (`-gpu guest`, Android 15 image).
-- **What happens:** `GraphicsDevice` reports `GraphicsCapability.Float16RenderTargets` as supported, but in rv-capabilities
-  two additive white quads drawn into a `HalfVector4` render target read back as `(0.000, NaN, 0.000, NaN)` instead of 2.0
-  per channel (`tools/android_run.sh`, 2026-10-20). On the desktop OPENGLES3 renderer the same check passes.
-- **Needed change:** claim the capability only when the context can render to and read back RGBA16F, or convert on readback.
-- **2026-10-25:** CNA `53292f147` converts floating-point target readback on GLES. The Android tree is rebuilt against
-  `9d49828f4` (`tools/build_android.sh`), but the emulator could not run: `/dev/kvm` does not exist (the `kvm_amd` module
-  is not loaded on this machine since 2026-10-23). Rerun `tools/android_run.sh rv-capabilities` once it is.
+None.
 
 ## Documented differences (CNA's decision, not defects)
 
@@ -166,6 +158,10 @@ Verified on 2026-10-25 against CNA `9d49828f4` (the scenarios named are in `test
   from libubsan, and the rerun has no report. Its one oracle failure (panright's channel ratio 6 for 10) is timing: the
   chirp is entirely in the right channel, but under TSan's slowdown a centered room sound that natively follows 2.6 s later
   overlaps its tail. The sanitizer tree was removed afterwards.
+- **Float16RenderTargets was reported on the Android emulator, whose half-float target read back as NaN** (CNA
+  `53292f147` converts floating-point target readback on GLES): `tools/android_run.sh rv-capabilities` on the emulator
+  (Medium_Phone, guest GLES) reads the two additive white quads as (2.000, 2.000, 2.000, 2.000); all eight capability
+  claims there pass, RenderTargetReadback included.
 - **D3D9: a failed full-screen Reset was followed by a fatal GetRenderTarget error** (seen under Wine; CNA `d0cea7036`): the
   MinGW build under Wine 10 with `--fullscreen` on a 1280x720 Xvfb, where the 800x480 mode is unavailable, now logs
   "D3D9 Reset (resize to 800x480) failed, hr=0x8876086C -- device lost, awaiting reset recovery" and runs on to its final

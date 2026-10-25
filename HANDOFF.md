@@ -37,8 +37,8 @@ first, newest entries at the end of each row.
 - **CNA findings, 2026-10-25:** every finding that was open was rerun against `9d49828f4` (`docs/CNA_FINDINGS.md`):
   every one is fixed in CNA and verified, or documented by CNA as a deliberate difference, the ThreadSanitizer races and
   ENet's UBSan shift included (build-tsan with `-fsanitize=thread,undefined`, no report; the tree was removed afterwards).
-  One stays open: Float16RenderTargets on the Android emulator (no `/dev/kvm` on this machine at the moment). One more
-  refusal is a documented limitation: FNA3D's SDL_GPU driver refuses a tangent-free PbrEffect draw.
+  Float16RenderTargets on the Android emulator included (rv-capabilities 8/0 there). None stays open. One refusal is a
+  documented limitation: FNA3D's SDL_GPU driver refuses a tangent-free PbrEffect draw.
 - **Runs at `9d49828f4`:** `tools/check_all.sh` 11/0 (`SLOW=1` and `ONLINE=1` not run); `tools/scenarios.py` (build/) 28 passed, 0 failed, 1 skipped (`compiled_effects`, a build-probe
   scenario, which passes there on OPENGLES3, SDL_GPU, FNA3D and WEBGPU);
   renderer self-checks OPENGLES3, OPENGL33 and SOFTWARE 105/0/2/1, SDL_GPU on the GPU 106/0/2/0, FNA3D on the GPU
@@ -186,6 +186,6 @@ git diff --check
    section 2 still holds.
 3. Without new hardware or an owner request there is no backlog work left. Useful optional work:
    - verify CNA fixes as they land (targeted reruns only);
-   - rerun Float16RenderTargets on the Android emulator once `/dev/kvm` exists again (`sudo modprobe kvm_amd`):
-     `tools/android_run.sh rv-capabilities` (the Android tree is already built against `9d49828f4`);
+   - the emulator needs `/dev/kvm`; when the `kvm_amd` module is unloaded (VirtualBox), the owner reloads it
+     (`sudo modprobe kvm_amd`);
 4. Ask the owner before any long rebuild round.

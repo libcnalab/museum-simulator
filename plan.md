@@ -25,8 +25,8 @@ realizovatelným úkolem, dokud není splněna definice dokončení níže.
   jako `BLOCKED_EXTERNAL`. Všechny stromy jsou sestavené z `../cna` na `9d49828f4` a všechny
   otevřené CNA nálezy byly znovu spuštěny (výsledky v `docs/CNA_FINDINGS.md`, souhrn v HANDOFF §2).
   TSan závody a UBSan v ENet ověřeny v build-tsan (`-fsanitize=thread,undefined`, žádné hlášení;
-  strom poté smazán). Otevřený zůstává jen Float16 na Android emulátoru (stroj momentálně nemá
-  `/dev/kvm`; APK je sestavené proti `9d49828f4`). Poznámka `docs/CNA_HEAD_REVALIDATION_2026-10-24.md` je tím
+  strom poté smazán). Float16 na Android emulátoru ověřen po načtení `kvm_amd` vlastníkem
+  (rv-capabilities 8/0, half-float cíl čte 2.0). Žádný nález nezůstává otevřený. Poznámka `docs/CNA_HEAD_REVALIDATION_2026-10-24.md` je tím
   nahrazena a odstraněna.
 
 ## Pravidla práce a dokončení
@@ -309,7 +309,7 @@ realizovatelným úkolem, dokud není splněna definice dokončení níže.
 - 2026-10-25: Rerun všech otevřených CNA nálezů proti CNA `9d49828f4` (na přání vlastníka, aby šlo
   smazat CNA `CNA_MUSEUM_REPAIR_HANDOFF.md`). Worktree `../cna-next` už neexistuje; build/,
   build-probe, prohlížeč, Android, MinGW a build-tsan sestaveny z `../cna`. Ověřeno opraveno nebo
-  zdokumentováno vše kromě Float16 na Android emulátoru (chybí `/dev/kvm`). Kontroly muzea, které
+  zdokumentováno vše (Float16 na Android emulátoru až po načtení `kvm_amd`, rv-capabilities 8/0). Kontroly muzea, které
   předpokládaly staré chování CNA, sladěny s aktuální dokumentací (CNB NONE, WAV, XNB v4, lock,
   AddDependency) a s XNA (storage: výsledek odmítnutý pro cizí zařízení je spotřebovaný; IOException
   v zablokované složce; read-only AchievementCollection); odstraněny workaroundy (std::optional
