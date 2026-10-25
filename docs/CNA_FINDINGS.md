@@ -20,7 +20,35 @@ moved to "Documented differences".
   `9d49828f4` (`tools/build_android.sh`), but the emulator could not run: `/dev/kvm` does not exist (the `kvm_amd` module
   is not loaded on this machine since 2026-10-23). Rerun `tools/android_run.sh rv-capabilities` once it is.
 
-<<SANITIZER>>
+### Vendored ENet shifts a signed 1 by 31 places (UBSan)
+- **Where:** `third_party/enet/protocol.c`, `enet_protocol_handle_send_unsequenced`: `1 << (index % 32)` at lines 492
+  and 498, on the `enet_uint32` unsequenced window.
+- **What happens:** with an unsequenced packet whose window index is 31 the shift is undefined behaviour in C
+  (`runtime error: left shift of 1 by 31 places cannot be represented in type 'int'`, 9 times each in the
+  ASan+UBSan `tools/net_check.sh` run on 2026-10-20, packet round with `SendDataOptions.None`). GCC and Clang produce
+  the expected bit today, so no packet was lost, but the compiler may assume it never happens.
+- **Needed change:** `1u << (index % 32)` in both places.
+- **2026-10-22/24:** CNA `5b6aab981` (MUSEUM-NET-003) makes both shifts `1u << (index % 32)`, and `03b92269c` the fragment
+  bitmaps' `1 << 31` too. The rerun in build-tsan (ThreadSanitizer with UBSan) is in progress on 2026-10-25.
+
+### Data races found by ThreadSanitizer (build-tsan, 2026-10-20)
+Seen in the targeted TSan run (`tools/scenarios.py notifications inspector`, a 30-frame press-all tour of the au-*, dev-notify,
+pl-inspector, net-packets and net-session rooms, `tools/audio_check.sh`, `tools/net_check.sh`; the network rounds were clean).
+- **`HttpNotificationChannel::Close` and its listener thread:** `Close()` (`modules/phone/src/HttpNotificationChannel.cpp:223`)
+  writes `listenSocket_ = -1` under the channel mutex while the listener thread started by `Open()` reads `listenSocket_` for
+  `::accept` in `Listen()` (line 180) without it (dev-notify, "Close, then send to the closed channel"). Needed: the listener works on the socket
+  value it was started with (or `listenSocket_` becomes atomic), and `Close` only shuts it down and joins.
+- **`SetMixerTrackMixCallback` against the mixer thread:** `context->mixCallback` and `mixUserdata`
+  (`modules/audio/src/Backend/Sdl3Mixer/MixerEngine.cpp:559-560`) are written by the game thread
+  (`SoundEffectInstance::Apply3D` → `INTERNAL_applyComposedTrackProperties` → `EnsureTrackDspState`) while SDL's audio thread
+  reads them in `MixCallback` (line 245) for a track that is already playing (every au-* room with 3D voices, 12 reports per
+  audio_check run). Needed: write them under the mixer lock the cooked callback runs under, or set them before the track plays.
+- **Static teardown of pending pan state while the audio thread still mixes:** at process exit `~PendingPanStateCleanup`
+  (`modules/audio/src/Xna/SoundEffect.cpp:236`, `DrainClaimed` line 218) deletes pending pan states while the SDL audio thread
+  still runs `FireAndForgetPanCallback` (line 154) through `MixCallback` (seen at the end of the notifications and Inspector
+  scenarios, which played fire-and-forget sounds). Needed: stop or lock the mixer before the static drain.
+- **2026-10-25:** CNA fixed all three (`20fe6efd2` the notification Close race, `844e3ce41` the mixer callback race,
+  `594d7d328` the exit-time drain); the rerun in build-tsan is in progress.
 
 ## Documented differences (CNA's decision, not defects)
 

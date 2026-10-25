@@ -23,7 +23,8 @@ shows): `tools/renderer_check.sh OPENGLES3 OPENGL33` 97 PASS, 0 FAIL, 2 INFO, 1 
 `tools/reference.sh compare` within 1 % of the llvmpipe references for every view (worst `formats` 0.59 %).
 From `build-probe` with `VK_ICD_FILENAMES=.../radeon_icd.json`: SDL_GPU on RADV 97/0/2/1, FNA3D on radeonsi 75 PASS,
 0 FAIL, 2 INFO, 23 SKIP (formats FNA3D cannot create). WEBGPU does not start offscreen (its surface needs a native
-window; `docs/CNA_FINDINGS.md`); `MUSEUM_GPU=weston` runs it in a private headless Weston that renders on the GPU:
+window, a documented CNA requirement; with `MUSEUM_RENDERER_FALLBACK=1` the museum takes CNA's fallback to the next
+renderer instead, `docs/CNA_FINDINGS.md`); `MUSEUM_GPU=weston` runs it in a private headless Weston that renders on the GPU:
 "AMD Radeon 780M (RADV PHOENIX), Vulkan backend", 76 PASS, 0 FAIL, 2 INFO, 22 SKIP.
 
 The second group needs CNA's optional dependencies from the shared checkouts (nothing is downloaded):
@@ -55,8 +56,9 @@ Complete browser runs (2026-10-20, Chrome headless, WEBGL2 on SwiftShader, `tool
 the WEBGL2 tour visits all 320 rooms with 0 exhibit and 0 script errors, and the floor 9 rooms report 99 renderer
 self-checks PASS and 0 FAIL. The functional scenarios run in the page too: 18 pass, 5 are skipped for a stated reason (C ABI,
 compiled effects, Inspector and video are not built into the browser edition; one scenario needs a blocked data folder, which
-a page cannot be given), and `notifications` fails on a CNA gap recorded in `docs/CNA_FINDINGS.md` (the notification
-channel cannot listen in a browser and reports nothing). Where the browser build lacks an optional library (Zstandard, the
+a page cannot be given), and `notifications` failed on a CNA gap (the notification
+channel could not listen in a browser and reported nothing). Since CNA `3c61c30ef` it raises ErrorOccurred
+(ChannelOpenFailed) there, and the scenario's `web` entry expects that: on 2026-10-25, 24 passed, 0 failed, 5 skipped. Where the browser build lacks an optional library (Zstandard, the
 FFmpeg media decoder) a scenario names the room's exact replacement line in its `web` entry. The browser WEBGPU renderer
 (`MUSEUM_WEB_RENDERER=WEBGPU`) visits 316 rooms with 0 exhibit errors once the four rooms that create an `rgba16unorm`
 texture are left out, but CNA ends the page on those four and reports a destroyed-canvas-texture validation error 85 times,
@@ -88,7 +90,23 @@ where filtering makes an exact value meaningless. Rooms: geometry and coverage, 
 interpolation/lighting/fog, sampling, render targets, camera matrices, stock effects. The *Depth* room also reports (as
 information, not pass/fail) the smallest depth gap the renderer resolves at 100 m.
 
-Latest result: the final battery of 2026-10-20/21 (`tools/renderer_check.sh`; the compiled-effects rows come from the
+Latest result (2026-10-25, CNA `9d49828f4`, the reruns of the museum's CNA findings; `-gpu` is the radeonsi/RADV GPU
+without a display, WEBGPU on it through a private headless Weston):
+
+| Renderer | Pass | Fail | Info | Skip | Notes |
+|---|---|---|---|---|---|
+| OPENGLES3, OPENGL33, SOFTWARE (llvmpipe) | 105 | 0 | 2 | 1 | the skip is compiled XNA effects, off in `build/` |
+| SDL_GPU (GPU) | 106 | 0 | 2 | 0 | |
+| FNA3D (GPU) | 81 | 0 | 3 | 22 | twelve runs in a row, none crashed; one INFO is PbrEffect refused without a tangent (`docs/CNA_FINDINGS.md`) |
+| WEBGPU (GPU through Weston) | 87 | 0 | 2 | 19 | |
+| HEADLESS | 8 | 0 | 0 | 36 | RenderTargetReadback is Unsupported and the readback refuses |
+| DIRECTX9 under Wine | - | 0 | - | - | `tools/wine_tour.sh -p`: 320 rooms with every control |
+
+The two new rv-* checks are rv-capabilities "RenderTargetReadback" (the declared answer against a real readback) and
+rv-vertextype "the refusal names the type as the source spells it". The browser tours and the Android emulator were not
+rerun on 2026-10-25 (the browser scenarios were: 24 passed, 0 failed, 5 skipped).
+
+Earlier result: the final battery of 2026-10-20/21 (`tools/renderer_check.sh`; the compiled-effects rows come from the
 build-probe tree, which builds every `CNA_<RENDERER>_COMPILED_EFFECTS` option; `-gpu` is the machine's radeonsi/RADV GPU
 without a display):
 

@@ -33,10 +33,18 @@ first, newest entries at the end of each row.
 - **CNA revision:** every tree is built from `../cna` at **`9d49828f4`** (section 4): build/, build-probe, the browser
   tree, Android and MinGW (build-consumer/android-*, build-consumer/windows) and build-tsan.
 - **CNA findings, 2026-10-25:** every finding that was open was rerun against `9d49828f4` (`docs/CNA_FINDINGS.md`):
-  <<FINDINGS>>
-- **Runs at `9d49828f4`:** <<RUNS>>
+  every one is fixed in CNA and verified, or documented by CNA as a deliberate difference, except two still open: the
+  ThreadSanitizer/UBSan reruns (build-tsan, in progress) and Float16RenderTargets on the Android emulator (no `/dev/kvm`
+  on this machine at the moment). One more refusal is a documented limitation: FNA3D's SDL_GPU driver refuses a
+  tangent-free PbrEffect draw.
+- **Runs at `9d49828f4`:** `tools/scenarios.py` (build/) all pass except `compiled_effects`, a build-probe scenario;
+  renderer self-checks OPENGLES3, OPENGL33 and SOFTWARE 105/0/2/1, SDL_GPU on the GPU 106/0/2/0, FNA3D on the GPU
+  81/0/3/22 twelve times in a row, WEBGPU on the GPU through Weston 87/0/2/19, HEADLESS 8/0/0/36; devices 34/0/4,
+  haptics 14/0, tray 13/0, dialogs 9/0, window 13/0, audio 22/0, voice 5/0, net 23/0, online-party 19/0 three times;
+  browser scenarios 24/0/5; the DIRECTX9 Wine tour; 40 gs-avatar press-all runs under glibc heap checking.
 - **API denominator:** 700 public headers, 19 933 declarations (`docs/CNA_API_INVENTORY.md`).
-- **Coverage evidence:** <<COVERAGE>>
+- **Coverage evidence:** the execution run `2026-10-25-opengles3-full-9d49` (build-probe, rebuilt against
+  `9d49828f4`) is in progress; until it is recorded, `docs/CNA_COVERAGE_AUDIT.md` counts no current execution run.
 
 ## 3. Rules that are not optional
 
@@ -126,7 +134,7 @@ Run from the repository root.
 | Build (native) | `tools/build.sh`; coverage tree: `BUILD_DIR=build-probe tools/build.sh` |
 | Main battery | `tools/check_all.sh` (11 steps, about 12 min); `SLOW=1` adds OPENGL33/SOFTWARE tours, self-checks and leak checks (about 100 min); `ONLINE=1` adds the service |
 | Scenarios | `python3 tools/scenarios.py` (`tests/scenarios/*.json`, exact expected log lines) |
-| Renderers | `tools/renderer_check.sh OPENGLES3` …; `BUILD_DIR=build-probe` for FNA3D, WEBGPU, SDL_GPU, HEADLESS; `MUSEUM_GPU=1` on the GPU, `MUSEUM_GPU=weston` for WEBGPU on the GPU; Vulkan ICD via `VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/{lvp,radeon}_icd.json` |
+| Renderers | `tools/renderer_check.sh OPENGLES3` …; `BUILD_DIR=build-probe` for FNA3D, WEBGPU, SDL_GPU, HEADLESS; `MUSEUM_GPU=1` on the GPU, `MUSEUM_GPU=weston` for WEBGPU on the GPU; Vulkan ICD via `VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/{lvp,radeon}_icd.json`; `MUSEUM_RENDERER_FALLBACK=1` turns a named renderer into a preference with CNA's fallback |
 | Devices and system | `tools/devices_check.sh`, `tools/haptics_check.sh`, `tools/window_check.sh` (openbox from `~/deps/openbox`), `tools/tray_check.sh`, `tools/dialogs_check.sh` |
 | Audio | `tools/audio_check.sh` (SDL disk driver, FFT of the real mix), `tools/voice_check.sh` |
 | Networking | `tools/net_check.sh` (three processes), `tools/online_check.sh`, `tools/online_party_check.sh` (need `../cna-gamer-services-server`) |
@@ -174,5 +182,6 @@ git diff --check
    section 2 still holds.
 3. Without new hardware or an owner request there is no backlog work left. Useful optional work:
    - verify CNA fixes as they land (targeted reruns only);
-   - <<NEXT>>
+   - rerun Float16RenderTargets on the Android emulator once `/dev/kvm` exists again (`sudo modprobe kvm_amd`):
+     `tools/android_run.sh rv-capabilities` (the Android tree is already built against `9d49828f4`);
 4. Ask the owner before any long rebuild round.

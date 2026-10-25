@@ -52,7 +52,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 ## Generated: API names claimed by rooms
 
 <!-- BEGIN COVERAGE -->
-2904 distinct API names are claimed by at least one room.
+2910 distinct API names are claimed by at least one room.
 
 | API | Rooms |
 |---|---|
@@ -433,6 +433,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | CameraState | `dev-camera` |
 | CanonicalReflectiveReaderNameEXT | `wk-typewriter` |
 | Capability | `pl-inspector` |
+| ChannelErrorType | `dev-notify` |
 | ChunkIdToString | `wk-cnbloader` |
 | CleanContent | `wk-contentproject` |
 | CleanContent.BuildConfiguration | `wk-contentproject` |
@@ -1105,6 +1106,7 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | HttpNotificationChannel.ChannelUriUpdated | `dev-notify` |
 | HttpNotificationChannel.Close | `dev-notify` |
 | HttpNotificationChannel.DispatchPendingNotificationsEXT | `dev-notify` |
+| HttpNotificationChannel.ErrorOccurred | `dev-notify` |
 | HttpNotificationChannel.Find | `dev-notify` |
 | HttpNotificationChannel.HttpNotificationReceived | `dev-notify` |
 | HttpNotificationChannel.IsShellToastBound | `dev-notify` |
@@ -1471,6 +1473,10 @@ calls. Rooms are labelled **XNA 4.0** (a feature XNA 4.0 has) or **CNA extension
 | NormalizedByte4 | `vt-packed` |
 | NormalizedShort2 | `vt-packed` |
 | NormalizedShort4 | `vt-packed` |
+| NotificationChannelErrorEventArgs | `dev-notify` |
+| NotificationChannelErrorEventArgs.ErrorCode | `dev-notify` |
+| NotificationChannelErrorEventArgs.ErrorType | `dev-notify` |
+| NotificationChannelErrorEventArgs.Message | `dev-notify` |
 | NotificationChannelUriEventArgs | `dev-notify` |
 | NotificationChannelUriEventArgs.ChannelUri | `dev-notify` |
 | OcclusionQuery | `rs-occlusion`, `rv-capabilities` |
